@@ -37,8 +37,8 @@ export default function ClientsPage() {
 
   const loadClients = async () => {
     try {
-      const res = await api.get<{ data: Client[] }>(`/clients${search ? `?search=${search}` : ''}`);
-      setClients(res.data || []);
+      const res = await api.get<{ data: { clients: Client[] } }>(`/clients${search ? `?search=${search}` : ''}`);
+      setClients(res.data?.clients || []);
     } catch { /* ignore */ } finally {
       setLoading(false);
     }

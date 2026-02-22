@@ -33,7 +33,7 @@ export default function VoicePage() {
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    api.get<{ data: Client[] }>('/clients').then((res) => setClients(res.data || [])).catch(() => {});
+    api.get<{ data: { clients: Client[] } }>('/clients').then((res) => setClients(res.data?.clients || [])).catch(() => {});
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, []);
 

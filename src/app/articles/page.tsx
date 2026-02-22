@@ -37,8 +37,8 @@ export default function ArticlesPage() {
 
   const loadArticles = async () => {
     try {
-      const res = await api.get<{ data: Article[] }>(`/articles${metierFilter ? `?metier=${metierFilter}` : ''}`);
-      setArticles(res.data || []);
+      const res = await api.get<{ data: { articles: Article[] } }>(`/articles${metierFilter ? `?metier=${metierFilter}` : ''}`);
+      setArticles(res.data?.articles || []);
     } catch { /* ignore */ } finally {
       setLoading(false);
     }

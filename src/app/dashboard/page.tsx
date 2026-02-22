@@ -33,12 +33,12 @@ export default function DashboardPage() {
     async function load() {
       try {
         const [devisRes, facturesRes] = await Promise.all([
-          api.get<{ data: Devis[] }>('/devis').catch(() => ({ data: [] })),
-          api.get<{ data: unknown[] }>('/factures').catch(() => ({ data: [] })),
+          api.get<{ data: { devis: Devis[] } }>('/devis').catch(() => ({ data: { devis: [] } })),
+          api.get<{ data: { factures: unknown[] } }>('/factures').catch(() => ({ data: { factures: [] } })),
         ]);
 
-        const allDevis = devisRes.data || [];
-        const allFactures = facturesRes.data || [];
+        const allDevis = devisRes.data?.devis || [];
+        const allFactures = devisRes.data ? (facturesRes.data?.factures || []) : [];
 
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
