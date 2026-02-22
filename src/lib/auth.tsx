@@ -41,14 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await api.post<{ data: { accessToken: string; refreshToken: string } }>(
+    const res = await api.post<{ data: { token: string; refreshToken: string } }>(
       '/auth/login',
       { email, password }
     );
-    const { accessToken, refreshToken } = res.data;
-    localStorage.setItem('token', accessToken);
+    const { token, refreshToken } = res.data;
+    localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
-    const payload = JSON.parse(atob(accessToken.split('.')[1]));
+    const payload = JSON.parse(atob(token.split('.')[1]));
     setUser({ artisan_id: payload.artisan_id, email: payload.email });
   };
 
