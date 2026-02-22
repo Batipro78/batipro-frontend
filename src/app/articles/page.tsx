@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable } from '@/components/data-table';
+import { ProtectedLayout } from '@/components/protected-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -100,7 +101,7 @@ export default function ArticlesPage() {
   ];
 
   return (
-    <div>
+    <ProtectedLayout>
       <PageHeader
         title={t('articles')}
         action={
@@ -178,6 +179,6 @@ export default function ArticlesPage() {
         </Select>
       </div>
       <DataTable columns={columns} data={articles} loading={loading} />
-    </div>
+    </ProtectedLayout>
   );
 }

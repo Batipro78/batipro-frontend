@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
+import { ProtectedLayout } from '@/components/protected-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -125,7 +126,7 @@ export default function VoicePage() {
   const isProcessing = ['queued', 'transcription', 'parsing', 'matching', 'creating_devis'].includes(phase);
 
   return (
-    <div>
+    <ProtectedLayout>
       <PageHeader title={t('voiceTitle')} description={t('voiceSubtitle')} />
 
       <div className="max-w-xl mx-auto space-y-6">
@@ -210,6 +211,6 @@ export default function VoicePage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ProtectedLayout>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable } from '@/components/data-table';
+import { ProtectedLayout } from '@/components/protected-layout';
 import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
@@ -77,9 +78,9 @@ export default function DevisPage() {
   ];
 
   return (
-    <div>
+    <ProtectedLayout>
       <PageHeader title={t('devis')} />
       <DataTable columns={columns} data={devis} loading={loading} />
-    </div>
+    </ProtectedLayout>
   );
 }

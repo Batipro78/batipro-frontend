@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable } from '@/components/data-table';
+import { ProtectedLayout } from '@/components/protected-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -107,7 +108,7 @@ export default function ClientsPage() {
   ];
 
   return (
-    <div>
+    <ProtectedLayout>
       <PageHeader
         title={t('clients')}
         action={
@@ -174,6 +175,6 @@ export default function ClientsPage() {
         />
       </div>
       <DataTable columns={columns} data={clients} loading={loading} />
-    </div>
+    </ProtectedLayout>
   );
 }

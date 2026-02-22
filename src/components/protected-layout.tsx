@@ -3,9 +3,9 @@
 import { Sidebar } from '@/components/sidebar';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, ReactNode } from 'react';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export function ProtectedLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
 

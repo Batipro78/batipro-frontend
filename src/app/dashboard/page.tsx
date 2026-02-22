@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/page-header';
+import { ProtectedLayout } from '@/components/protected-layout';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { FileText, Receipt, TrendingUp, Clock } from 'lucide-react';
@@ -69,7 +70,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div>
+    <ProtectedLayout>
       <PageHeader title={t('dashboard')} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -119,6 +120,6 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </ProtectedLayout>
   );
 }
