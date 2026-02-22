@@ -85,6 +85,16 @@ const translations = {
     stopRecording: 'Arrêter',
     processing: 'Traitement en cours...',
     selectClient: 'Sélectionnez un client',
+    selectTrade: 'Choisissez votre métier',
+    selectGamme: 'Choisissez la gamme',
+    eco: 'Éco',
+    ecoDesc: 'Entrée de gamme, prix compétitifs',
+    standard: 'Standard',
+    standardDesc: 'Rapport qualité/prix optimal',
+    premiumLabel: 'Premium',
+    premiumDesc: 'Haute qualité, grandes marques',
+    supplierList: 'Liste de fournitures',
+    pickupAt: 'À récupérer chez',
   },
   en: {
     // Navigation
@@ -166,6 +176,16 @@ const translations = {
     stopRecording: 'Stop',
     processing: 'Processing...',
     selectClient: 'Select a client',
+    selectTrade: 'Choose your trade',
+    selectGamme: 'Choose the range',
+    eco: 'Eco',
+    ecoDesc: 'Entry level, competitive prices',
+    standard: 'Standard',
+    standardDesc: 'Best value for money',
+    premiumLabel: 'Premium',
+    premiumDesc: 'Top quality, premium brands',
+    supplierList: 'Supply list',
+    pickupAt: 'Pick up at',
   },
 } as const;
 
