@@ -95,6 +95,21 @@ const translations = {
     premiumDesc: 'Haute qualité, grandes marques',
     supplierList: 'Liste de fournitures',
     pickupAt: 'À récupérer chez',
+    // Profile
+    profile: 'Mon Profil',
+    profileDesc: 'Informations de votre entreprise pour vos devis',
+    companyName: 'Nom de l\'entreprise',
+    siret: 'SIRET',
+    proEmail: 'Email professionnel',
+    logo: 'Logo',
+    uploadLogo: 'Changer le logo',
+    deleteLogo: 'Supprimer le logo',
+    profileSaved: 'Profil enregistré',
+    profileIncomplete: 'Profil incomplet',
+    profileComplete: 'Profil complet',
+    profileIncompleteMsg: 'Complétez votre profil pour générer des devis conformes',
+    contactInfo: 'Coordonnées',
+    companyInfo: 'Entreprise',
   },
   en: {
     // Navigation
@@ -186,6 +201,21 @@ const translations = {
     premiumDesc: 'Top quality, premium brands',
     supplierList: 'Supply list',
     pickupAt: 'Pick up at',
+    // Profile
+    profile: 'My Profile',
+    profileDesc: 'Your company information for your quotes',
+    companyName: 'Company name',
+    siret: 'SIRET',
+    proEmail: 'Professional email',
+    logo: 'Logo',
+    uploadLogo: 'Change logo',
+    deleteLogo: 'Delete logo',
+    profileSaved: 'Profile saved',
+    profileIncomplete: 'Incomplete profile',
+    profileComplete: 'Profile complete',
+    profileIncompleteMsg: 'Complete your profile to generate compliant quotes',
+    contactInfo: 'Contact',
+    companyInfo: 'Company',
   },
 } as const;
 

@@ -9,6 +9,7 @@ import {
   FileText,
   Receipt,
   Mic,
+  UserCog,
   LogOut,
   Menu,
   X,
@@ -29,6 +30,7 @@ const navItems = [
   { href: '/devis', icon: FileText, labelKey: 'devis' as const },
   { href: '/factures', icon: Receipt, labelKey: 'factures' as const },
   { href: '/voice', icon: Mic, labelKey: 'voiceAi' as const },
+  { href: '/profil', icon: UserCog, labelKey: 'profile' as const },
 ];
 
 function NavContent({ onClose }: { onClose?: () => void }) {
