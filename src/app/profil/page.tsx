@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import Image from 'next/image';
 import { PageHeader } from '@/components/page-header';
 import { ProtectedLayout } from '@/components/protected-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -280,7 +281,7 @@ export default function ProfilPage() {
           <CardContent className="flex flex-col items-center gap-4">
             <div className="w-32 h-32 rounded-xl border-2 border-dashed border-muted flex items-center justify-center overflow-hidden bg-muted/30">
               {profile?.logo_url ? (
-                <img src={profile.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
+                <Image src={profile.logo_url} alt="Logo" width={128} height={128} className="w-full h-full object-contain p-2" unoptimized />
               ) : (
                 <Building2 className="h-12 w-12 text-muted-foreground/50" />
               )}
