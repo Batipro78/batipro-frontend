@@ -86,25 +86,29 @@ export default function ProfilPage() {
   async function loadProfile() {
     try {
       const res = await api.get<{ data: { profile: Profile } }>('/profile');
-      const p = res.data.profile;
-      setProfile(p);
-      setForm({
-        nom: p.nom || '',
-        nom_entreprise: p.nom_entreprise || '',
-        telephone: p.telephone || '',
-        email_pro: p.email_pro || '',
-        siret: p.siret || '',
-        adresse: p.adresse || '',
-        ville: p.ville || '',
-        codepostal: p.codepostal || '',
-        tva_intracommunautaire: p.tva_intracommunautaire || '',
-        mention_rcs_rm: p.mention_rcs_rm || '',
-        assurance_decennale_nom: p.assurance_decennale_nom || '',
-        assurance_decennale_numero: p.assurance_decennale_numero || '',
-        assurance_decennale_zone: p.assurance_decennale_zone || '',
-      });
+      const p = res.data?.profile;
+      if (p) {
+        setProfile(p);
+        setForm({
+          nom: p.nom || '',
+          nom_entreprise: p.nom_entreprise || '',
+          telephone: p.telephone || '',
+          email_pro: p.email_pro || '',
+          siret: p.siret || '',
+          adresse: p.adresse || '',
+          ville: p.ville || '',
+          codepostal: p.codepostal || '',
+          tva_intracommunautaire: p.tva_intracommunautaire || '',
+          mention_rcs_rm: p.mention_rcs_rm || '',
+          assurance_decennale_nom: p.assurance_decennale_nom || '',
+          assurance_decennale_numero: p.assurance_decennale_numero || '',
+          assurance_decennale_zone: p.assurance_decennale_zone || '',
+        });
+      }
+      // If no profile, show empty form (first-time onboarding)
     } catch {
-      toast.error('Erreur chargement profil');
+      // Profile not found or API error — show empty form for onboarding
+      console.warn('Profil non trouvé, affichage du formulaire vierge');
     } finally {
       setLoading(false);
     }
