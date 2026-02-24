@@ -42,7 +42,7 @@ interface Profile {
   ville: string;
   codepostal: string;
   logo_url: string | null;
-  numero_tva: string | null;
+  tva_intracommunautaire: string | null;
   mention_rcs_rm: string | null;
   assurance_decennale_nom: string | null;
   assurance_decennale_numero: string | null;
@@ -72,7 +72,7 @@ export default function ProfilPage() {
     adresse: '',
     ville: '',
     codepostal: '',
-    numero_tva: '',
+    tva_intracommunautaire: '',
     mention_rcs_rm: '',
     assurance_decennale_nom: '',
     assurance_decennale_numero: '',
@@ -97,7 +97,7 @@ export default function ProfilPage() {
         adresse: p.adresse || '',
         ville: p.ville || '',
         codepostal: p.codepostal || '',
-        numero_tva: p.numero_tva || '',
+        tva_intracommunautaire: p.tva_intracommunautaire || '',
         mention_rcs_rm: p.mention_rcs_rm || '',
         assurance_decennale_nom: p.assurance_decennale_nom || '',
         assurance_decennale_numero: p.assurance_decennale_numero || '',
@@ -193,7 +193,7 @@ export default function ProfilPage() {
     { done: !!profile.telephone, label: t('phone') },
     { done: !!profile.logo_url, label: t('logo') },
     { done: !!profile.assurance_decennale_nom, label: t('insuranceSection') },
-    { done: !!profile.numero_tva, label: t('tvaNumber') },
+    { done: !!profile.tva_intracommunautaire, label: t('tvaNumber') },
   ] : [];
   const completenessPercent = completenessItems.length > 0
     ? Math.round((completenessItems.filter((i) => i.done).length / completenessItems.length) * 100)
@@ -480,11 +480,11 @@ export default function ProfilPage() {
               {/* TVA & RCS/RM */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="numero_tva">{t('tvaNumber')}</Label>
+                  <Label htmlFor="tva_intracommunautaire">{t('tvaNumber')}</Label>
                   <Input
-                    id="numero_tva"
-                    value={form.numero_tva}
-                    onChange={(e) => updateField('numero_tva', e.target.value)}
+                    id="tva_intracommunautaire"
+                    value={form.tva_intracommunautaire}
+                    onChange={(e) => updateField('tva_intracommunautaire', e.target.value)}
                     placeholder="FR 12 345678901"
                   />
                   <p className="text-xs text-muted-foreground">Obligatoire si assujetti a la TVA</p>
