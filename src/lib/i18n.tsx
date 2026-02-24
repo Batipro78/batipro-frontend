@@ -110,6 +110,18 @@ const translations = {
     profileIncompleteMsg: 'Complétez votre profil pour générer des devis conformes',
     contactInfo: 'Coordonnées',
     companyInfo: 'Entreprise',
+    // Profile - Legal
+    tvaNumber: 'N° TVA intracommunautaire',
+    rcsRm: 'Immatriculation RCS / RM',
+    insuranceSection: 'Assurance décennale',
+    insuranceName: 'Nom de l\'assureur',
+    insuranceNumber: 'N° de police / contrat',
+    insuranceZone: 'Zone géographique couverte',
+    requiredFields: 'Champs obligatoires',
+    optionalFields: 'Informations complémentaires',
+    encourageMsg: 'Remplissez ces infos pour commencer à générer vos devis vocaux. Vous pourrez ajouter votre logo et vos assurances plus tard.',
+    dashboardProfileBanner: 'Complétez votre profil pour des devis 100% professionnels',
+    fillProfile: 'Compléter mon profil',
   },
   en: {
     // Navigation
@@ -216,6 +228,18 @@ const translations = {
     profileIncompleteMsg: 'Complete your profile to generate compliant quotes',
     contactInfo: 'Contact',
     companyInfo: 'Company',
+    // Profile - Legal
+    tvaNumber: 'VAT number',
+    rcsRm: 'RCS / RM registration',
+    insuranceSection: 'Decennial insurance',
+    insuranceName: 'Insurer name',
+    insuranceNumber: 'Policy number',
+    insuranceZone: 'Covered area',
+    requiredFields: 'Required fields',
+    optionalFields: 'Additional information',
+    encourageMsg: 'Fill in these details to start generating voice quotes. You can add your logo and insurance later.',
+    dashboardProfileBanner: 'Complete your profile for 100% professional quotes',
+    fillProfile: 'Complete my profile',
   },
 } as const;
 

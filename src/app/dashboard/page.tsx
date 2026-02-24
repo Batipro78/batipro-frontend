@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
 import { ProtectedLayout } from '@/components/protected-layout';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { FileText, Receipt, TrendingUp, Clock } from 'lucide-react';
+import { FileText, Receipt, TrendingUp, Clock, UserCog, AlertTriangle } from 'lucide-react';
 
 interface Stats {
   totalDevis: number;
@@ -23,18 +25,26 @@ interface Devis {
   created_at: string;
 }
 
+interface ProfileStatus {
+  profil_complet: boolean;
+  logo_url: string | null;
+  assurance_decennale_nom: string | null;
+}
+
 export default function DashboardPage() {
   const { t } = useI18n();
   const [stats, setStats] = useState<Stats>({ totalDevis: 0, totalFactures: 0, caMonth: 0, pendingDevis: 0 });
   const [recentDevis, setRecentDevis] = useState<Devis[]>([]);
+  const [profileStatus, setProfileStatus] = useState<ProfileStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [devisRes, facturesRes] = await Promise.all([
+        const [devisRes, facturesRes, profileRes] = await Promise.all([
           api.get<{ data: { devis: Devis[] } }>('/devis').catch(() => ({ data: { devis: [] } })),
           api.get<{ data: { factures: unknown[] } }>('/factures').catch(() => ({ data: { factures: [] } })),
+          api.get<{ data: { profile: ProfileStatus } }>('/profile').catch(() => null),
         ]);
 
         const allDevis = devisRes.data?.devis || [];
@@ -53,6 +63,10 @@ export default function DashboardPage() {
         });
 
         setRecentDevis(allDevis.slice(0, 5));
+
+        if (profileRes?.data?.profile) {
+          setProfileStatus(profileRes.data.profile);
+        }
       } catch {
         // API might not be fully available
       } finally {
@@ -72,6 +86,22 @@ export default function DashboardPage() {
   return (
     <ProtectedLayout>
       <PageHeader title={t('dashboard')} />
+
+      {/* Profile incomplete banner */}
+      {profileStatus && (!profileStatus.profil_complet || !profileStatus.logo_url || !profileStatus.assurance_decennale_nom) && (
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950 p-4">
+          <AlertTriangle className="h-5 w-5 text-orange-500 shrink-0" />
+          <p className="text-sm text-orange-800 dark:text-orange-200 flex-1">
+            {t('dashboardProfileBanner')}
+          </p>
+          <Link href="/profil">
+            <Button size="sm" variant="outline" className="shrink-0 gap-1">
+              <UserCog className="h-4 w-4" />
+              {t('fillProfile')}
+            </Button>
+          </Link>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {statCards.map((stat) => (
