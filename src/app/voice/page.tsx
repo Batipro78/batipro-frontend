@@ -72,8 +72,10 @@ export default function VoicePage() {
   }, []);
 
   const startRecording = async () => {
+    console.log('[VOICE] Démarrage enregistrement...');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('[VOICE] Micro activé, stream OK');
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       chunksRef.current = [];
 
@@ -84,6 +86,8 @@ export default function VoicePage() {
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        console.log('[VOICE] Arrêt enregistrement, taille blob:', audioBlob.size, 'octets');
+        toast.info('Envoi en cours...');
         await uploadAudio(audioBlob);
       };
 
@@ -93,12 +97,14 @@ export default function VoicePage() {
       setErrorMsg('');
       setFournisseurs([]);
       setComparatifData(null);
-    } catch {
+    } catch (err) {
+      console.error('[VOICE] Erreur micro:', err);
       toast.error('Impossible d\'accéder au microphone');
     }
   };
 
   const stopRecording = () => {
+    console.log('[VOICE] Stop recording demandé');
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
       setPhase('uploading');
@@ -113,11 +119,15 @@ export default function VoicePage() {
       formData.append('gamme', selectedGamme);
       formData.append('metier', selectedMetier);
 
+      console.log('[VOICE] Envoi du fichier vers API...', { taille: blob.size, client: selectedClientId, gamme: selectedGamme, metier: selectedMetier });
       const res = await api.upload<{ data: { logId: number } }>('/ia/devis-vocal', formData);
+      console.log('[VOICE] Réponse API:', res);
       const newLogId = res.data.logId;
+      toast.success(`Audio envoyé ! Job #${newLogId} en cours...`);
       setPhase('queued');
       startPolling(newLogId);
     } catch (err) {
+      console.error('[VOICE] Erreur upload:', err);
       setPhase('failed');
       setErrorMsg(err instanceof Error ? err.message : 'Erreur upload');
     }
@@ -203,7 +213,7 @@ export default function VoicePage() {
   };
 
   const isProcessing = ['queued', 'transcription', 'parsing', 'matching', 'creating_devis'].includes(phase);
-  const canRecord = selectedMetier !== '' && selectedClientId !== '' && phase === 'idle';
+  const canRecord = selectedMetier !== '' && phase === 'idle'; // client_id optionnel pour test
 
   const gammeOptions: { value: Gamme; icon: string; color: string }[] = [
     { value: 'eco', icon: '💰', color: 'border-green-500 bg-green-50 dark:bg-green-950' },
