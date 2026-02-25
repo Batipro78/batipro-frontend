@@ -119,7 +119,8 @@ export default function VoicePage() {
       formData.append('gamme', selectedGamme);
       formData.append('metier', selectedMetier);
 
-      console.log('[VOICE] Envoi du fichier vers API...', { taille: blob.size, client: selectedClientId, gamme: selectedGamme, metier: selectedMetier });
+      const token = localStorage.getItem('token');
+      console.log('[VOICE] Envoi du fichier vers API...', { taille: blob.size, client: selectedClientId, gamme: selectedGamme, metier: selectedMetier, hasToken: !!token, tokenPreview: token ? token.substring(0, 20) + '...' : 'NONE' });
       const res = await api.upload<{ data: { logId: number } }>('/ia/devis-vocal', formData);
       console.log('[VOICE] Réponse API:', res);
       const newLogId = res.data.logId;
@@ -213,7 +214,7 @@ export default function VoicePage() {
   };
 
   const isProcessing = ['queued', 'transcription', 'parsing', 'matching', 'creating_devis'].includes(phase);
-  const canRecord = selectedMetier !== '' && phase === 'idle'; // client_id optionnel pour test
+  const canRecord = selectedMetier !== '' && selectedClientId !== '' && phase === 'idle';
 
   const gammeOptions: { value: Gamme; icon: string; color: string }[] = [
     { value: 'eco', icon: '💰', color: 'border-green-500 bg-green-50 dark:bg-green-950' },
@@ -390,7 +391,7 @@ export default function VoicePage() {
 
               {!canRecord && phase === 'idle' && (
                 <p className="text-sm text-muted-foreground">
-                  {!selectedMetier ? t('selectTrade') : t('selectClient')}
+                  {!selectedMetier ? '⬆️ Sélectionnez un métier ci-dessus' : !selectedClientId ? '⬆️ Sélectionnez un client (étape 3)' : ''}
                 </p>
               )}
             </CardContent>
