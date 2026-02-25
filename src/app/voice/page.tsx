@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Zap, Wrench, ShoppingBag } from 'lucide-react';
+import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Zap, Wrench, ShoppingBag, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Client {
@@ -23,8 +23,32 @@ interface FournisseurGroup {
   articles: string[];
 }
 
+interface ComparatifLigne {
+  catalogId: string;
+  nom: string;
+  quantite: number;
+  unite: string;
+  tva: number;
+  confidence: string;
+  eco: { prix_ht: number; marque: string; fournisseur: string };
+  standard: { prix_ht: number; marque: string; fournisseur: string };
+  premium: { prix_ht: number; marque: string; fournisseur: string };
+}
+
+interface ComparatifTotaux {
+  eco: { total_ht: number; total_ttc: number };
+  standard: { total_ht: number; total_ttc: number };
+  premium: { total_ht: number; total_ttc: number };
+}
+
+interface ComparatifData {
+  lignes: ComparatifLigne[];
+  totaux: ComparatifTotaux;
+  devisId: number;
+}
+
 type Phase = 'idle' | 'recording' | 'uploading' | 'queued' | 'transcription' | 'parsing' | 'matching' | 'creating_devis' | 'completed' | 'failed';
-type Gamme = 'eco' | 'standard' | 'premium';
+type Gamme = 'eco' | 'standard' | 'premium' | 'comparatif';
 type Metier = 'electricien' | 'plombier';
 
 export default function VoicePage() {
@@ -36,6 +60,8 @@ export default function VoicePage() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [fournisseurs, setFournisseurs] = useState<FournisseurGroup[]>([]);
+  const [comparatifData, setComparatifData] = useState<ComparatifData | null>(null);
+  const [showGammeChooser, setShowGammeChooser] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -66,6 +92,7 @@ export default function VoicePage() {
       setPhase('recording');
       setErrorMsg('');
       setFournisseurs([]);
+      setComparatifData(null);
     } catch {
       toast.error('Impossible d\'accéder au microphone');
     }
@@ -99,15 +126,38 @@ export default function VoicePage() {
   const startPolling = (id: number) => {
     pollingRef.current = setInterval(async () => {
       try {
-        const res = await api.get<{ data: { phase: Phase; errorMessage?: string; devisMetadata?: { fournisseurs_liste?: FournisseurGroup[] } } }>(`/ia/devis-vocal/${id}/status`);
-        const { phase: newPhase, errorMessage, devisMetadata } = res.data;
+        const res = await api.get<{
+          data: {
+            phase: Phase;
+            errorMessage?: string;
+            devisId?: number;
+            devisMetadata?: {
+              gamme?: string;
+              fournisseurs_liste?: FournisseurGroup[];
+              comparaison?: { lignes: ComparatifLigne[]; totaux: ComparatifTotaux };
+            };
+          };
+        }>(`/ia/devis-vocal/${id}/status`);
+        const { phase: newPhase, errorMessage, devisMetadata, devisId } = res.data;
         setPhase(newPhase);
 
         if (newPhase === 'completed') {
           clearInterval(pollingRef.current!);
-          toast.success('Devis créé avec succès !');
-          if (devisMetadata?.fournisseurs_liste) {
-            setFournisseurs(devisMetadata.fournisseurs_liste);
+
+          if (devisMetadata?.gamme === 'comparatif' && devisMetadata.comparaison && devisId) {
+            // Comparatif mode: show comparison table
+            setComparatifData({
+              lignes: devisMetadata.comparaison.lignes,
+              totaux: devisMetadata.comparaison.totaux,
+              devisId,
+            });
+            toast.success('Comparatif prêt !');
+          } else {
+            // Normal mode: show supplier list
+            toast.success('Devis créé avec succès !');
+            if (devisMetadata?.fournisseurs_liste) {
+              setFournisseurs(devisMetadata.fournisseurs_liste);
+            }
           }
         } else if (newPhase === 'failed') {
           clearInterval(pollingRef.current!);
@@ -119,12 +169,28 @@ export default function VoicePage() {
     }, 2000);
   };
 
+  const handleFinalizeGamme = async (gammeChoisie: 'eco' | 'standard' | 'premium') => {
+    if (!comparatifData) return;
+    try {
+      await api.put(`/ia/devis-vocal/${comparatifData.devisId}/finaliser-gamme`, { gamme: gammeChoisie });
+      toast.success(`Devis finalisé en gamme ${gammeChoisie}`);
+      setShowGammeChooser(false);
+      reset();
+    } catch {
+      toast.error('Erreur lors de la finalisation');
+    }
+  };
+
   const reset = () => {
     setPhase('idle');
     setErrorMsg('');
     setFournisseurs([]);
+    setComparatifData(null);
+    setShowGammeChooser(false);
     if (pollingRef.current) clearInterval(pollingRef.current);
   };
+
+  const formatPrice = (price: number) => price.toFixed(2).replace('.', ',') + ' €';
 
   const phaseLabels: Record<string, string> = {
     queued: 'En file d\'attente...',
@@ -192,7 +258,7 @@ export default function VoicePage() {
               <CardTitle>2. {t('selectGamme')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {gammeOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -206,13 +272,27 @@ export default function VoicePage() {
                   >
                     <span className="text-2xl">{opt.icon}</span>
                     <span className="font-semibold text-sm">
-                      {opt.value === 'premium' ? t('premiumLabel') : t(opt.value)}
+                      {opt.value === 'premium' ? t('premiumLabel') : t(opt.value as 'eco' | 'standard')}
                     </span>
                     <span className="text-xs text-muted-foreground text-center">
                       {t(`${opt.value}Desc` as 'ecoDesc' | 'standardDesc' | 'premiumDesc')}
                     </span>
                   </button>
                 ))}
+                {/* Carte Comparatif — classes explicites pour que Tailwind v4 les détecte */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedGamme('comparatif')}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                    selectedGamme === 'comparatif'
+                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-950 shadow-md'
+                      : 'border-muted hover:border-primary/50'
+                  }`}
+                >
+                  <span className="text-2xl">📊</span>
+                  <span className="font-semibold text-sm">{t('comparatif')}</span>
+                  <span className="text-xs text-muted-foreground text-center">{t('comparatifDesc')}</span>
+                </button>
               </div>
             </CardContent>
           </Card>
@@ -282,7 +362,7 @@ export default function VoicePage() {
                 </div>
               )}
 
-              {phase === 'completed' && (
+              {phase === 'completed' && !comparatifData && (
                 <div className="flex flex-col items-center gap-3">
                   <CheckCircle className="h-12 w-12 text-green-500" />
                   <p className="font-medium text-green-600">Devis créé avec succès !</p>
@@ -307,7 +387,142 @@ export default function VoicePage() {
           </Card>
         )}
 
-        {/* Supplier List (after completion) */}
+        {/* Comparatif Table */}
+        {comparatifData && (
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('comparatifTitle')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 pr-4">{t('designation')}</th>
+                      <th className="text-center py-2 px-2">{t('quantity')}</th>
+                      <th className="text-right py-2 px-2 text-green-600">{t('eco')}</th>
+                      <th className="text-right py-2 px-2 text-blue-600">{t('standard')}</th>
+                      <th className="text-right py-2 px-2 text-amber-600">{t('premiumLabel')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {comparatifData.lignes.map((ligne, i) => (
+                      <tr key={i} className="border-b last:border-0">
+                        <td className="py-2 pr-4">
+                          <div className="font-medium">{ligne.nom}</div>
+                        </td>
+                        <td className="text-center py-2 px-2">{ligne.quantite}</td>
+                        <td className="text-right py-2 px-2">
+                          <div className="text-green-600">{formatPrice(ligne.eco.prix_ht * ligne.quantite)}</div>
+                          <div className="text-xs text-muted-foreground">{ligne.eco.marque}</div>
+                        </td>
+                        <td className="text-right py-2 px-2">
+                          <div className="text-blue-600">{formatPrice(ligne.standard.prix_ht * ligne.quantite)}</div>
+                          <div className="text-xs text-muted-foreground">{ligne.standard.marque}</div>
+                        </td>
+                        <td className="text-right py-2 px-2">
+                          <div className="text-amber-600">{formatPrice(ligne.premium.prix_ht * ligne.quantite)}</div>
+                          <div className="text-xs text-muted-foreground">{ligne.premium.marque}</div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 font-semibold">
+                      <td className="py-2 pr-4">{t('totalHT')}</td>
+                      <td></td>
+                      <td className="text-right py-2 px-2 text-green-600">{formatPrice(comparatifData.totaux.eco.total_ht)}</td>
+                      <td className="text-right py-2 px-2 text-blue-600">{formatPrice(comparatifData.totaux.standard.total_ht)}</td>
+                      <td className="text-right py-2 px-2 text-amber-600">{formatPrice(comparatifData.totaux.premium.total_ht)}</td>
+                    </tr>
+                    <tr className="font-semibold">
+                      <td className="py-2 pr-4">{t('totalTTC')}</td>
+                      <td></td>
+                      <td className="text-right py-2 px-2 text-green-600">{formatPrice(comparatifData.totaux.eco.total_ttc)}</td>
+                      <td className="text-right py-2 px-2 text-blue-600">{formatPrice(comparatifData.totaux.standard.total_ttc)}</td>
+                      <td className="text-right py-2 px-2 text-amber-600">{formatPrice(comparatifData.totaux.premium.total_ttc)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div className="flex gap-3 mt-6 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    toast.success('Devis envoyé au client');
+                  }}
+                >
+                  {t('sendToClient')}
+                </Button>
+                <Button onClick={() => setShowGammeChooser(true)}>
+                  {t('signNow')}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Gamme Chooser Dialog */}
+        {showGammeChooser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <Card className="w-full max-w-md mx-4">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>{t('chooseGamme')}</CardTitle>
+                  <button type="button" onClick={() => setShowGammeChooser(false)}>
+                    <X className="h-5 w-5 text-muted-foreground" />
+                  </button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleFinalizeGamme('eco')}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-950 hover:shadow-md transition-all"
+                  >
+                    <span className="text-2xl">💰</span>
+                    <span className="font-semibold text-sm">{t('eco')}</span>
+                    {comparatifData && (
+                      <span className="text-xs font-medium text-green-600">
+                        {formatPrice(comparatifData.totaux.eco.total_ttc)}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleFinalizeGamme('standard')}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 hover:shadow-md transition-all"
+                  >
+                    <span className="text-2xl">⚖️</span>
+                    <span className="font-semibold text-sm">{t('standard')}</span>
+                    {comparatifData && (
+                      <span className="text-xs font-medium text-blue-600">
+                        {formatPrice(comparatifData.totaux.standard.total_ttc)}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleFinalizeGamme('premium')}
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 hover:shadow-md transition-all"
+                  >
+                    <span className="text-2xl">✨</span>
+                    <span className="font-semibold text-sm">{t('premiumLabel')}</span>
+                    {comparatifData && (
+                      <span className="text-xs font-medium text-amber-600">
+                        {formatPrice(comparatifData.totaux.premium.total_ttc)}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Supplier List (after completion - normal mode) */}
         {fournisseurs.length > 0 && (
           <Card>
             <CardHeader>
