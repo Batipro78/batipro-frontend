@@ -334,7 +334,7 @@ export default function VoicePage() {
               {phase === 'idle' && (
                 <Button
                   size="lg"
-                  className="rounded-full h-20 w-20"
+                  className="rounded-full h-20 w-20 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 animate-[pulse_2s_ease-in-out_infinite] hover:animate-none"
                   disabled={!canRecord}
                   onClick={startRecording}
                 >

@@ -107,7 +107,7 @@ export default function DashboardPage() {
         {statCards.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-muted-foreground font-display">
                 {stat.label}
               </CardTitle>
               <stat.icon className={`h-5 w-5 ${stat.color}`} />
@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('recentDevis')}</CardTitle>
+          <CardTitle className="font-display">{t('recentDevis')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
