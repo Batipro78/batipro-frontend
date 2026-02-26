@@ -160,7 +160,9 @@ export default function VoicePage() {
             };
           };
         }>(`/ia/devis-vocal/${id}/status`);
+        console.log('[VOICE] Poll status raw response:', JSON.stringify(res.data));
         const { phase: newPhase, errorMessage, devisMetadata, devisId } = res.data;
+        console.log('[VOICE] Poll status parsed:', { newPhase, devisId, hasMetadata: !!devisMetadata, errorMessage });
         setPhase(newPhase);
 
         if (newPhase === 'completed') {
