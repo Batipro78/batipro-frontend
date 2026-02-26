@@ -64,9 +64,12 @@ export default function VoicePage() {
   const [comparatifData, setComparatifData] = useState<ComparatifData | null>(null);
   const [showGammeChooser, setShowGammeChooser] = useState(false);
   const [createdDevisId, setCreatedDevisId] = useState<number | null>(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recordingStartRef = useRef<number>(0);
 
   useEffect(() => {
     console.log('[VOICE] Chargement des clients...');
@@ -97,13 +100,23 @@ export default function VoicePage() {
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        console.log('[VOICE] Arrêt enregistrement, taille blob:', audioBlob.size, 'octets');
+        console.log('[VOICE] Arrêt enregistrement, taille blob:', audioBlob.size, 'octets, chunks:', chunksRef.current.length);
+        if (audioBlob.size < 10000) {
+          toast.error('Audio trop court ou vide — veuillez réessayer en parlant plus longtemps');
+          setPhase('idle');
+          return;
+        }
         toast.info('Envoi en cours...');
         await uploadAudio(audioBlob);
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(500); // collect chunks every 500ms
       mediaRecorderRef.current = mediaRecorder;
+      recordingStartRef.current = Date.now();
+      setRecordingSeconds(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds(Math.floor((Date.now() - recordingStartRef.current) / 1000));
+      }, 500);
       setPhase('recording');
       setErrorMsg('');
       setFournisseurs([]);
@@ -116,9 +129,20 @@ export default function VoicePage() {
 
   const stopRecording = () => {
     console.log('[VOICE] Stop recording demandé');
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    const duration = Date.now() - recordingStartRef.current;
+    if (duration < 2000) {
+      toast.warning('Enregistrement trop court — parlez au moins 2 secondes');
+      // Don't stop, let user continue
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds(Math.floor((Date.now() - recordingStartRef.current) / 1000));
+      }, 500);
+      return;
+    }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
       setPhase('uploading');
+      setRecordingSeconds(0);
     }
   };
 
@@ -369,14 +393,19 @@ export default function VoicePage() {
               )}
 
               {phase === 'recording' && (
-                <Button
-                  size="lg"
-                  variant="destructive"
-                  className="rounded-full h-20 w-20 animate-pulse"
-                  onClick={stopRecording}
-                >
-                  <MicOff className="h-8 w-8" />
-                </Button>
+                <div className="flex flex-col items-center gap-2">
+                  <Button
+                    size="lg"
+                    variant="destructive"
+                    className="rounded-full h-20 w-20 animate-pulse"
+                    onClick={stopRecording}
+                  >
+                    <MicOff className="h-8 w-8" />
+                  </Button>
+                  <span className="text-sm font-mono text-red-500 font-semibold">
+                    {recordingSeconds}s {recordingSeconds < 2 && '(min 2s)'}
+                  </span>
+                </div>
               )}
 
               {(phase === 'uploading' || isProcessing) && (
