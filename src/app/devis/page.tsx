@@ -34,8 +34,8 @@ export default function DevisPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await api.get<{ data: { devis: Devis[] } }>('/devis');
-        setDevis(res.data?.devis || []);
+        const res = await api.get<{ data: { data: Devis[] } }>('/devis');
+        setDevis(res.data?.data || []);
       } catch { /* ignore */ } finally {
         setLoading(false);
       }

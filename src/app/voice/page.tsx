@@ -67,7 +67,16 @@ export default function VoicePage() {
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    api.get<{ data: { clients: Client[] } }>('/clients').then((res) => setClients(res.data?.clients || [])).catch(() => {});
+    console.log('[VOICE] Chargement des clients...');
+    api.get<{ data: { data: Client[]; pagination: unknown } }>('/clients')
+      .then((res) => {
+        const list = res.data?.data || [];
+        console.log('[VOICE] Clients reçus:', list.length, list);
+        setClients(list);
+      })
+      .catch((err) => {
+        console.error('[VOICE] Erreur chargement clients:', err);
+      });
     return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
   }, []);
 

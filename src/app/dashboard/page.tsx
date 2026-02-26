@@ -42,13 +42,13 @@ export default function DashboardPage() {
     async function load() {
       try {
         const [devisRes, facturesRes, profileRes] = await Promise.all([
-          api.get<{ data: { devis: Devis[] } }>('/devis').catch(() => ({ data: { devis: [] } })),
-          api.get<{ data: { factures: unknown[] } }>('/factures').catch(() => ({ data: { factures: [] } })),
+          api.get<{ data: { data: Devis[] } }>('/devis').catch(() => ({ data: { data: [] } })),
+          api.get<{ data: { data: unknown[] } }>('/factures').catch(() => ({ data: { data: [] } })),
           api.get<{ data: { profile: ProfileStatus } }>('/profile').catch(() => null),
         ]);
 
-        const allDevis = devisRes.data?.devis || [];
-        const allFactures = devisRes.data ? (facturesRes.data?.factures || []) : [];
+        const allDevis = devisRes.data?.data || [];
+        const allFactures = facturesRes.data?.data || [];
 
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);

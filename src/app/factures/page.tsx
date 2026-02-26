@@ -26,8 +26,8 @@ export default function FacturesPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await api.get<{ data: { factures: Facture[] } }>('/factures');
-        setFactures(res.data?.factures || []);
+        const res = await api.get<{ data: { data: Facture[] } }>('/factures');
+        setFactures(res.data?.data || []);
       } catch { /* ignore */ } finally {
         setLoading(false);
       }

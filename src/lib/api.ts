@@ -44,11 +44,20 @@ export const api = {
   delete: <T>(endpoint: string) => apiFetch<T>(endpoint, { method: 'DELETE' }),
   upload: async <T>(endpoint: string, formData: FormData): Promise<T> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    console.log('[API] upload', endpoint, 'hasToken:', !!token);
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
     });
+    if (res.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+      }
+      throw new Error('Non autorisé');
+    }
     const json = await res.json();
     if (!res.ok) throw new Error(json.error?.message || 'Erreur upload');
     return json;
