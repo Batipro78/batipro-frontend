@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Globe,
+  Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
@@ -26,17 +27,21 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, labelKey: 'dashboard' as const },
   { href: '/clients', icon: Users, labelKey: 'clients' as const },
-  { href: '/articles', icon: Package, labelKey: 'articles' as const },
   { href: '/devis', icon: FileText, labelKey: 'devis' as const },
   { href: '/factures', icon: Receipt, labelKey: 'factures' as const },
   { href: '/voice', icon: Mic, labelKey: 'voiceAi' as const },
   { href: '/profil', icon: UserCog, labelKey: 'profile' as const },
 ];
 
+const settingsItems = [
+  { href: '/articles', icon: Package, labelKey: 'articles' as const },
+];
+
 function NavContent({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const { logout } = useAuth();
   const { t, locale, setLocale } = useI18n();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <div className="flex flex-col h-full">
@@ -66,7 +71,44 @@ function NavContent({ onClose }: { onClose?: () => void }) {
           );
         })}
       </nav>
-      <div className="p-4 space-y-2">
+      <div className="p-4 space-y-1">
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(!settingsOpen)}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full',
+            settingsOpen
+              ? 'bg-accent text-accent-foreground'
+              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+          )}
+        >
+          <Settings className="h-5 w-5" />
+          {t('settings')}
+        </button>
+        {settingsOpen && (
+          <div className="ml-4 space-y-1">
+            {settingsItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {t(item.labelKey)}
+                </Link>
+              );
+            })}
+          </div>
+        )}
+        <Separator />
         <Button
           variant="ghost"
           size="sm"
@@ -76,7 +118,6 @@ function NavContent({ onClose }: { onClose?: () => void }) {
           <Globe className="h-4 w-4" />
           {locale === 'fr' ? 'English' : 'Français'}
         </Button>
-        <Separator />
         <Button
           variant="ghost"
           size="sm"
