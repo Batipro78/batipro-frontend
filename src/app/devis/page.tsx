@@ -21,6 +21,7 @@ interface Devis {
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   brouillon: 'secondary',
+  genere: 'outline',
   envoye: 'outline',
   signe: 'default',
   refuse: 'destructive',
@@ -45,6 +46,7 @@ export default function DevisPage() {
 
   const statusLabel: Record<string, string> = {
     brouillon: t('draft'),
+    genere: 'PDF généré',
     envoye: t('sent'),
     signe: t('signed'),
     refuse: t('rejected'),
