@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 import { ProtectedLayout } from '@/components/protected-layout';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,7 @@ export default function VoicePage() {
   const [fournisseurs, setFournisseurs] = useState<FournisseurGroup[]>([]);
   const [comparatifData, setComparatifData] = useState<ComparatifData | null>(null);
   const [showGammeChooser, setShowGammeChooser] = useState(false);
+  const [createdDevisId, setCreatedDevisId] = useState<number | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -173,7 +175,8 @@ export default function VoicePage() {
             });
             toast.success('Comparatif prêt !');
           } else {
-            // Normal mode: show supplier list
+            // Normal mode: show supplier list + devis link
+            setCreatedDevisId(devisId || null);
             toast.success('Devis créé avec succès !');
             if (devisMetadata?.fournisseurs_liste) {
               setFournisseurs(devisMetadata.fournisseurs_liste);
@@ -206,6 +209,7 @@ export default function VoicePage() {
     setErrorMsg('');
     setFournisseurs([]);
     setComparatifData(null);
+    setCreatedDevisId(null);
     setShowGammeChooser(false);
     if (pollingRef.current) clearInterval(pollingRef.current);
   };
@@ -383,10 +387,15 @@ export default function VoicePage() {
               )}
 
               {phase === 'completed' && !comparatifData && (
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-4">
                   <CheckCircle className="h-12 w-12 text-green-500" />
-                  <p className="font-medium text-green-600">Devis créé avec succès !</p>
-                  <Button onClick={reset}>{t('back')}</Button>
+                  <p className="font-medium text-green-600 text-lg">Devis créé avec succès !</p>
+                  <div className="flex gap-3">
+                    <Link href="/devis">
+                      <Button>{createdDevisId ? 'Voir le devis' : 'Voir mes devis'}</Button>
+                    </Link>
+                    <Button variant="outline" onClick={reset}>Nouveau devis vocal</Button>
+                  </div>
                 </div>
               )}
 
