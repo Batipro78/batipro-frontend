@@ -8,10 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Download, FileText, PenLine, Share2 } from 'lucide-react';
+import { Download, FileText, PenLine, MessageCircle, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { SignatureModal } from '@/components/signature-modal';
-import { ShareModal } from '@/components/share-modal';
+
+interface ArtisanProfile {
+  nom: string;
+  email: string;
+  telephone: string;
+}
 
 interface Devis {
   id: number;
@@ -22,7 +27,7 @@ interface Devis {
   source_creation: string;
   created_at: string;
   pdf_url: string | null;
-  clients?: { nom: string; telephone?: string };
+  clients?: { nom: string; telephone?: string; email?: string };
 }
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -34,12 +39,23 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
   facture: 'default',
 };
 
+function formatPhone(phone: string): string {
+  let clean = phone.replace(/[\s.\-()]/g, '');
+  if (clean.startsWith('0')) {
+    clean = '33' + clean.slice(1);
+  }
+  if (!clean.startsWith('+') && !clean.startsWith('33')) {
+    clean = '33' + clean;
+  }
+  return clean;
+}
+
 export default function DevisPage() {
   const { t } = useI18n();
   const [devis, setDevis] = useState<Devis[]>([]);
   const [loading, setLoading] = useState(true);
   const [signDevis, setSignDevis] = useState<Devis | null>(null);
-  const [shareDevis, setShareDevis] = useState<Devis | null>(null);
+  const [artisan, setArtisan] = useState<ArtisanProfile | null>(null);
 
   async function loadDevis() {
     try {
@@ -51,7 +67,58 @@ export default function DevisPage() {
     }
   }
 
-  useEffect(() => { loadDevis(); }, []);
+  async function loadProfile() {
+    try {
+      const res = await api.get<{ data: { profile: ArtisanProfile } }>('/profile');
+      setArtisan(res.data?.profile || null);
+    } catch { /* ignore */ }
+  }
+
+  useEffect(() => {
+    loadDevis();
+    loadProfile();
+  }, []);
+
+  function handleWhatsApp(r: Devis) {
+    const clientNom = r.clients?.nom || 'Client';
+    const phone = r.clients?.telephone;
+    if (!phone) {
+      toast.error('Aucun numéro de téléphone pour ce client');
+      return;
+    }
+    const entreprise = artisan?.nom || 'Notre entreprise';
+    const message = `Bonjour ${clientNom}, c'est ${entreprise}. Ravi d'avoir échangé avec vous. Voici votre devis n°${r.numero} pour vos travaux. Montant : ${r.total_ttc.toFixed(2)} € TTC.${r.pdf_url ? ` Vous pouvez le consulter ici : ${r.pdf_url}` : ''} Je reste à votre disposition !`;
+
+    window.open(`https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(message)}`, '_blank');
+
+    // Mettre à jour le statut en 'envoye' si le devis est 'genere'
+    if (r.statut === 'genere') {
+      api.put(`/devis/${r.id}`, { statut: 'envoye' })
+        .then(() => loadDevis())
+        .catch(() => {});
+    }
+  }
+
+  function handleEmail(r: Devis) {
+    const clientNom = r.clients?.nom || 'Client';
+    const clientEmail = r.clients?.email;
+    if (!clientEmail) {
+      toast.error('Aucune adresse email pour ce client');
+      return;
+    }
+    const entreprise = artisan?.nom || 'Notre entreprise';
+    const subject = `Devis n°${r.numero} - ${entreprise}`;
+    const body = `Bonjour ${clientNom},\n\nSuite à notre visite de chantier, veuillez trouver ci-joint votre devis détaillé d'un montant de ${r.total_ttc.toFixed(2)} € TTC.\n\n${r.pdf_url ? `Vous pouvez y accéder via ce lien sécurisé : ${r.pdf_url}\n\n` : ''}N'hésitez pas à me contacter pour toute précision.\n\nBien cordialement,\n${entreprise}`;
+
+    window.open(`mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_self');
+
+    // Mettre à jour le statut en 'envoye' si le devis est 'genere'
+    if (r.statut === 'genere') {
+      api.put(`/devis/${r.id}`, { statut: 'envoye' })
+        .then(() => loadDevis())
+        .catch(() => {});
+    }
+  }
 
   const statusLabel: Record<string, string> = {
     brouillon: t('draft'),
@@ -66,7 +133,7 @@ export default function DevisPage() {
     { key: 'numero', header: t('devisNumber') },
     {
       key: 'client', header: t('client'), render: (r: Devis) =>
-        (r.clients as unknown as { nom: string })?.nom || '-',
+        r.clients?.nom || '-',
     },
     { key: 'total_ht', header: t('totalHT'), render: (r: Devis) => `${(r.total_ht || 0).toFixed(2)} \u20ac` },
     { key: 'total_ttc', header: t('totalTTC'), render: (r: Devis) => `${(r.total_ttc || 0).toFixed(2)} \u20ac` },
@@ -86,6 +153,36 @@ export default function DevisPage() {
     {
       key: 'date', header: t('date'), render: (r: Devis) =>
         new Date(r.created_at).toLocaleDateString('fr-FR'),
+    },
+    {
+      key: 'partage', header: 'Partage', render: (r: Devis) => (
+        <div className="flex gap-1">
+          {r.pdf_url && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                onClick={() => handleWhatsApp(r)}
+                title={r.clients?.telephone ? `WhatsApp : ${r.clients.telephone}` : 'Pas de téléphone'}
+                disabled={!r.clients?.telephone}
+              >
+                <MessageCircle className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                onClick={() => handleEmail(r)}
+                title={r.clients?.email ? `Email : ${r.clients.email}` : 'Pas d\'email'}
+                disabled={!r.clients?.email}
+              >
+                <Mail className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+        </div>
+      ),
     },
     {
       key: 'actions', header: 'Actions', render: (r: Devis) => (
@@ -125,17 +222,6 @@ export default function DevisPage() {
               Signer
             </Button>
           )}
-          {r.statut === 'genere' && r.pdf_url && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShareDevis(r)}
-              title="Partager le devis"
-            >
-              <Share2 className="h-4 w-4 mr-1" />
-              Partager
-            </Button>
-          )}
           {(r.statut === 'genere' || r.statut === 'signe') && (
             <Button
               variant="ghost"
@@ -171,20 +257,6 @@ export default function DevisPage() {
         open={!!signDevis}
         onOpenChange={(open) => { if (!open) setSignDevis(null); }}
         onSigned={loadDevis}
-      />
-
-      <ShareModal
-        devis={shareDevis ? {
-          id: shareDevis.id,
-          numero: shareDevis.numero,
-          pdf_url: shareDevis.pdf_url,
-          total_ttc: shareDevis.total_ttc,
-          clientTelephone: shareDevis.clients?.telephone,
-          clientNom: shareDevis.clients?.nom,
-        } : null}
-        open={!!shareDevis}
-        onOpenChange={(open) => { if (!open) setShareDevis(null); }}
-        onShared={loadDevis}
       />
     </ProtectedLayout>
   );
