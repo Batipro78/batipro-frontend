@@ -8,8 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, PenLine, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { SignatureModal } from '@/components/signature-modal';
+import { ShareModal } from '@/components/share-modal';
 
 interface Devis {
   id: number;
@@ -20,7 +22,7 @@ interface Devis {
   source_creation: string;
   created_at: string;
   pdf_url: string | null;
-  clients?: { nom: string };
+  clients?: { nom: string; telephone?: string };
 }
 
 const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -36,6 +38,8 @@ export default function DevisPage() {
   const { t } = useI18n();
   const [devis, setDevis] = useState<Devis[]>([]);
   const [loading, setLoading] = useState(true);
+  const [signDevis, setSignDevis] = useState<Devis | null>(null);
+  const [shareDevis, setShareDevis] = useState<Devis | null>(null);
 
   async function loadDevis() {
     try {
@@ -52,7 +56,7 @@ export default function DevisPage() {
   const statusLabel: Record<string, string> = {
     brouillon: t('draft'),
     genere: 'PDF généré',
-    envoye: t('sent'),
+    envoye: 'Envoyé',
     signe: t('signed'),
     refuse: t('rejected'),
     facture: 'Facturé',
@@ -110,6 +114,28 @@ export default function DevisPage() {
               PDF
             </Button>
           )}
+          {r.statut === 'genere' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSignDevis(r)}
+              title="Faire signer le client"
+            >
+              <PenLine className="h-4 w-4 mr-1" />
+              Signer
+            </Button>
+          )}
+          {r.statut === 'genere' && r.pdf_url && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShareDevis(r)}
+              title="Partager le devis"
+            >
+              <Share2 className="h-4 w-4 mr-1" />
+              Partager
+            </Button>
+          )}
           {(r.statut === 'genere' || r.statut === 'signe') && (
             <Button
               variant="ghost"
@@ -138,6 +164,28 @@ export default function DevisPage() {
     <ProtectedLayout>
       <PageHeader title={t('devis')} />
       <DataTable columns={columns} data={devis} loading={loading} />
+
+      <SignatureModal
+        devisId={signDevis?.id ?? null}
+        devisNumero={signDevis?.numero ?? ''}
+        open={!!signDevis}
+        onOpenChange={(open) => { if (!open) setSignDevis(null); }}
+        onSigned={loadDevis}
+      />
+
+      <ShareModal
+        devis={shareDevis ? {
+          id: shareDevis.id,
+          numero: shareDevis.numero,
+          pdf_url: shareDevis.pdf_url,
+          total_ttc: shareDevis.total_ttc,
+          clientTelephone: shareDevis.clients?.telephone,
+          clientNom: shareDevis.clients?.nom,
+        } : null}
+        open={!!shareDevis}
+        onOpenChange={(open) => { if (!open) setShareDevis(null); }}
+        onShared={loadDevis}
+      />
     </ProtectedLayout>
   );
 }
