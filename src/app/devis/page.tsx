@@ -5,8 +5,10 @@ import { PageHeader } from '@/components/page-header';
 import { DataTable } from '@/components/data-table';
 import { ProtectedLayout } from '@/components/protected-layout';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
+import { Download } from 'lucide-react';
 
 interface Devis {
   id: number;
@@ -16,6 +18,7 @@ interface Devis {
   statut: string;
   source_creation: string;
   created_at: string;
+  pdf_url: string | null;
   clients?: { nom: string };
 }
 
@@ -76,6 +79,20 @@ export default function DevisPage() {
     {
       key: 'date', header: t('date'), render: (r: Devis) =>
         new Date(r.created_at).toLocaleDateString('fr-FR'),
+    },
+    {
+      key: 'actions', header: 'Actions', render: (r: Devis) =>
+        r.pdf_url ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => window.open(r.pdf_url!, '_blank')}
+            title="Télécharger le PDF"
+          >
+            <Download className="h-4 w-4 mr-1" />
+            PDF
+          </Button>
+        ) : null,
     },
   ];
 
