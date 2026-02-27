@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Download } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Devis {
   id: number;
@@ -28,6 +29,7 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
   envoye: 'outline',
   signe: 'default',
   refuse: 'destructive',
+  facture: 'default',
 };
 
 export default function DevisPage() {
@@ -35,17 +37,17 @@ export default function DevisPage() {
   const [devis, setDevis] = useState<Devis[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const res = await api.get<{ data: { data: Devis[] } }>('/devis');
-        setDevis(res.data?.data || []);
-      } catch { /* ignore */ } finally {
-        setLoading(false);
-      }
+  async function loadDevis() {
+    try {
+      setLoading(true);
+      const res = await api.get<{ data: { data: Devis[] } }>('/devis');
+      setDevis(res.data?.data || []);
+    } catch { /* ignore */ } finally {
+      setLoading(false);
     }
-    load();
-  }, []);
+  }
+
+  useEffect(() => { loadDevis(); }, []);
 
   const statusLabel: Record<string, string> = {
     brouillon: t('draft'),
@@ -53,6 +55,7 @@ export default function DevisPage() {
     envoye: t('sent'),
     signe: t('signed'),
     refuse: t('rejected'),
+    facture: 'Facturé',
   };
 
   const columns = [
@@ -81,31 +84,53 @@ export default function DevisPage() {
         new Date(r.created_at).toLocaleDateString('fr-FR'),
     },
     {
-      key: 'actions', header: 'Actions', render: (r: Devis) =>
-        r.pdf_url ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={async () => {
-              try {
-                const res = await fetch(r.pdf_url!);
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${r.numero}.pdf`;
-                a.click();
-                URL.revokeObjectURL(url);
-              } catch {
-                window.open(r.pdf_url!, '_blank');
-              }
-            }}
-            title="Télécharger le PDF"
-          >
-            <Download className="h-4 w-4 mr-1" />
-            PDF
-          </Button>
-        ) : null,
+      key: 'actions', header: 'Actions', render: (r: Devis) => (
+        <div className="flex gap-1">
+          {r.pdf_url && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                try {
+                  const res = await fetch(r.pdf_url!);
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${r.numero}.pdf`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch {
+                  window.open(r.pdf_url!, '_blank');
+                }
+              }}
+              title="Télécharger le PDF"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              PDF
+            </Button>
+          )}
+          {(r.statut === 'genere' || r.statut === 'signe') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await api.post(`/devis/${r.id}/facturer`, { devis_id: r.id });
+                  toast.success('Facture créée avec succès !');
+                  loadDevis();
+                } catch {
+                  toast.error('Erreur lors de la création de la facture');
+                }
+              }}
+              title="Convertir en facture"
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Facturer
+            </Button>
+          )}
+        </div>
+      ),
     },
   ];
 
