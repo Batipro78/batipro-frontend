@@ -86,7 +86,20 @@ export default function DevisPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.open(r.pdf_url!, '_blank')}
+            onClick={async () => {
+              try {
+                const res = await fetch(r.pdf_url!);
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${r.numero}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                window.open(r.pdf_url!, '_blank');
+              }
+            }}
             title="Télécharger le PDF"
           >
             <Download className="h-4 w-4 mr-1" />
