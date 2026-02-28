@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Download, FileText, PenLine, MessageCircle, Mail } from 'lucide-react';
+import { Download, FileText, PenLine, MessageCircle, Mail, Mic } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { SignatureModal } from '@/components/signature-modal';
 
@@ -56,6 +57,7 @@ export default function DevisPage() {
   const [loading, setLoading] = useState(true);
   const [signDevis, setSignDevis] = useState<Devis | null>(null);
   const [artisan, setArtisan] = useState<ArtisanProfile | null>(null);
+  const router = useRouter();
 
   async function loadDevis() {
     try {
@@ -187,6 +189,17 @@ export default function DevisPage() {
     {
       key: 'actions', header: 'Actions', render: (r: Devis) => (
         <div className="flex gap-1">
+          {r.statut === 'brouillon' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push(`/voice?devis_id=${r.id}`)}
+              title="Ajouter des travaux vocaux"
+            >
+              <Mic className="h-4 w-4 mr-1" />
+              + Travaux
+            </Button>
+          )}
           {r.pdf_url && (
             <Button
               variant="ghost"

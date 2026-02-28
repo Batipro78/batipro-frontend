@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 import { ProtectedLayout } from '@/components/protected-layout';
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Zap, Wrench, ShoppingBag, X } from 'lucide-react';
+import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Zap, Wrench, ShoppingBag, X, FileEdit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Client {
@@ -48,12 +49,15 @@ interface ComparatifData {
   devisId: number;
 }
 
-type Phase = 'idle' | 'recording' | 'uploading' | 'queued' | 'transcription' | 'parsing' | 'matching' | 'creating_devis' | 'completed' | 'failed';
+type Phase = 'idle' | 'recording' | 'transcribing' | 'editing' | 'generating' | 'completed' | 'failed';
 type Gamme = 'eco' | 'standard' | 'premium' | 'comparatif';
 type Metier = 'electricien' | 'plombier';
 
-export default function VoicePage() {
+function VoicePageContent() {
   const { t } = useI18n();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [newClientNom, setNewClientNom] = useState('');
@@ -67,31 +71,34 @@ export default function VoicePage() {
   const [showGammeChooser, setShowGammeChooser] = useState(false);
   const [createdDevisId, setCreatedDevisId] = useState<number | null>(null);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [transcript, setTranscript] = useState('');
+  const [avenantDevisId, setAvenantDevisId] = useState<number | null>(null);
+  const [avenantResult, setAvenantResult] = useState<{ linesAdded: number; totalHT: number; totalTTC: number } | null>(null);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const recordingStartRef = useRef<number>(0);
 
+  // Detect avenant mode from URL
   useEffect(() => {
-    console.log('[VOICE] Chargement des clients...');
+    const id = searchParams.get('devis_id');
+    if (id) setAvenantDevisId(parseInt(id, 10));
+  }, [searchParams]);
+
+  useEffect(() => {
     api.get<{ data: { data: Client[]; pagination: unknown } }>('/clients')
       .then((res) => {
-        const list = res.data?.data || [];
-        console.log('[VOICE] Clients reçus:', list.length, list);
-        setClients(list);
+        setClients(res.data?.data || []);
       })
-      .catch((err) => {
-        console.error('[VOICE] Erreur chargement clients:', err);
-      });
-    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+      .catch(() => {});
   }, []);
 
+  const isAvenantMode = avenantDevisId !== null;
+
   const startRecording = async () => {
-    console.log('[VOICE] Démarrage enregistrement...');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log('[VOICE] Micro activé, stream OK');
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       chunksRef.current = [];
 
@@ -102,17 +109,15 @@ export default function VoicePage() {
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        console.log('[VOICE] Arrêt enregistrement, taille blob:', audioBlob.size, 'octets, chunks:', chunksRef.current.length);
         if (audioBlob.size < 10000) {
-          toast.error('Audio trop court ou vide — veuillez réessayer en parlant plus longtemps');
+          toast.error('Audio trop court ou vide — veuillez reessayer en parlant plus longtemps');
           setPhase('idle');
           return;
         }
-        toast.info('Envoi en cours...');
-        await uploadAudio(audioBlob);
+        await handleTranscribe(audioBlob);
       };
 
-      mediaRecorder.start(500); // collect chunks every 500ms
+      mediaRecorder.start(500);
       mediaRecorderRef.current = mediaRecorder;
       recordingStartRef.current = Date.now();
       setRecordingSeconds(0);
@@ -123,19 +128,18 @@ export default function VoicePage() {
       setErrorMsg('');
       setFournisseurs([]);
       setComparatifData(null);
-    } catch (err) {
-      console.error('[VOICE] Erreur micro:', err);
-      toast.error('Impossible d\'accéder au microphone');
+      setTranscript('');
+      setAvenantResult(null);
+    } catch {
+      toast.error("Impossible d'acceder au microphone");
     }
   };
 
   const stopRecording = () => {
-    console.log('[VOICE] Stop recording demandé');
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
     const duration = Date.now() - recordingStartRef.current;
     if (duration < 2000) {
       toast.warning('Enregistrement trop court — parlez au moins 2 secondes');
-      // Don't stop, let user continue
       recordingTimerRef.current = setInterval(() => {
         setRecordingSeconds(Math.floor((Date.now() - recordingStartRef.current) / 1000));
       }, 500);
@@ -143,92 +147,112 @@ export default function VoicePage() {
     }
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
-      setPhase('uploading');
+      setPhase('transcribing');
       setRecordingSeconds(0);
     }
   };
 
-  const uploadAudio = async (blob: Blob) => {
+  /**
+   * Step 1: Upload audio → /voice/transcribe → get text
+   */
+  const handleTranscribe = async (blob: Blob) => {
     try {
+      setPhase('transcribing');
       const formData = new FormData();
       formData.append('audio', blob, 'recording.webm');
-      formData.append('client_id', selectedClientId === 'new' ? '0' : selectedClientId);
-      formData.append('gamme', selectedGamme);
-      formData.append('metier', selectedMetier);
-      if (selectedClientId === 'new') {
-        if (newClientNom) formData.append('client_nom', newClientNom);
-        if (newClientTelephone) formData.append('client_telephone', newClientTelephone);
+
+      const res = await api.upload<{ data: { text: string } }>('/voice/transcribe', formData);
+      const text = res.data?.text || '';
+
+      if (!text || text.trim().length < 3) {
+        toast.error('Transcription vide — veuillez reessayer');
+        setPhase('idle');
+        return;
       }
 
-      const token = localStorage.getItem('token');
-      console.log('[VOICE] Envoi du fichier vers API...', { taille: blob.size, client: selectedClientId, gamme: selectedGamme, metier: selectedMetier, hasToken: !!token, tokenPreview: token ? token.substring(0, 20) + '...' : 'NONE' });
-      const res = await api.upload<{ data: { logId: number } }>('/ia/devis-vocal', formData);
-      console.log('[VOICE] Réponse API:', res);
-      const newLogId = res.data.logId;
-      toast.success(`Audio envoyé ! Job #${newLogId} en cours...`);
-      setPhase('queued');
-      startPolling(newLogId);
+      setTranscript(text);
+      setPhase('editing');
+      toast.success('Transcription terminee — verifiez le texte');
     } catch (err) {
-      console.error('[VOICE] Erreur upload:', err);
       setPhase('failed');
-      setErrorMsg(err instanceof Error ? err.message : 'Erreur upload');
+      setErrorMsg(err instanceof Error ? err.message : 'Erreur transcription');
     }
   };
 
-  const startPolling = (id: number) => {
-    pollingRef.current = setInterval(async () => {
-      try {
-        const res = await api.get<{
-          data: {
-            phase: Phase;
-            errorMessage?: string;
-            devisId?: number;
-            devisMetadata?: {
-              gamme?: string;
-              fournisseurs_liste?: FournisseurGroup[];
-              comparaison?: { lignes: ComparatifLigne[]; totaux: ComparatifTotaux };
-            };
-          };
-        }>(`/ia/devis-vocal/${id}/status`);
-        console.log('[VOICE] Poll status raw response:', JSON.stringify(res.data));
-        const { phase: newPhase, errorMessage, devisMetadata, devisId } = res.data;
-        console.log('[VOICE] Poll status parsed:', { newPhase, devisId, hasMetadata: !!devisMetadata, errorMessage });
-        setPhase(newPhase);
+  /**
+   * Step 2: Send edited text → /voice/generate → create/update devis
+   */
+  const handleGenerateLines = async () => {
+    if (!transcript.trim()) {
+      toast.error('Le texte ne peut pas etre vide');
+      return;
+    }
 
-        if (newPhase === 'completed') {
-          clearInterval(pollingRef.current!);
+    try {
+      setPhase('generating');
 
-          if (devisMetadata?.gamme === 'comparatif' && devisMetadata.comparaison && devisId) {
-            // Comparatif mode: show comparison table
-            setComparatifData({
-              lignes: devisMetadata.comparaison.lignes,
-              totaux: devisMetadata.comparaison.totaux,
-              devisId,
-            });
-            toast.success('Comparatif prêt !');
-          } else {
-            // Normal mode: show supplier list + devis link
-            setCreatedDevisId(devisId || null);
-            toast.success('Devis créé avec succès !');
-            if (devisMetadata?.fournisseurs_liste) {
-              setFournisseurs(devisMetadata.fournisseurs_liste);
-            }
-          }
-        } else if (newPhase === 'failed') {
-          clearInterval(pollingRef.current!);
-          setErrorMsg(errorMessage || 'Erreur inconnue');
+      const payload: Record<string, unknown> = {
+        text: transcript.trim(),
+        metier: selectedMetier,
+        gamme: selectedGamme,
+      };
+
+      if (isAvenantMode) {
+        payload.devis_id = avenantDevisId;
+      } else {
+        payload.client_id = selectedClientId === 'new' ? 0 : parseInt(selectedClientId, 10);
+        if (selectedClientId === 'new') {
+          if (newClientNom) payload.client_nom = newClientNom;
+          if (newClientTelephone) payload.client_telephone = newClientTelephone;
         }
-      } catch {
-        // continue polling
       }
-    }, 2000);
+
+      const res = await api.post<{
+        data: {
+          mode: 'new' | 'avenant';
+          devisId: number;
+          linesAdded: number;
+          totalHT: number;
+          totalTTC: number;
+          fournisseurs?: FournisseurGroup[];
+          comparaison?: { lignes: ComparatifLigne[]; totaux: ComparatifTotaux };
+        };
+      }>('/voice/generate', payload);
+
+      const result = res.data;
+
+      if (result.mode === 'avenant') {
+        setAvenantResult({ linesAdded: result.linesAdded, totalHT: result.totalHT, totalTTC: result.totalTTC });
+        setPhase('completed');
+        toast.success(`${result.linesAdded} ligne(s) ajoutee(s) au devis !`);
+      } else if (result.comparaison) {
+        // Comparatif mode
+        setComparatifData({
+          lignes: result.comparaison.lignes,
+          totaux: result.comparaison.totaux,
+          devisId: result.devisId,
+        });
+        setCreatedDevisId(result.devisId);
+        setPhase('completed');
+        toast.success('Comparatif pret !');
+      } else {
+        // Normal mode
+        setCreatedDevisId(result.devisId);
+        if (result.fournisseurs) setFournisseurs(result.fournisseurs);
+        setPhase('completed');
+        toast.success('Devis cree avec succes !');
+      }
+    } catch (err) {
+      setPhase('failed');
+      setErrorMsg(err instanceof Error ? err.message : 'Erreur generation');
+    }
   };
 
   const handleFinalizeGamme = async (gammeChoisie: 'eco' | 'standard' | 'premium') => {
     if (!comparatifData) return;
     try {
       await api.put(`/ia/devis-vocal/${comparatifData.devisId}/finaliser-gamme`, { gamme: gammeChoisie });
-      toast.success(`Devis finalisé en gamme ${gammeChoisie}`);
+      toast.success(`Devis finalise en gamme ${gammeChoisie}`);
       setShowGammeChooser(false);
       reset();
     } catch {
@@ -243,35 +267,43 @@ export default function VoicePage() {
     setComparatifData(null);
     setCreatedDevisId(null);
     setShowGammeChooser(false);
-    if (pollingRef.current) clearInterval(pollingRef.current);
+    setTranscript('');
+    setAvenantResult(null);
   };
 
-  const formatPrice = (price: number) => price.toFixed(2).replace('.', ',') + ' €';
+  const formatPrice = (price: number) => price.toFixed(2).replace('.', ',') + ' \u20ac';
 
-  const phaseLabels: Record<string, string> = {
-    queued: 'En file d\'attente...',
-    transcription: 'Transcription audio...',
-    parsing: 'Analyse du contenu...',
-    matching: 'Recherche des articles...',
-    creating_devis: 'Création du devis...',
-    completed: 'Devis créé !',
-    failed: 'Échec du traitement',
-  };
-
-  const isProcessing = ['queued', 'transcription', 'parsing', 'matching', 'creating_devis'].includes(phase);
-  const canRecord = selectedMetier !== '' && selectedClientId !== '' && (selectedClientId !== 'new' || newClientNom.trim() !== '') && phase === 'idle';
+  const canRecord = selectedMetier !== ''
+    && (isAvenantMode || (selectedClientId !== '' && (selectedClientId !== 'new' || newClientNom.trim() !== '')))
+    && phase === 'idle';
 
   const gammeOptions: { value: Gamme; icon: string; color: string }[] = [
-    { value: 'eco', icon: '💰', color: 'border-green-500 bg-green-50 dark:bg-green-950' },
-    { value: 'standard', icon: '⚖️', color: 'border-blue-500 bg-blue-50 dark:bg-blue-950' },
-    { value: 'premium', icon: '✨', color: 'border-amber-500 bg-amber-50 dark:bg-amber-950' },
+    { value: 'eco', icon: '\ud83d\udcb0', color: 'border-green-500 bg-green-50 dark:bg-green-950' },
+    { value: 'standard', icon: '\u2696\ufe0f', color: 'border-blue-500 bg-blue-50 dark:bg-blue-950' },
+    { value: 'premium', icon: '\u2728', color: 'border-amber-500 bg-amber-50 dark:bg-amber-950' },
   ];
 
   return (
     <ProtectedLayout>
-      <PageHeader title={t('voiceTitle')} description={t('voiceSubtitle')} />
+      <PageHeader
+        title={isAvenantMode ? `Ajout de travaux — Devis #${avenantDevisId}` : t('voiceTitle')}
+        description={isAvenantMode ? 'Dictez les travaux supplementaires a ajouter au devis existant' : t('voiceSubtitle')}
+      />
 
       <div className="max-w-2xl mx-auto space-y-6">
+        {/* Avenant Mode Banner */}
+        {isAvenantMode && (
+          <Card className="border-2 border-purple-500 bg-purple-50 dark:bg-purple-950">
+            <CardContent className="flex items-center gap-3 py-4">
+              <Plus className="h-5 w-5 text-purple-600" />
+              <div>
+                <p className="font-semibold text-purple-700 dark:text-purple-300">Mode Avenant</p>
+                <p className="text-sm text-purple-600 dark:text-purple-400">Les lignes seront ajoutees au devis #{avenantDevisId}. Les totaux seront recalcules automatiquement.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Step 1: Select Trade */}
         <Card>
           <CardHeader>
@@ -307,8 +339,8 @@ export default function VoicePage() {
           </CardContent>
         </Card>
 
-        {/* Step 2: Select Gamme */}
-        {selectedMetier && (
+        {/* Step 2: Select Gamme — hidden in avenant mode */}
+        {selectedMetier && !isAvenantMode && (
           <Card>
             <CardHeader>
               <CardTitle>2. {t('selectGamme')}</CardTitle>
@@ -335,7 +367,7 @@ export default function VoicePage() {
                     </span>
                   </button>
                 ))}
-                {/* Carte Comparatif — classes explicites pour que Tailwind v4 les détecte */}
+                {/* Carte Comparatif */}
                 <button
                   type="button"
                   onClick={() => setSelectedGamme('comparatif')}
@@ -345,7 +377,7 @@ export default function VoicePage() {
                       : 'border-muted hover:border-primary/50'
                   }`}
                 >
-                  <span className="text-2xl">📊</span>
+                  <span className="text-2xl">{'\ud83d\udcca'}</span>
                   <span className="font-semibold text-sm">{t('comparatif')}</span>
                   <span className="text-xs text-muted-foreground text-center">{t('comparatifDesc')}</span>
                 </button>
@@ -354,11 +386,11 @@ export default function VoicePage() {
           </Card>
         )}
 
-        {/* Step 3: Select Client */}
-        {selectedMetier && (
+        {/* Step 3: Select Client — hidden in avenant mode */}
+        {selectedMetier && !isAvenantMode && (
           <Card>
             <CardHeader>
-              <CardTitle>3. {t('selectClient')}</CardTitle>
+              <CardTitle>{isAvenantMode ? '' : `3. ${t('selectClient')}`}</CardTitle>
             </CardHeader>
             <CardContent>
               <Select value={selectedClientId} onValueChange={(val) => { setSelectedClientId(val); if (val !== 'new') { setNewClientNom(''); setNewClientTelephone(''); } }}>
@@ -387,7 +419,7 @@ export default function VoicePage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Téléphone (optionnel)</label>
+                    <label className="text-sm font-medium mb-1 block">Telephone (optionnel)</label>
                     <input
                       type="tel"
                       value={newClientTelephone}
@@ -402,13 +434,13 @@ export default function VoicePage() {
           </Card>
         )}
 
-        {/* Step 4: Recording */}
+        {/* Step 4 (or 2 in avenant): Recording */}
         {selectedMetier && (
           <Card>
             <CardHeader>
-              <CardTitle>4. Enregistrement vocal</CardTitle>
+              <CardTitle>{isAvenantMode ? '2' : '4'}. Enregistrement vocal</CardTitle>
               <CardDescription>
-                Décrivez les matériaux et travaux nécessaires
+                {isAvenantMode ? 'Decrivez les travaux supplementaires' : 'Decrivez les materiaux et travaux necessaires'}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
@@ -439,25 +471,17 @@ export default function VoicePage() {
                 </div>
               )}
 
-              {(phase === 'uploading' || isProcessing) && (
+              {phase === 'transcribing' && (
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                  <Badge variant="outline" className="text-sm">
-                    {phaseLabels[phase] || t('processing')}
-                  </Badge>
+                  <Badge variant="outline" className="text-sm">Transcription en cours...</Badge>
                 </div>
               )}
 
-              {phase === 'completed' && !comparatifData && (
-                <div className="flex flex-col items-center gap-4">
-                  <CheckCircle className="h-12 w-12 text-green-500" />
-                  <p className="font-medium text-green-600 text-lg">Devis créé avec succès !</p>
-                  <div className="flex gap-3">
-                    <Link href="/devis">
-                      <Button>{createdDevisId ? 'Voir le devis' : 'Voir mes devis'}</Button>
-                    </Link>
-                    <Button variant="outline" onClick={reset}>Nouveau devis vocal</Button>
-                  </div>
+              {phase === 'generating' && (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                  <Badge variant="outline" className="text-sm">Generation du devis...</Badge>
                 </div>
               )}
 
@@ -471,9 +495,80 @@ export default function VoicePage() {
 
               {!canRecord && phase === 'idle' && (
                 <p className="text-sm text-muted-foreground">
-                  {!selectedMetier ? '⬆️ Sélectionnez un métier ci-dessus' : !selectedClientId ? '⬆️ Sélectionnez un client (étape 3)' : ''}
+                  {!selectedMetier
+                    ? '\u2b06\ufe0f Selectionnez un metier ci-dessus'
+                    : !isAvenantMode && !selectedClientId
+                      ? '\u2b06\ufe0f Selectionnez un client'
+                      : ''}
                 </p>
               )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 5 (or 3 in avenant): Transcript Editing */}
+        {phase === 'editing' && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileEdit className="h-5 w-5" />
+                {isAvenantMode ? '3' : '5'}. Verifiez et corrigez le texte
+              </CardTitle>
+              <CardDescription>
+                Corrigez les erreurs de transcription avant de generer les lignes de devis
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <textarea
+                value={transcript}
+                onChange={(e) => setTranscript(e.target.value)}
+                rows={6}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-y min-h-[120px] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="Texte transcrit..."
+              />
+              <div className="flex gap-3 justify-end">
+                <Button variant="outline" onClick={reset}>
+                  Annuler
+                </Button>
+                <Button onClick={handleGenerateLines} disabled={!transcript.trim()}>
+                  Generer les lignes de devis
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Completed: Avenant result */}
+        {phase === 'completed' && avenantResult && (
+          <Card className="border-2 border-green-500">
+            <CardContent className="flex flex-col items-center gap-4 py-6">
+              <CheckCircle className="h-12 w-12 text-green-500" />
+              <div className="text-center">
+                <p className="font-medium text-green-600 text-lg">{avenantResult.linesAdded} ligne(s) ajoutee(s) au devis</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Nouveau total : {formatPrice(avenantResult.totalHT)} HT / {formatPrice(avenantResult.totalTTC)} TTC
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button onClick={() => router.push('/devis')}>Voir mes devis</Button>
+                <Button variant="outline" onClick={reset}>Ajouter encore</Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Completed: Normal mode */}
+        {phase === 'completed' && !comparatifData && !avenantResult && (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-4 py-6">
+              <CheckCircle className="h-12 w-12 text-green-500" />
+              <p className="font-medium text-green-600 text-lg">Devis cree avec succes !</p>
+              <div className="flex gap-3">
+                <Link href="/devis">
+                  <Button>{createdDevisId ? 'Voir le devis' : 'Voir mes devis'}</Button>
+                </Link>
+                <Button variant="outline" onClick={reset}>Nouveau devis vocal</Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -541,7 +636,7 @@ export default function VoicePage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    toast.success('Devis envoyé au client');
+                    toast.success('Devis envoye au client');
                   }}
                 >
                   {t('sendToClient')}
@@ -573,7 +668,7 @@ export default function VoicePage() {
                     onClick={() => handleFinalizeGamme('eco')}
                     className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-950 hover:shadow-md transition-all"
                   >
-                    <span className="text-2xl">💰</span>
+                    <span className="text-2xl">{'\ud83d\udcb0'}</span>
                     <span className="font-semibold text-sm">{t('eco')}</span>
                     {comparatifData && (
                       <span className="text-xs font-medium text-green-600">
@@ -586,7 +681,7 @@ export default function VoicePage() {
                     onClick={() => handleFinalizeGamme('standard')}
                     className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 hover:shadow-md transition-all"
                   >
-                    <span className="text-2xl">⚖️</span>
+                    <span className="text-2xl">{'\u2696\ufe0f'}</span>
                     <span className="font-semibold text-sm">{t('standard')}</span>
                     {comparatifData && (
                       <span className="text-xs font-medium text-blue-600">
@@ -599,7 +694,7 @@ export default function VoicePage() {
                     onClick={() => handleFinalizeGamme('premium')}
                     className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 hover:shadow-md transition-all"
                   >
-                    <span className="text-2xl">✨</span>
+                    <span className="text-2xl">{'\u2728'}</span>
                     <span className="font-semibold text-sm">{t('premiumLabel')}</span>
                     {comparatifData && (
                       <span className="text-xs font-medium text-amber-600">
@@ -644,5 +739,13 @@ export default function VoicePage() {
         )}
       </div>
     </ProtectedLayout>
+  );
+}
+
+export default function VoicePage() {
+  return (
+    <Suspense>
+      <VoicePageContent />
+    </Suspense>
   );
 }
