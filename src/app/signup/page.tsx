@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,13 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Zap } from 'lucide-react';
 import Link from 'next/link';
 
-export default function LoginPage() {
+export default function SignupPage() {
+  const [nomEntreprise, setNomEntreprise] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
-  const { t } = useI18n();
+  const { signup } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,10 +24,10 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await signup(nomEntreprise, email, password);
       router.push('/dashboard');
     } catch {
-      setError(t('loginError'));
+      setError('Erreur lors de la création du compte. Vérifiez vos informations.');
     } finally {
       setLoading(false);
     }
@@ -41,13 +40,24 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary">
             <Zap className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">{t('loginTitle')}</CardTitle>
-          <CardDescription>{t('loginSubtitle')}</CardDescription>
+          <CardTitle className="text-2xl">Créer un compte</CardTitle>
+          <CardDescription>Essai gratuit de 14 jours, sans carte bancaire</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t('email')}</Label>
+              <Label htmlFor="nomEntreprise">Nom de l&apos;entreprise</Label>
+              <Input
+                id="nomEntreprise"
+                type="text"
+                value={nomEntreprise}
+                onChange={(e) => setNomEntreprise(e.target.value)}
+                placeholder="Mon entreprise"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -58,12 +68,13 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">{t('password')}</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Minimum 8 caractères"
                 required
               />
             </div>
@@ -71,13 +82,13 @@ export default function LoginPage() {
               <p className="text-sm text-destructive text-center">{error}</p>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('loading') : t('loginButton')}
+              {loading ? 'Création en cours...' : 'Démarrer mon essai gratuit'}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Pas encore de compte ?{' '}
-            <Link href="/signup" className="text-primary hover:underline">
-              Essai gratuit 14 jours
+            Déjà un compte ?{' '}
+            <Link href="/login" className="text-primary hover:underline">
+              Se connecter
             </Link>
           </p>
         </CardContent>

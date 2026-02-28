@@ -2,18 +2,34 @@
 
 import { Sidebar } from '@/components/sidebar';
 import { useAuth } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
 
+function isTrialExpired(trialStart: string, isPremium: boolean): boolean {
+  if (isPremium) return false;
+  if (!trialStart) return false;
+  const start = new Date(trialStart).getTime();
+  const now = Date.now();
+  const fourteenDays = 14 * 24 * 60 * 60 * 1000;
+  return now - start > fourteenDays;
+}
+
 export function ProtectedLayout({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/login');
     }
   }, [loading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (!loading && user && isTrialExpired(user.trial_start, user.is_premium) && pathname !== '/abonnement') {
+      router.push('/abonnement');
+    }
+  }, [loading, user, pathname, router]);
 
   if (loading) {
     return (

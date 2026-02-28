@@ -6,12 +6,15 @@ import { api } from './api';
 interface User {
   artisan_id: number;
   email: string;
+  trial_start: string;
+  is_premium: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signup: (nomEntreprise: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -28,7 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.exp * 1000 > Date.now()) {
-          setUser({ artisan_id: payload.artisan_id, email: payload.email });
+          setUser({
+            artisan_id: payload.artisan_id,
+            email: payload.email,
+            trial_start: payload.trial_start || '',
+            is_premium: payload.is_premium || false,
+          });
         } else {
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
@@ -49,7 +57,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
     const payload = JSON.parse(atob(token.split('.')[1]));
-    setUser({ artisan_id: payload.artisan_id, email: payload.email });
+    setUser({
+      artisan_id: payload.artisan_id,
+      email: payload.email,
+      trial_start: payload.trial_start || '',
+      is_premium: payload.is_premium || false,
+    });
+  };
+
+  const signup = async (nomEntreprise: string, email: string, password: string) => {
+    const res = await api.post<{ data: { token: string; refreshToken: string } }>(
+      '/auth/signup',
+      { nom_entreprise: nomEntreprise, email, password }
+    );
+    const { token, refreshToken } = res.data;
+    localStorage.setItem('token', token);
+    localStorage.setItem('refreshToken', refreshToken);
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    setUser({
+      artisan_id: payload.artisan_id,
+      email: payload.email,
+      trial_start: payload.trial_start || '',
+      is_premium: payload.is_premium || false,
+    });
   };
 
   const logout = () => {
@@ -60,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
