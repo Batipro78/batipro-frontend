@@ -24,7 +24,7 @@ interface Article {
   metier: string;
 }
 
-const emptyArticle = { nom: '', prix_ht: 0, unite: 'u', tva: 20, metier: 'electricien' };
+const emptyArticle = { nom: '', prix_ht: 0, unite: 'piece', tva: 20, metier: 'electricien' };
 
 export default function ArticlesPage() {
   const { t } = useI18n();
@@ -127,14 +127,13 @@ export default function ArticlesPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>{t('unit')}</Label>
-                    <Select value={editingArticle.unite || 'u'} onValueChange={(v) => setEditingArticle({ ...editingArticle, unite: v })}>
+                    <Select value={editingArticle.unite || 'piece'} onValueChange={(v) => setEditingArticle({ ...editingArticle, unite: v })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="u">Unité</SelectItem>
-                        <SelectItem value="m">Mètre</SelectItem>
-                        <SelectItem value="ml">ML</SelectItem>
-                        <SelectItem value="h">Heure</SelectItem>
-                        <SelectItem value="forfait">Forfait</SelectItem>
+                        <SelectItem value="piece">Pièce</SelectItem>
+                        <SelectItem value="metre">Mètre</SelectItem>
+                        <SelectItem value="heure">Heure</SelectItem>
+                        <SelectItem value="kg">Kg</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
