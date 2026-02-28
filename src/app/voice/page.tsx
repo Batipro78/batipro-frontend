@@ -56,6 +56,8 @@ export default function VoicePage() {
   const { t } = useI18n();
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [newClientNom, setNewClientNom] = useState('');
+  const [newClientTelephone, setNewClientTelephone] = useState('');
   const [selectedMetier, setSelectedMetier] = useState<Metier | ''>('');
   const [selectedGamme, setSelectedGamme] = useState<Gamme>('standard');
   const [phase, setPhase] = useState<Phase>('idle');
@@ -150,9 +152,13 @@ export default function VoicePage() {
     try {
       const formData = new FormData();
       formData.append('audio', blob, 'recording.webm');
-      formData.append('client_id', selectedClientId);
+      formData.append('client_id', selectedClientId === 'new' ? '0' : selectedClientId);
       formData.append('gamme', selectedGamme);
       formData.append('metier', selectedMetier);
+      if (selectedClientId === 'new') {
+        if (newClientNom) formData.append('client_nom', newClientNom);
+        if (newClientTelephone) formData.append('client_telephone', newClientTelephone);
+      }
 
       const token = localStorage.getItem('token');
       console.log('[VOICE] Envoi du fichier vers API...', { taille: blob.size, client: selectedClientId, gamme: selectedGamme, metier: selectedMetier, hasToken: !!token, tokenPreview: token ? token.substring(0, 20) + '...' : 'NONE' });
@@ -253,7 +259,7 @@ export default function VoicePage() {
   };
 
   const isProcessing = ['queued', 'transcription', 'parsing', 'matching', 'creating_devis'].includes(phase);
-  const canRecord = selectedMetier !== '' && selectedClientId !== '' && phase === 'idle';
+  const canRecord = selectedMetier !== '' && selectedClientId !== '' && (selectedClientId !== 'new' || newClientNom.trim() !== '') && phase === 'idle';
 
   const gammeOptions: { value: Gamme; icon: string; color: string }[] = [
     { value: 'eco', icon: '💰', color: 'border-green-500 bg-green-50 dark:bg-green-950' },
@@ -355,11 +361,12 @@ export default function VoicePage() {
               <CardTitle>3. {t('selectClient')}</CardTitle>
             </CardHeader>
             <CardContent>
-              <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+              <Select value={selectedClientId} onValueChange={(val) => { setSelectedClientId(val); if (val !== 'new') { setNewClientNom(''); setNewClientTelephone(''); } }}>
                 <SelectTrigger>
                   <SelectValue placeholder={t('selectClient')} />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="new">+ Nouveau client</SelectItem>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
                       {c.nom} {c.prenom || ''}
@@ -367,6 +374,30 @@ export default function VoicePage() {
                   ))}
                 </SelectContent>
               </Select>
+              {selectedClientId === 'new' && (
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Nom du client *</label>
+                    <input
+                      type="text"
+                      value={newClientNom}
+                      onChange={(e) => setNewClientNom(e.target.value)}
+                      placeholder="Ex: M. Dupont"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1 block">Téléphone (optionnel)</label>
+                    <input
+                      type="tel"
+                      value={newClientTelephone}
+                      onChange={(e) => setNewClientTelephone(e.target.value)}
+                      placeholder="Ex: 06 12 34 56 78"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
