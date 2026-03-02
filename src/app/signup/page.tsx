@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap } from 'lucide-react';
+import { Zap, Mail } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SignupPage() {
@@ -16,8 +15,8 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const { signup } = useAuth();
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,13 +24,42 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup(nomEntreprise, email, password);
-      router.push('/dashboard');
+      setEmailSent(true);
     } catch {
       setError('Erreur lors de la création du compte. Vérifiez vos informations.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary">
+              <Mail className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <CardTitle className="text-2xl">Vérifiez votre email</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              Un email de vérification a été envoyé à <strong>{email}</strong>.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Cliquez sur le lien dans l&apos;email pour activer votre compte et profiter de vos 14 jours d&apos;essai gratuit.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Vous ne trouvez pas l&apos;email ? Vérifiez vos spams.
+            </p>
+            <Button asChild variant="outline" className="w-full mt-4">
+              <Link href="/login">Retour à la connexion</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">

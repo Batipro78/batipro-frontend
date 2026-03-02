@@ -66,20 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signup = async (nomEntreprise: string, email: string, password: string) => {
-    const res = await api.post<{ data: { token: string; refreshToken: string } }>(
-      '/auth/signup',
-      { nom_entreprise: nomEntreprise, email, password }
-    );
-    const { token, refreshToken } = res.data;
-    localStorage.setItem('token', token);
-    localStorage.setItem('refreshToken', refreshToken);
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    setUser({
-      artisan_id: payload.artisan_id,
-      email: payload.email,
-      trial_start: payload.trial_start || '',
-      is_premium: payload.is_premium || false,
-    });
+    await api.post('/auth/signup', { nom_entreprise: nomEntreprise, email, password });
+    // No token returned — user must verify email first
   };
 
   const logout = () => {
