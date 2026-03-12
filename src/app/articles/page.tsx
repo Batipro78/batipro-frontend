@@ -47,7 +47,8 @@ export default function ArticlesPage() {
 
   const loadArticles = async () => {
     try {
-      const res = await api.get<{ data: { data: Article[] } }>(`/articles?limit=200${metierFilter ? `&metier=${metierFilter}` : ''}`);
+      const metierParam = metierFilter && metierFilter !== 'all' ? `&metier=${metierFilter}` : '';
+      const res = await api.get<{ data: { data: Article[] } }>(`/articles?limit=200${metierParam}`);
       setArticles(res.data?.data || []);
     } catch { /* ignore */ } finally {
       setLoading(false);
@@ -67,22 +68,17 @@ export default function ArticlesPage() {
 
   const handleSave = async () => {
     try {
-      let articleId: number | undefined;
       if (isEditing && editingArticle.id) {
-        await api.put(`/articles/${editingArticle.id}`, editingArticle);
-        articleId = editingArticle.id;
-        toast.success('Article modifié');
+        // Upload image if selected
+        if (imageFile) {
+          const formData = new FormData();
+          formData.append('image', imageFile);
+          await api.upload(`/articles/${editingArticle.id}/image`, formData);
+          toast.success('Image mise à jour');
+        }
       } else {
-        const res = await api.post<{ data: Article }>('/articles', editingArticle);
-        articleId = res.data?.id;
+        await api.post('/articles', editingArticle);
         toast.success('Article ajouté');
-      }
-
-      // Upload image if selected
-      if (imageFile && articleId) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        await api.upload(`/articles/${articleId}/image`, formData);
       }
 
       setDialogOpen(false);
