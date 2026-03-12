@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (nomEntreprise: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshAuth: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -70,6 +71,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // No token returned — user must verify email first
   };
 
+  const refreshAuth = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) return;
+    const res = await api.post<{ data: { token: string; refreshToken: string } }>(
+      '/auth/refresh',
+      { refreshToken }
+    );
+    const { token: newToken, refreshToken: newRefresh } = res.data;
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('refreshToken', newRefresh);
+    const payload = JSON.parse(atob(newToken.split('.')[1]));
+    setUser({
+      artisan_id: payload.artisan_id,
+      email: payload.email,
+      trial_start: payload.trial_start || '',
+      is_premium: payload.is_premium || false,
+    });
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
@@ -78,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, refreshAuth, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
