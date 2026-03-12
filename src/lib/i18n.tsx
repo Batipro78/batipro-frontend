@@ -13,6 +13,7 @@ const translations = {
     devis: 'Devis',
     factures: 'Factures',
     voiceAi: 'IA Vocale',
+    subscription: 'Abonnement',
     settings: 'Paramètres',
     logout: 'Déconnexion',
     // Common
@@ -138,6 +139,7 @@ const translations = {
     devis: 'Quotes',
     factures: 'Invoices',
     voiceAi: 'Voice AI',
+    subscription: 'Subscription',
     settings: 'Settings',
     logout: 'Logout',
     // Common

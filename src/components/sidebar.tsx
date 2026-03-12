@@ -10,6 +10,7 @@ import {
   Receipt,
   Mic,
   UserCog,
+  CreditCard,
   LogOut,
   Menu,
   X,
@@ -31,6 +32,7 @@ const navItems = [
   { href: '/factures', icon: Receipt, labelKey: 'factures' as const },
   { href: '/voice', icon: Mic, labelKey: 'voiceAi' as const },
   { href: '/profil', icon: UserCog, labelKey: 'profile' as const },
+  { href: '/abonnement', icon: CreditCard, labelKey: 'subscription' as const },
 ];
 
 const settingsItems = [
