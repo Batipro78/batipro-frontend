@@ -8,6 +8,7 @@ interface User {
   email: string;
   trial_start: string;
   is_premium: boolean;
+  cgu_accepted: boolean;
 }
 
 interface AuthContextType {
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: payload.email,
             trial_start: payload.trial_start || '',
             is_premium: payload.is_premium || false,
+            cgu_accepted: payload.cgu_accepted || false,
           });
         } else {
           localStorage.removeItem('token');
@@ -63,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: payload.email,
       trial_start: payload.trial_start || '',
       is_premium: payload.is_premium || false,
+      cgu_accepted: payload.cgu_accepted || false,
     });
   };
 
@@ -87,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: payload.email,
       trial_start: payload.trial_start || '',
       is_premium: payload.is_premium || false,
+      cgu_accepted: payload.cgu_accepted || false,
     });
   };
 

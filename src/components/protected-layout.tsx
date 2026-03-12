@@ -1,6 +1,7 @@
 'use client';
 
 import { Sidebar } from '@/components/sidebar';
+import { CguModal } from '@/components/cgu-modal';
 import { useAuth } from '@/lib/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, ReactNode } from 'react';
@@ -44,6 +45,7 @@ export function ProtectedLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <Sidebar />
+      <CguModal />
       <main className="md:ml-64 pt-16 md:pt-0 min-h-screen">
         <div className="p-4 md:p-8">{children}</div>
       </main>
