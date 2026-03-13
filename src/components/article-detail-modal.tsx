@@ -7,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArticleIcon } from '@/components/article-icon';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
-import { ShoppingCart, Package, ImageIcon } from 'lucide-react';
+import { ShoppingCart, Package } from 'lucide-react';
 
 interface Article {
   id: number;
@@ -33,7 +34,6 @@ interface ArticleDetailModalProps {
   article: Article | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddToDevis?: (article: Article) => void;
 }
 
 export function ArticleDetailModal({ article, open, onOpenChange }: ArticleDetailModalProps) {
@@ -90,29 +90,18 @@ export function ArticleDetailModal({ article, open, onOpenChange }: ArticleDetai
 
   if (!article) return null;
 
+  const prixTTC = (article.prix_ht * (1 + article.tva / 100)).toFixed(2);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{article.nom}</DialogTitle>
+          <DialogTitle className="flex items-center gap-3">
+            <ArticleIcon articleName={article.nom} metier={article.metier} size="md" />
+            <span>{article.nom}</span>
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          {/* Image */}
-          <div className="w-full h-48 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-            {article.image_url ? (
-              <img
-                src={article.image_url}
-                alt={article.nom}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="flex flex-col items-center text-gray-400">
-                <ImageIcon className="h-12 w-12 mb-2" />
-                <span className="text-sm">Pas d&apos;image</span>
-              </div>
-            )}
-          </div>
-
           {/* Description */}
           {article.description && (
             <p className="text-sm text-muted-foreground">{article.description}</p>
@@ -125,18 +114,24 @@ export function ArticleDetailModal({ article, open, onOpenChange }: ArticleDetai
               <p className="font-semibold text-lg">{article.prix_ht.toFixed(2)} &euro;</p>
             </div>
             <div className="space-y-1">
-              <span className="text-muted-foreground">TVA</span>
-              <p className="font-semibold text-lg">{article.tva}%</p>
+              <span className="text-muted-foreground">Prix TTC</span>
+              <p className="font-semibold text-lg">{prixTTC} &euro;</p>
             </div>
             <div className="space-y-1">
               <span className="text-muted-foreground">{t('unit')}</span>
               <p className="font-medium">{article.unite}</p>
             </div>
             <div className="space-y-1">
+              <span className="text-muted-foreground">TVA</span>
+              <p className="font-medium">{article.tva}%</p>
+            </div>
+            <div className="space-y-1 col-span-2">
               <span className="text-muted-foreground">{t('trade')}</span>
-              <Badge variant={article.metier === 'electricien' ? 'default' : 'secondary'}>
-                {article.metier === 'electricien' ? t('electrician') : t('plumber')}
-              </Badge>
+              <div>
+                <Badge variant={article.metier === 'electricien' ? 'default' : 'secondary'}>
+                  {article.metier === 'electricien' ? t('electrician') : t('plumber')}
+                </Badge>
+              </div>
             </div>
           </div>
 

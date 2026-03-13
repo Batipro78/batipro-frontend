@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable } from '@/components/data-table';
 import { ProtectedLayout } from '@/components/protected-layout';
@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ArticleDetailModal } from '@/components/article-detail-modal';
+import { ArticleIcon } from '@/components/article-icon';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Plus, Pencil, Trash2, Upload, ImageIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Article {
@@ -37,9 +38,6 @@ export default function ArticlesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Partial<Article>>(emptyArticle);
   const [isEditing, setIsEditing] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Detail modal state
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -57,34 +55,16 @@ export default function ArticlesPage() {
 
   useEffect(() => { loadArticles(); }, [metierFilter]);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
   const handleSave = async () => {
     try {
       if (isEditing && editingArticle.id) {
-        // Upload image if selected
-        if (imageFile) {
-          const formData = new FormData();
-          formData.append('image', imageFile);
-          await api.upload(`/articles/${editingArticle.id}/image`, formData);
-          toast.success('Image mise à jour');
-        }
+        toast.info('Modification non disponible pour les articles catalogue');
       } else {
         await api.post('/articles', editingArticle);
         toast.success('Article ajouté');
       }
-
       setDialogOpen(false);
       setEditingArticle(emptyArticle);
-      setImageFile(null);
-      setImagePreview(null);
       loadArticles();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur');
@@ -102,22 +82,6 @@ export default function ArticlesPage() {
     }
   };
 
-  const openEditDialog = (article: Article) => {
-    setEditingArticle(article);
-    setIsEditing(true);
-    setImageFile(null);
-    setImagePreview(article.image_url || null);
-    setDialogOpen(true);
-  };
-
-  const openCreateDialog = () => {
-    setEditingArticle(emptyArticle);
-    setIsEditing(false);
-    setImageFile(null);
-    setImagePreview(null);
-    setDialogOpen(true);
-  };
-
   const handleRowClick = (article: Article) => {
     setSelectedArticle(article);
     setDetailOpen(true);
@@ -125,14 +89,8 @@ export default function ArticlesPage() {
 
   const columns = [
     {
-      key: 'image', header: '', render: (r: Article) => (
-        <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
-          {r.image_url ? (
-            <img src={r.image_url} alt={r.nom} className="w-full h-full object-cover" />
-          ) : (
-            <ImageIcon className="h-4 w-4 text-gray-400" />
-          )}
-        </div>
+      key: 'icon', header: '', render: (r: Article) => (
+        <ArticleIcon articleName={r.nom} metier={r.metier} size="sm" />
       ),
     },
     { key: 'nom', header: t('name') },
@@ -149,7 +107,7 @@ export default function ArticlesPage() {
     {
       key: 'actions', header: t('actions'), render: (r: Article) => (
         <div className="flex gap-2" onClick={e => e.stopPropagation()}>
-          <Button variant="ghost" size="icon" onClick={() => openEditDialog(r)}>
+          <Button variant="ghost" size="icon" onClick={() => { setEditingArticle(r); setIsEditing(true); setDialogOpen(true); }}>
             <Pencil className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)}>
@@ -167,7 +125,7 @@ export default function ArticlesPage() {
         action={
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openCreateDialog}>
+              <Button onClick={() => { setEditingArticle(emptyArticle); setIsEditing(false); setDialogOpen(true); }}>
                 <Plus className="h-4 w-4 mr-2" /> {t('addArticle')}
               </Button>
             </DialogTrigger>
@@ -176,34 +134,6 @@ export default function ArticlesPage() {
                 <DialogTitle>{isEditing ? t('editArticle') : t('addArticle')}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                {/* Image upload */}
-                <div className="space-y-2">
-                  <Label>Image</Label>
-                  <div
-                    className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {imagePreview ? (
-                      <div className="relative w-full h-32">
-                        <img src={imagePreview} alt="Aperçu" className="w-full h-full object-contain rounded" />
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center text-muted-foreground py-2">
-                        <Upload className="h-8 w-8 mb-2" />
-                        <span className="text-sm">Cliquez pour ajouter une image</span>
-                        <span className="text-xs text-muted-foreground/70">JPG, PNG ou WebP (max 2 Mo)</span>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={handleImageSelect}
-                  />
-                </div>
-
                 <div className="space-y-2">
                   <Label>{t('name')}</Label>
                   <Input value={editingArticle.nom || ''} onChange={(e) => setEditingArticle({ ...editingArticle, nom: e.target.value })} />
