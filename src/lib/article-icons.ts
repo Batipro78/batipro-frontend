@@ -56,19 +56,32 @@ const ICON_RULES: [RegExp, ArticleIconName][] = [
   [/télérupteur|contacteur/i, 'circuit-board'],
   [/détecteur.*mouvement/i, 'shield-alert'],
   [/bornier.*terre/i, 'link'],
-  // PLOMBERIE
-  [/mitigeur|robinet(?!.*radiateur|.*machine)/i, 'droplets'],
+  // PLOMBERIE — Tubes & tuyaux
+  [/tube.*cuivre|tube.*per|tube.*multicouche|tube.*pvc/i, 'pipe'],
+  // Raccords cuivre, laiton, PVC, biconique, compression, sertir
+  [/manchon|coude|té\s|réduction|culotte|bouchon.*cuivre|bouchon.*laiton|bouchon.*pvc|raccord|jonction.*sertir|écrou.*libre|applique.*sertir|biconique|tampon.*réduction/i, 'git-merge'],
+  // Collecteurs
+  [/collecteur/i, 'git-merge'],
+  // Vannes, robinets d'arrêt, clapets
+  [/vanne|clapet|réducteur.*pression|groupe.*sécurité|robinet.*arrêt|robinet.*compteur|robinet.*équerre|robinet.*machine|robinet.*orientable/i, 'gauge'],
+  // Flexibles
+  [/flexible/i, 'shower-head'],
+  // Mitigeurs, robinetterie
+  [/mitigeur|colonne.*douche/i, 'droplets'],
+  // Sanitaires
   [/baignoire|receveur.*douche|paroi.*douche/i, 'bath'],
-  [/wc|bâti.*support|chasse.*eau|abattant/i, 'toilet'],
-  [/évier|vasque|lavabo|meuble.*vasque|siphon/i, 'sink'],
-  [/tube.*per|tube.*multicouche|tube.*pvc|manchon.*cuivre/i, 'pipe'],
-  [/raccord|coude.*pvc|culotte.*pvc|collecteur|coude.*cuivre/i, 'git-merge'],
-  [/vanne|clapet|réducteur.*pression|groupe.*sécurité/i, 'gauge'],
+  [/wc|bâti.*support|chasse.*eau|abattant|pack.*wc/i, 'toilet'],
+  [/évier|vasque|lavabo|meuble.*vasque/i, 'sink'],
+  [/siphon/i, 'sink'],
+  // Chauffe-eau
   [/chauffe.*eau/i, 'flame'],
-  [/colonne.*douche|pomme.*douche|flexible.*douche/i, 'shower-head'],
+  // Radiateurs
   [/radiateur.*sèche.*serviettes.*eau|radiateur.*acier/i, 'radiator'],
   [/tête.*thermostatique|robinet.*radiateur|circulateur|vase.*expansion|purgeur/i, 'settings'],
-  [/téflon|filasse|joint.*fibre|collier.*fixation|flexible.*raccordement|robinet.*machine/i, 'wrench'],
+  // Applique murale laiton
+  [/applique.*murale.*laiton/i, 'git-merge'],
+  // Consommables
+  [/téflon|ruban.*téflon|filasse|joint.*fibre|collier.*fixation|colle.*pvc/i, 'wrench'],
 ];
 
 export function getArticleIcon(articleName: string, metier: string): ArticleIconName {
