@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
+import { formatPrice } from '@/lib/utils';
 import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Zap, Wrench, ShoppingBag, X, FileEdit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -270,8 +271,6 @@ function VoicePageContent() {
     setTranscript('');
     setAvenantResult(null);
   };
-
-  const formatPrice = (price: number) => price.toFixed(2).replace('.', ',') + ' \u20ac';
 
   const canRecord = selectedMetier !== ''
     && (isAvenantMode || (selectedClientId !== '' && (selectedClientId !== 'new' || newClientNom.trim() !== '')))

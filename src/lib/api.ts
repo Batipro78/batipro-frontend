@@ -44,7 +44,6 @@ export const api = {
   delete: <T>(endpoint: string) => apiFetch<T>(endpoint, { method: 'DELETE' }),
   upload: async <T>(endpoint: string, formData: FormData): Promise<T> => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    console.log('[API] upload', endpoint, 'hasToken:', !!token);
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
