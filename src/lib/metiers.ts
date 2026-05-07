@@ -1,4 +1,5 @@
-// 15 metiers BTP synchronises avec le backend (articles.schema.ts::METIER_VALUES)
+// 14 metiers BTP synchronises avec le backend (articles.schema.ts::METIER_VALUES)
+// Note: "plombier" couvre aussi le chauffagiste (plombier-chauffagiste = metier unique en FR).
 
 export const METIERS = [
   'electricien',
@@ -8,7 +9,6 @@ export const METIERS = [
   'plaquiste',
   'peintre',
   'carreleur',
-  'chauffagiste',
   'menuisier',
   'charpentier',
   'solier',
@@ -22,13 +22,12 @@ export type Metier = (typeof METIERS)[number];
 
 export const METIER_LABEL: Record<Metier, string> = {
   electricien: 'Électricien',
-  plombier: 'Plombier',
+  plombier: 'Plombier-Chauffagiste',
   macon: 'Maçon',
   couvreur: 'Couvreur',
   plaquiste: 'Plaquiste',
   peintre: 'Peintre',
   carreleur: 'Carreleur',
-  chauffagiste: 'Chauffagiste',
   menuisier: 'Menuisier',
   charpentier: 'Charpentier',
   solier: 'Solier',
@@ -42,7 +41,6 @@ export const METIER_LABEL: Record<Metier, string> = {
 export const METIER_BADGE: Record<Metier, string> = {
   electricien: 'bg-amber-50 text-amber-700 border-amber-200',
   plombier: 'bg-blue-50 text-blue-700 border-blue-200',
-  chauffagiste: 'bg-cyan-50 text-cyan-700 border-cyan-200',
   macon: 'bg-stone-100 text-stone-700 border-stone-300',
   plaquiste: 'bg-slate-100 text-slate-700 border-slate-300',
   carreleur: 'bg-zinc-100 text-zinc-700 border-zinc-300',
