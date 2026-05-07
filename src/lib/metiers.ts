@@ -1,5 +1,10 @@
 // 14 metiers BTP synchronises avec le backend (articles.schema.ts::METIER_VALUES)
 // Note: "plombier" couvre aussi le chauffagiste (plombier-chauffagiste = metier unique en FR).
+import type { LucideIcon } from 'lucide-react';
+import {
+  Zap, Wrench, Building2, Home, Square, Paintbrush, Grid3X3, Hammer,
+  TreePine, Layers, Key, SquareDashed, Mountain, Trees,
+} from 'lucide-react';
 
 export const METIERS = [
   'electricien',
@@ -63,4 +68,29 @@ export function metierLabel(metier: string | null | undefined): string {
 export function metierBadgeClass(metier: string | null | undefined): string {
   if (!metier) return 'bg-muted text-muted-foreground border';
   return METIER_BADGE[metier as Metier] || 'bg-muted text-muted-foreground border';
+}
+
+export const METIER_ICON: Record<Metier, LucideIcon> = {
+  electricien: Zap,
+  plombier: Wrench,
+  macon: Building2,
+  couvreur: Home,
+  plaquiste: Square,
+  peintre: Paintbrush,
+  carreleur: Grid3X3,
+  menuisier: Hammer,
+  charpentier: TreePine,
+  solier: Layers,
+  serrurier: Key,
+  vitrier: SquareDashed,
+  terrassier: Mountain,
+  paysagiste: Trees,
+};
+
+// Metiers qui supportent le mode comparatif eco/standard/premium (catalogue gammes)
+// Pour les autres, devis simple via matching sur table articles Supabase.
+export const METIERS_AVEC_GAMMES: Metier[] = ['electricien', 'plombier'];
+
+export function supporteGammes(metier: string | null | undefined): boolean {
+  return METIERS_AVEC_GAMMES.includes(metier as Metier);
 }

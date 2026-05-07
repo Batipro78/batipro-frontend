@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
-import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, Zap, Wrench, ShoppingBag, X, FileEdit, Plus } from 'lucide-react';
+import { METIERS, METIER_ICON, METIER_LABEL, supporteGammes, type Metier } from '@/lib/metiers';
+import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, ShoppingBag, X, FileEdit, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Client {
@@ -52,7 +53,6 @@ interface ComparatifData {
 
 type Phase = 'idle' | 'recording' | 'transcribing' | 'editing' | 'generating' | 'completed' | 'failed';
 type Gamme = 'eco' | 'standard' | 'premium' | 'comparatif';
-type Metier = 'electricien' | 'plombier';
 
 function VoicePageContent() {
   const { t } = useI18n();
@@ -309,37 +309,39 @@ function VoicePageContent() {
             <CardTitle>1. {t('selectTrade')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setSelectedMetier('electricien')}
-                className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
-                  selectedMetier === 'electricien'
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-muted hover:border-primary/50'
-                }`}
-              >
-                <Zap className={`h-10 w-10 ${selectedMetier === 'electricien' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className="font-semibold">{t('electrician')}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedMetier('plombier')}
-                className={`flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all ${
-                  selectedMetier === 'plombier'
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'border-muted hover:border-primary/50'
-                }`}
-              >
-                <Wrench className={`h-10 w-10 ${selectedMetier === 'plombier' ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className="font-semibold">{t('plumber')}</span>
-              </button>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {METIERS.map((m) => {
+                const Icon = METIER_ICON[m];
+                const active = selectedMetier === m;
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setSelectedMetier(m)}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                      active
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <Icon className={`h-7 w-7 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <span className="text-xs font-medium text-center leading-tight">
+                      {METIER_LABEL[m]}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
+            {selectedMetier && !supporteGammes(selectedMetier) && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                ℹ Pour ce métier, le devis sera créé sans comparatif éco/standard/premium.
+              </p>
+            )}
           </CardContent>
         </Card>
 
-        {/* Step 2: Select Gamme — hidden in avenant mode */}
-        {selectedMetier && !isAvenantMode && (
+        {/* Step 2: Select Gamme — hidden in avenant mode AND for métiers sans gammes */}
+        {selectedMetier && supporteGammes(selectedMetier) && !isAvenantMode && (
           <Card>
             <CardHeader>
               <CardTitle>2. {t('selectGamme')}</CardTitle>
