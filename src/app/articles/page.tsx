@@ -14,6 +14,7 @@ import { ArticleDetailModal } from '@/components/article-detail-modal';
 import { ArticleIcon } from '@/components/article-icon';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
+import { METIERS, metierLabel, metierBadgeClass } from '@/lib/metiers';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -152,9 +153,9 @@ export default function ArticlesPage() {
     { key: 'tva', header: t('tva'), render: (r: Article) => `${r.tva}%` },
     {
       key: 'metier', header: t('trade'), render: (r: Article) => (
-        <Badge variant={r.metier === 'electricien' ? 'default' : 'secondary'}>
-          {r.metier === 'electricien' ? t('electrician') : t('plumber')}
-        </Badge>
+        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${metierBadgeClass(r.metier)}`}>
+          {metierLabel(r.metier)}
+        </span>
       ),
     },
     {
@@ -224,8 +225,9 @@ export default function ArticlesPage() {
                   <Select value={editingArticle.metier || 'electricien'} onValueChange={(v) => setEditingArticle({ ...editingArticle, metier: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="electricien">{t('electrician')}</SelectItem>
-                      <SelectItem value="plombier">{t('plumber')}</SelectItem>
+                      {METIERS.map((m) => (
+                        <SelectItem key={m} value={m}>{metierLabel(m)}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -249,8 +251,9 @@ export default function ArticlesPage() {
           <SelectTrigger className="w-48"><SelectValue placeholder={t('trade')} /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous métiers</SelectItem>
-            <SelectItem value="electricien">{t('electrician')}</SelectItem>
-            <SelectItem value="plombier">{t('plumber')}</SelectItem>
+            {METIERS.map((m) => (
+              <SelectItem key={m} value={m}>{metierLabel(m)}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={categorieFilter} onValueChange={setCategorieFilter}>

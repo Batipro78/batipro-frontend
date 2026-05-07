@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArticleIcon } from '@/components/article-icon';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
+import { metierLabel, metierBadgeClass } from '@/lib/metiers';
 import { toast } from 'sonner';
 import { ShoppingCart, Package } from 'lucide-react';
 
@@ -130,9 +131,9 @@ export function ArticleDetailModal({ article, open, onOpenChange }: ArticleDetai
             <div className="space-y-1">
               <span className="text-muted-foreground">{t('trade')}</span>
               <div>
-                <Badge variant={article.metier === 'electricien' ? 'default' : 'secondary'}>
-                  {article.metier === 'electricien' ? t('electrician') : t('plumber')}
-                </Badge>
+                <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${metierBadgeClass(article.metier)}`}>
+                  {metierLabel(article.metier)}
+                </span>
               </div>
             </div>
             {article.categorie && (
