@@ -24,8 +24,16 @@ interface Article {
   unite: string;
   tva: number;
   metier: string;
+  categorie?: string | null;
+  sous_categorie?: string | null;
   image_url?: string;
   description?: string;
+}
+
+interface CategoryGroup {
+  categorie: string;
+  sous_categories: string[];
+  count: number;
 }
 
 const emptyArticle = { nom: '', prix_ht: 0, unite: 'piece', tva: 20, metier: 'electricien' };
@@ -35,6 +43,11 @@ export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [metierFilter, setMetierFilter] = useState('');
+  const [categorieFilter, setCategorieFilter] = useState('');
+  const [sousCategorieFilter, setSousCategorieFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [categories, setCategories] = useState<CategoryGroup[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Partial<Article>>(emptyArticle);
   const [isEditing, setIsEditing] = useState(false);
@@ -43,17 +56,53 @@ export default function ArticlesPage() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
+  // Debounce search input (300ms) to avoid hammering the API on every keystroke
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(searchTerm.trim()), 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  const loadCategories = async () => {
+    try {
+      const metierParam = metierFilter && metierFilter !== 'all' ? `?metier=${metierFilter}` : '';
+      const res = await api.get<{ data: CategoryGroup[] }>(`/articles/categories${metierParam}`);
+      setCategories(res.data || []);
+    } catch { /* ignore */ }
+  };
+
   const loadArticles = async () => {
     try {
-      const metierParam = metierFilter && metierFilter !== 'all' ? `&metier=${metierFilter}` : '';
-      const res = await api.get<{ data: { data: Article[] } }>(`/articles?limit=200${metierParam}`);
+      setLoading(true);
+      const params = new URLSearchParams({ limit: '200' });
+      if (metierFilter && metierFilter !== 'all') params.set('metier', metierFilter);
+      if (categorieFilter && categorieFilter !== 'all') params.set('categorie', categorieFilter);
+      if (sousCategorieFilter && sousCategorieFilter !== 'all') params.set('sous_categorie', sousCategorieFilter);
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      const res = await api.get<{ data: { data: Article[] } }>(`/articles?${params.toString()}`);
       setArticles(res.data?.data || []);
     } catch { /* ignore */ } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { loadArticles(); }, [metierFilter]);
+  // When metier changes, reload categories and reset categorie filters
+  useEffect(() => {
+    loadCategories();
+    setCategorieFilter('');
+    setSousCategorieFilter('');
+  }, [metierFilter]);
+
+  // When categorie changes, reset sub-categorie
+  useEffect(() => {
+    setSousCategorieFilter('');
+  }, [categorieFilter]);
+
+  useEffect(() => { loadArticles(); }, [metierFilter, categorieFilter, sousCategorieFilter, debouncedSearch]);
+
+  const currentSousCategories =
+    categorieFilter && categorieFilter !== 'all'
+      ? (categories.find((c) => c.categorie === categorieFilter)?.sous_categories || [])
+      : [];
 
   const handleSave = async () => {
     try {
@@ -94,6 +143,10 @@ export default function ArticlesPage() {
       ),
     },
     { key: 'nom', header: t('name') },
+    {
+      key: 'categorie', header: 'Cat\u00e9gorie', render: (r: Article) =>
+        r.categorie ? <span className="text-sm text-muted-foreground">{r.categorie}</span> : null,
+    },
     { key: 'prix_ht', header: t('unitPrice'), render: (r: Article) => `${r.prix_ht.toFixed(2)} \u20ac` },
     { key: 'unite', header: t('unit') },
     { key: 'tva', header: t('tva'), render: (r: Article) => `${r.tva}%` },
@@ -185,15 +238,46 @@ export default function ArticlesPage() {
           </Dialog>
         }
       />
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2 items-center">
+        <Input
+          placeholder="Rechercher un article..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-64"
+        />
         <Select value={metierFilter} onValueChange={setMetierFilter}>
           <SelectTrigger className="w-48"><SelectValue placeholder={t('trade')} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous</SelectItem>
+            <SelectItem value="all">Tous métiers</SelectItem>
             <SelectItem value="electricien">{t('electrician')}</SelectItem>
             <SelectItem value="plombier">{t('plumber')}</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={categorieFilter} onValueChange={setCategorieFilter}>
+          <SelectTrigger className="w-56"><SelectValue placeholder="Catégorie" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes catégories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.categorie} value={c.categorie}>
+                {c.categorie} ({c.count})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {currentSousCategories.length > 0 && (
+          <Select value={sousCategorieFilter} onValueChange={setSousCategorieFilter}>
+            <SelectTrigger className="w-56"><SelectValue placeholder="Sous-catégorie" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes</SelectItem>
+              {currentSousCategories.map((sc) => (
+                <SelectItem key={sc} value={sc}>{sc}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <span className="text-sm text-muted-foreground ml-auto">
+          {articles.length} article{articles.length > 1 ? 's' : ''}
+        </span>
       </div>
       <DataTable columns={columns} data={articles} loading={loading} onRowClick={handleRowClick} />
 

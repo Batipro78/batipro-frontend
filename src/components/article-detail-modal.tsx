@@ -20,6 +20,8 @@ interface Article {
   unite: string;
   tva: number;
   metier: string;
+  categorie?: string | null;
+  sous_categorie?: string | null;
   image_url?: string;
   description?: string;
 }
@@ -125,7 +127,7 @@ export function ArticleDetailModal({ article, open, onOpenChange }: ArticleDetai
               <span className="text-muted-foreground">TVA</span>
               <p className="font-medium">{article.tva}%</p>
             </div>
-            <div className="space-y-1 col-span-2">
+            <div className="space-y-1">
               <span className="text-muted-foreground">{t('trade')}</span>
               <div>
                 <Badge variant={article.metier === 'electricien' ? 'default' : 'secondary'}>
@@ -133,6 +135,15 @@ export function ArticleDetailModal({ article, open, onOpenChange }: ArticleDetai
                 </Badge>
               </div>
             </div>
+            {article.categorie && (
+              <div className="space-y-1">
+                <span className="text-muted-foreground">Catégorie</span>
+                <p className="font-medium">{article.categorie}</p>
+                {article.sous_categorie && (
+                  <p className="text-xs text-muted-foreground">{article.sous_categorie}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Add to devis section */}
