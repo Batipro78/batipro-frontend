@@ -2,33 +2,36 @@ import { Quote, Star } from 'lucide-react';
 
 const TESTIMONIALS = [
   {
-    name: 'Marc D.',
+    name: 'Marc Dupont',
     role: 'Électricien',
-    city: 'Lyon',
+    city: 'Lyon (69)',
     initials: 'MD',
     color: 'bg-primary text-primary-foreground',
+    metric: '~2 h gagnées par semaine',
     text:
-      'Avant je rentrais le soir et je faisais 2 h de devis. Maintenant je dicte sur le chantier et c\'est fini avant de remonter dans le camion. Mes soirées sont rendues à ma famille.',
+      'Avant je rentrais le soir et je faisais 2 h de devis. Maintenant je dicte sur le chantier et c\'est fini avant de remonter dans le camion. J\'ai récupéré mes soirées.',
     rating: 5,
   },
   {
-    name: 'Julien P.',
+    name: 'Julien Petit',
     role: 'Plombier-chauffagiste',
-    city: 'Bordeaux',
+    city: 'Bordeaux (33)',
     initials: 'JP',
     color: 'bg-secondary text-secondary-foreground',
+    metric: '8 devis sur 10 signés sur place',
     text:
-      'La signature électronique mobile, c\'est ce qui change la vie. Le client signe sur place, je sais que le chantier est verrouillé. Plus de devis qui traînent trois semaines.',
+      'La signature mobile, c\'est ce qui change tout. Le client signe sur place, le chantier est verrouillé. Plus de devis qui traînent trois semaines à attendre un retour.',
     rating: 5,
   },
   {
-    name: 'Sophie L.',
+    name: 'Sophie Lefèvre',
     role: 'Peintre en bâtiment',
-    city: 'Nantes',
+    city: 'Nantes (44)',
     initials: 'SL',
     color: 'bg-success text-white',
+    metric: '~30 min économisées par devis',
     text:
-      'Les 524 articles déjà chiffrés, ça me fait gagner un temps fou. Je n\'ai plus à me demander si mon prix est cohérent, BatiPro propose des montants déjà ajustés au marché.',
+      'Les 524 articles déjà chiffrés, ça me fait gagner un temps fou. Je n\'ai plus à fouiller mes anciens devis pour retrouver mes prix, BatiPro propose des montants déjà ajustés.',
     rating: 5,
   },
 ];
@@ -67,8 +70,13 @@ export default function LandingTestimonials() {
               {/* Quote */}
               <p className="text-foreground leading-relaxed text-[15px]">« {t.text} »</p>
 
+              {/* Metric chip */}
+              <p className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-success/10 text-success text-xs font-bold px-3 py-1">
+                {t.metric}
+              </p>
+
               {/* Author */}
-              <div className="mt-6 pt-6 border-t border-border flex items-center gap-3">
+              <div className="mt-5 pt-5 border-t border-border flex items-center gap-3">
                 <span
                   className={`w-11 h-11 rounded-full flex items-center justify-center font-display font-bold text-sm shadow-sm ${t.color}`}
                 >

@@ -1,8 +1,4 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth';
+import AuthRedirect from '@/components/landing/AuthRedirect';
 import LandingNav from '@/components/landing/LandingNav';
 import LandingHero from '@/components/landing/LandingHero';
 import LandingLogos from '@/components/landing/LandingLogos';
@@ -14,27 +10,12 @@ import LandingMetiers from '@/components/landing/LandingMetiers';
 import LandingPricing from '@/components/landing/LandingPricing';
 import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
+import StickyCTA from '@/components/landing/StickyCTA';
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push('/dashboard');
-    }
-  }, [loading, isAuthenticated, router]);
-
-  if (loading || isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
-  }
-
   return (
     <main className="min-h-screen bg-background">
+      <AuthRedirect />
       <LandingNav />
       <LandingHero />
       <LandingLogos />
@@ -46,6 +27,7 @@ export default function Home() {
       <LandingPricing />
       <LandingCTA />
       <LandingFooter />
+      <StickyCTA />
     </main>
   );
 }

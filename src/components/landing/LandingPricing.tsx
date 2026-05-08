@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const FEATURES = [
@@ -113,11 +113,11 @@ export default function LandingPricing() {
               {/* CTA */}
               <Button asChild size="lg" className="w-full mt-8 rounded-full h-14 text-base font-semibold shadow-lg shadow-primary/25">
                 <Link href="/signup">
-                  Démarrer mes 14 jours gratuits
+                  14 jours gratuits — sans CB
                 </Link>
               </Button>
               <p className="mt-3 text-xs text-center text-muted-foreground">
-                Aucune carte bancaire ne vous sera demandée pendant l&apos;essai.
+                Aucune carte bancaire pendant l&apos;essai. Annulable en 1 clic.
               </p>
 
               {/* Features */}
@@ -141,13 +141,31 @@ export default function LandingPricing() {
           {[
             { t: '14 jours gratuits', s: 'Pour tester sans risque' },
             { t: 'Sans carte bancaire', s: 'Aucune coordonnée bancaire' },
-            { t: 'Sans engagement', s: 'Annulable à tout moment' },
+            { t: 'Annulable en 1 clic', s: 'Sans engagement, sans frais' },
           ].map((r) => (
             <div key={r.t} className="rounded-2xl bg-background border border-border p-5">
               <p className="font-bold text-foreground">{r.t}</p>
               <p className="mt-1 text-sm text-muted-foreground">{r.s}</p>
             </div>
           ))}
+        </div>
+
+        {/* 30-day money-back guarantee — différenciateur unique vs concurrents BTP */}
+        <div className="mt-8 max-w-3xl mx-auto">
+          <div className="rounded-2xl bg-success/5 border border-success/30 p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+            <span className="flex-shrink-0 w-14 h-14 rounded-2xl bg-success/15 text-success flex items-center justify-center">
+              <ShieldCheck className="w-7 h-7" strokeWidth={2.2} />
+            </span>
+            <div>
+              <p className="font-display text-xl font-bold text-foreground">
+                30 jours pour changer d&apos;avis
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                Pas de question, pas de justificatif, pas de relance commerciale.
+                Vous demandez, on rembourse — réponse en 24 h ouvrées.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

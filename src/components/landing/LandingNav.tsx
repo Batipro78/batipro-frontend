@@ -48,7 +48,7 @@ export default function LandingNav() {
             Connexion
           </Link>
           <Button asChild size="sm" className="rounded-full px-5">
-            <Link href="/signup">Essai gratuit</Link>
+            <Link href="/signup">14 jours gratuits</Link>
           </Button>
         </div>
       </div>

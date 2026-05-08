@@ -245,5 +245,93 @@
   animation: particle-rise 4s ease-out infinite;
 }
 
+/* ============ HERO DEMO (FlutterFlow-style cursor + sequential reveals) ============
+   One shared 14s cycle. All keyframes use transform/opacity to stay GPU-accelerated. */
+
+@keyframes demo-cursor {
+  0%       { top: 108%; left: 62%; opacity: 0; transform: scale(1); }
+  4%       { top: 108%; left: 62%; opacity: 1; transform: scale(1); }
+  14%      { top: 44%;  left: 14%; opacity: 1; transform: scale(1); }
+  17%      { top: 44%;  left: 14%; opacity: 1; transform: scale(1); }
+  19%      { top: 44%;  left: 14%; opacity: 1; transform: scale(0.85); }
+  22%      { top: 44%;  left: 14%; opacity: 1; transform: scale(1); }
+  62%      { top: 44%;  left: 14%; opacity: 1; transform: scale(1); }
+  74%      { top: 90%;  left: 80%; opacity: 1; transform: scale(1); }
+  77%      { top: 90%;  left: 80%; opacity: 1; transform: scale(0.85); }
+  80%      { top: 90%;  left: 80%; opacity: 1; transform: scale(1); }
+  95%      { top: 90%;  left: 80%; opacity: 1; transform: scale(1); }
+  100%     { top: 90%;  left: 80%; opacity: 0; transform: scale(1); }
+}
+
+@keyframes demo-mic {
+  0%, 18%  { transform: scale(1); box-shadow: 0 8px 16px rgba(75,57,239,0.30); }
+  22%      { transform: scale(1.08); box-shadow: 0 0 0 14px rgba(75,57,239,0); }
+  30%      { transform: scale(1.04); box-shadow: 0 0 0 24px rgba(75,57,239,0); }
+  38%, 100%{ transform: scale(1); box-shadow: 0 8px 16px rgba(75,57,239,0.30); }
+}
+
+@keyframes demo-transcript {
+  0%, 22%  { opacity: 0; transform: translateY(4px); }
+  30%      { opacity: 1; transform: translateY(0); }
+  95%      { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+@keyframes demo-line-1 {
+  0%, 32%  { opacity: 0; transform: translateY(6px); }
+  37%      { opacity: 1; transform: translateY(0); }
+  95%      { opacity: 1; transform: translateY(0); }
+  100%     { opacity: 0; }
+}
+
+@keyframes demo-line-2 {
+  0%, 40%  { opacity: 0; transform: translateY(6px); }
+  45%      { opacity: 1; transform: translateY(0); }
+  95%      { opacity: 1; transform: translateY(0); }
+  100%     { opacity: 0; }
+}
+
+@keyframes demo-line-3 {
+  0%, 48%  { opacity: 0; transform: translateY(6px); }
+  53%      { opacity: 1; transform: translateY(0); }
+  95%      { opacity: 1; transform: translateY(0); }
+  100%     { opacity: 0; }
+}
+
+@keyframes demo-total {
+  0%, 56%  { opacity: 0; transform: scale(0.96); }
+  62%      { opacity: 1; transform: scale(1); }
+  95%      { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+@keyframes demo-send {
+  0%, 64%  { opacity: 0; transform: translateY(6px) scale(0.95); }
+  70%      { opacity: 1; transform: translateY(0) scale(1); }
+  77%      { opacity: 1; transform: translateY(0) scale(0.92); }
+  82%      { opacity: 1; transform: translateY(0) scale(1.04); }
+  86%      { opacity: 1; transform: translateY(0) scale(1); }
+  95%      { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+@keyframes demo-badge {
+  0%, 82%  { opacity: 0; transform: scale(0.85); }
+  87%      { opacity: 1; transform: scale(1.08); }
+  90%      { transform: scale(1); }
+  95%      { opacity: 1; }
+  100%     { opacity: 0; }
+}
+
+.animate-demo-cursor     { opacity: 0; animation: demo-cursor     14s ease-in-out infinite; will-change: transform, top, left; }
+.animate-demo-mic        { animation: demo-mic        14s ease-in-out infinite; will-change: transform, box-shadow; }
+.animate-demo-transcript { opacity: 0; animation: demo-transcript 14s ease-in-out infinite; will-change: opacity, transform; }
+.animate-demo-line-1     { opacity: 0; animation: demo-line-1     14s ease-in-out infinite; will-change: opacity, transform; }
+.animate-demo-line-2     { opacity: 0; animation: demo-line-2     14s ease-in-out infinite; will-change: opacity, transform; }
+.animate-demo-line-3     { opacity: 0; animation: demo-line-3     14s ease-in-out infinite; will-change: opacity, transform; }
+.animate-demo-total      { opacity: 0; animation: demo-total      14s ease-in-out infinite; will-change: opacity, transform; }
+.animate-demo-send       { opacity: 0; animation: demo-send       14s ease-in-out infinite; will-change: opacity, transform; }
+.animate-demo-badge      { opacity: 0; animation: demo-badge      14s ease-in-out infinite; will-change: opacity, transform; }
+
 /* prefers-reduced-motion respect intentionally disabled — Fethi wants the
    animations always visible, even when the OS asks to reduce motion. */

@@ -22,7 +22,7 @@ export default function LandingCTA() {
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" variant="secondary" className="rounded-full px-8 h-14 text-base font-semibold">
                 <Link href="/signup">
-                  Démarrer mes 14 jours gratuits
+                  14 jours gratuits — sans CB
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>

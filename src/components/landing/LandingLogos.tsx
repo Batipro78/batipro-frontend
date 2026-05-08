@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 const ARTISANS = [
   { name: 'Électricité Dupont', initials: 'ED', color: 'bg-primary/10 text-primary' },
@@ -15,21 +15,14 @@ export default function LandingLogos() {
   return (
     <section className="py-14 lg:py-16 bg-white border-y border-border">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Rating header */}
+        {/* Beta header — honnête tant que le N d'avis publics n'est pas atteint */}
         <div className="flex flex-col items-center text-center mb-10">
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star
-                key={i}
-                className="w-5 h-5 fill-[#f9cf58] text-[#f9cf58]"
-                strokeWidth={1.5}
-              />
-            ))}
-            <span className="ml-2 text-sm font-bold text-foreground">4,9 / 5</span>
-            <span className="text-sm text-muted-foreground ml-1">— retours bêta</span>
+          <div className="inline-flex items-center gap-2 rounded-full bg-primary/8 text-primary px-4 py-1.5 text-xs font-bold border border-primary/15">
+            <Sparkles className="w-3.5 h-3.5" />
+            Programme bêta privée — premiers artisans embarqués
           </div>
-          <p className="mt-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Des artisans français de tous corps d&apos;état nous font confiance
+          <p className="mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Des artisans français de tous corps d&apos;état découvrent BatiPro
           </p>
         </div>
 
