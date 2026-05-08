@@ -128,3 +128,122 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ===== Landing animations ===== */
+@keyframes blob-float-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  25%      { transform: translate3d(120px, -80px, 0) scale(1.15); }
+  50%      { transform: translate3d(-60px, -120px, 0) scale(0.9); }
+  75%      { transform: translate3d(-100px, 60px, 0) scale(1.1); }
+}
+@keyframes blob-float-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%      { transform: translate3d(-130px, 80px, 0) scale(1.2); }
+  66%      { transform: translate3d(100px, -60px, 0) scale(0.85); }
+}
+@keyframes blob-float-c {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(80px, 100px, 0) scale(1.25); }
+}
+@keyframes blob-float-d {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+  50%      { transform: translate3d(-90px, -70px, 0) scale(1.1) rotate(180deg); }
+}
+@keyframes hero-grid-pan {
+  0%   { background-position: 0 0; }
+  100% { background-position: 80px 80px; }
+}
+@keyframes shimmer-text {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+@keyframes hero-fade-up {
+  0%   { opacity: 0; transform: translate3d(0, 24px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes hero-fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes mockup-tilt {
+  0%, 100% { transform: rotateX(0deg) rotateY(0deg) translateY(0px); }
+  50%      { transform: rotateX(2deg) rotateY(-2deg) translateY(-12px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(75, 57, 239, 0.4); }
+  50%      { box-shadow: 0 0 0 24px rgba(75, 57, 239, 0); }
+}
+@keyframes particle-rise {
+  0%   { transform: translateY(0) scale(0); opacity: 0; }
+  10%  { transform: translateY(-20px) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-180px) scale(0.4); opacity: 0; }
+}
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-blob-a   { animation: blob-float-a 12s ease-in-out infinite; will-change: transform; }
+.animate-blob-b   { animation: blob-float-b 10s ease-in-out infinite; will-change: transform; }
+.animate-blob-c   { animation: blob-float-c 14s ease-in-out infinite; will-change: transform; }
+.animate-blob-d   { animation: blob-float-d 16s ease-in-out infinite; will-change: transform; }
+
+/* Mesh gradient drifts */
+@keyframes mesh-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(180px, -120px) scale(1.15); }
+  66%      { transform: translate(-90px, 180px) scale(0.95); }
+}
+@keyframes mesh-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-200px, 140px) scale(1.2); }
+}
+@keyframes mesh-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(140px, 180px) scale(1.1); }
+  66%      { transform: translate(-170px, -100px) scale(0.9); }
+}
+@keyframes mesh-drift-4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(220px, -60px) scale(1.25); }
+}
+@keyframes mesh-drift-5 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(-140px, -160px) scale(1.1); }
+  66%      { transform: translate(120px, 100px) scale(1); }
+}
+
+.animate-mesh-1 { animation: mesh-drift-1 18s ease-in-out infinite; transform-origin: center; will-change: transform; }
+.animate-mesh-2 { animation: mesh-drift-2 22s ease-in-out infinite; transform-origin: center; will-change: transform; }
+.animate-mesh-3 { animation: mesh-drift-3 16s ease-in-out infinite; transform-origin: center; will-change: transform; }
+.animate-mesh-4 { animation: mesh-drift-4 24s ease-in-out infinite; transform-origin: center; will-change: transform; }
+.animate-mesh-5 { animation: mesh-drift-5 20s ease-in-out infinite; transform-origin: center; will-change: transform; }
+.animate-grid-pan { animation: hero-grid-pan 12s linear infinite; }
+.animate-shimmer  {
+  background-size: 200% 200%;
+  animation: shimmer-text 4s ease-in-out infinite;
+}
+.animate-fade-up      { animation: hero-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-fade-in      { animation: hero-fade-in 1.2s ease-out both; }
+.animate-mockup-tilt  { animation: mockup-tilt 8s ease-in-out infinite; will-change: transform; }
+.animate-pulse-glow   { animation: pulse-glow 2.4s ease-out infinite; }
+.animate-marquee      { animation: marquee 30s linear infinite; }
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-700 { animation-delay: 0.7s; }
+
+.particle {
+  position: absolute;
+  bottom: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  animation: particle-rise 4s ease-out infinite;
+}
+
+/* prefers-reduced-motion respect intentionally disabled — Fethi wants the
+   animations always visible, even when the OS asks to reduce motion. */
