@@ -8,9 +8,11 @@ import LandingTestimonials from '@/components/landing/LandingTestimonials';
 import LandingStats from '@/components/landing/LandingStats';
 import LandingMetiers from '@/components/landing/LandingMetiers';
 import LandingPricing from '@/components/landing/LandingPricing';
+import LandingFAQ from '@/components/landing/LandingFAQ';
 import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
 import StickyCTA from '@/components/landing/StickyCTA';
+import Chatbot from '@/components/landing/Chatbot';
 
 export default function Home() {
   return (
@@ -25,9 +27,11 @@ export default function Home() {
       <LandingStats />
       <LandingMetiers />
       <LandingPricing />
+      <LandingFAQ />
       <LandingCTA />
       <LandingFooter />
       <StickyCTA />
+      <Chatbot />
     </main>
   );
 }

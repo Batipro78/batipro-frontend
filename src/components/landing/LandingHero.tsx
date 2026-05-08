@@ -120,7 +120,7 @@ export default function LandingHero() {
 
           <p className="animate-fade-up delay-200 mt-8 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Le logiciel des artisans du bâtiment. 524 articles BTP pré-chiffrés,
-            signature mobile eIDAS, conforme à la réforme Factur-X 2026.
+            signature mobile eIDAS, dictée vocale sur 14 métiers.
           </p>
 
           <div className="animate-fade-up delay-300 mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -158,7 +158,7 @@ export default function LandingHero() {
             </span>
             <span className="flex items-center gap-1.5">
               <Check className="w-4 h-4 text-success" />
-              Remboursé sous 30 jours
+              Sans engagement
             </span>
           </div>
         </div>
