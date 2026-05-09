@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Download, FileText, PenLine, MessageCircle, Mail, Mic, Pencil } from 'lucide-react';
+import { Download, FileText, PenLine, MessageCircle, Mail, Mic, Pencil, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { SignatureModal } from '@/components/signature-modal';
@@ -267,6 +267,28 @@ export default function DevisPage() {
               Facturer
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={async () => {
+              const confirmation = window.confirm(
+                `Supprimer le devis ${r.numero} ?\n\nCette action est irréversible.`
+              );
+              if (!confirmation) return;
+              try {
+                await api.delete(`/devis/${r.id}`);
+                toast.success('Devis supprimé');
+                loadDevis();
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Erreur suppression');
+              }
+            }}
+            title="Supprimer le devis"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Supprimer
+          </Button>
         </div>
       ),
     },

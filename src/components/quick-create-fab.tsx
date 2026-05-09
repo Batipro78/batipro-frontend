@@ -37,7 +37,7 @@ export function QuickCreateFab() {
   const actions: FabAction[] = [
     {
       icon: Mic,
-      label: 'Devis vocal',
+      label: 'Créer un devis',
       onClick: () => router.push('/voice'),
       bg: 'bg-purple-600 hover:bg-purple-700',
     },

@@ -13,7 +13,7 @@ import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/utils';
 import { METIERS, METIER_ICON, METIER_LABEL, supporteGammes, type Metier } from '@/lib/metiers';
-import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, ShoppingBag, X, FileEdit, Plus } from 'lucide-react';
+import { Mic, MicOff, Loader2, CheckCircle, AlertCircle, ShoppingBag, X, FileEdit, Plus, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Client {
@@ -290,6 +290,32 @@ function VoicePageContent() {
       />
 
       <div className="max-w-2xl mx-auto space-y-6">
+        {/* Pas de client : explication + bouton vers /clients */}
+        {!isAvenantMode && clients.length === 0 && (
+          <Card className="border-2 border-amber-500 bg-amber-50 dark:bg-amber-950">
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 py-5">
+              <div className="rounded-full bg-amber-100 dark:bg-amber-900 p-3 shrink-0">
+                <UserPlus className="h-6 w-6 text-amber-700 dark:text-amber-300" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-amber-900 dark:text-amber-200">
+                  Vous devez d&apos;abord créer un client
+                </p>
+                <p className="text-sm text-amber-800 dark:text-amber-300 mt-1">
+                  Un devis est toujours rattaché à un client. Ajoutez-en au moins un (nom + téléphone) avant de pouvoir créer un devis.
+                </p>
+              </div>
+              <Button
+                onClick={() => router.push('/clients')}
+                className="bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Créer un client
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Avenant Mode Banner */}
         {isAvenantMode && (
           <Card className="border-2 border-purple-500 bg-purple-50 dark:bg-purple-950">
