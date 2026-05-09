@@ -8,11 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Download, FileText, PenLine, MessageCircle, Mail, Mic, Layers, Pencil } from 'lucide-react';
+import { Download, FileText, PenLine, MessageCircle, Mail, Mic, Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { SignatureModal } from '@/components/signature-modal';
-import { SituationModal } from '@/components/situation-modal';
 import { EditDevisModal } from '@/components/edit-devis-modal';
 
 interface ArtisanProfile {
@@ -58,7 +57,6 @@ export default function DevisPage() {
   const [devis, setDevis] = useState<Devis[]>([]);
   const [loading, setLoading] = useState(true);
   const [signDevis, setSignDevis] = useState<Devis | null>(null);
-  const [situationDevis, setSituationDevis] = useState<Devis | null>(null);
   const [editDevis, setEditDevis] = useState<Devis | null>(null);
   const [artisan, setArtisan] = useState<ArtisanProfile | null>(null);
   const router = useRouter();
@@ -250,17 +248,6 @@ export default function DevisPage() {
               Signer
             </Button>
           )}
-          {(r.statut === 'genere' || r.statut === 'signe' || r.statut === 'envoye' || r.statut === 'facture') && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSituationDevis(r)}
-              title="Créer une facture de situation (avancement progressif)"
-            >
-              <Layers className="h-4 w-4 mr-1" />
-              Situation
-            </Button>
-          )}
           {(r.statut === 'genere' || r.statut === 'signe') && (
             <Button
               variant="ghost"
@@ -296,15 +283,6 @@ export default function DevisPage() {
         open={!!signDevis}
         onOpenChange={(open) => { if (!open) setSignDevis(null); }}
         onSigned={loadDevis}
-      />
-
-      <SituationModal
-        devisId={situationDevis?.id ?? null}
-        devisNumero={situationDevis?.numero ?? ''}
-        totalTTC={situationDevis?.total_ttc ?? 0}
-        open={!!situationDevis}
-        onOpenChange={(open) => { if (!open) setSituationDevis(null); }}
-        onCreated={loadDevis}
       />
 
       <EditDevisModal

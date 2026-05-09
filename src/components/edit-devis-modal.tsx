@@ -5,16 +5,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
-import { Loader2, Pencil, Trash2, Plus, Search } from 'lucide-react';
+import { Loader2, Pencil, Trash2, Plus, Search, Wrench, Package } from 'lucide-react';
 
 interface LigneServer {
   id?: number;
-  article_id: number;
+  article_id: number | null;
   quantite: number;
   prix_unitaire_ht: number;
   tva: number;
+  metadata?: { type?: string; nom?: string; description?: string; unite?: string } | null;
   articles?: { nom: string; unite?: string };
 }
 
@@ -34,7 +36,8 @@ interface Article {
   metier: string;
 }
 
-interface LigneEdit {
+interface LigneMateriel {
+  kind: 'materiel';
   article_id: number;
   quantite: number;
   prix_unitaire_ht: number;
@@ -43,6 +46,18 @@ interface LigneEdit {
   unite: string;
 }
 
+interface LigneMO {
+  kind: 'mo';
+  uid: string;
+  description: string;
+  quantite: number;
+  prix_unitaire_ht: number;
+  unite: 'heures' | 'jours' | 'forfait' | 'm²' | 'ml';
+  tva: number;
+}
+
+type LigneEdit = LigneMateriel | LigneMO;
+
 interface Props {
   devisId: number | null;
   devisNumero: string;
@@ -50,6 +65,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSaved?: () => void;
 }
+
+const UNITES_MO: Array<LigneMO['unite']> = ['heures', 'jours', 'forfait', 'm²', 'ml'];
 
 export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSaved }: Props) {
   const [loading, setLoading] = useState(false);
@@ -60,23 +77,49 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
   const [searchResults, setSearchResults] = useState<Article[]>([]);
   const [searching, setSearching] = useState(false);
 
+  // Form ajout MO
+  const [moDescription, setMoDescription] = useState('');
+  const [moQuantite, setMoQuantite] = useState<number>(1);
+  const [moPrix, setMoPrix] = useState<number>(0);
+  const [moUnite, setMoUnite] = useState<LigneMO['unite']>('heures');
+
   useEffect(() => {
     if (!open || !devisId) return;
     setLoading(true);
     setSearch('');
     setSearchResults([]);
+    setMoDescription('');
+    setMoQuantite(1);
+    setMoPrix(0);
+    setMoUnite('heures');
     api
       .get<{ data: DevisServer }>(`/devis/${devisId}`)
       .then((res) => {
         const d = res.data;
-        const init: LigneEdit[] = (d?.lignes_devis || []).map((l) => ({
-          article_id: l.article_id,
-          quantite: Number(l.quantite),
-          prix_unitaire_ht: Number(l.prix_unitaire_ht),
-          tva: Number(l.tva),
-          nom: l.articles?.nom || `Article #${l.article_id}`,
-          unite: l.articles?.unite || 'piece',
-        }));
+        const init: LigneEdit[] = (d?.lignes_devis || []).map((l, i) => {
+          if (l.article_id) {
+            return {
+              kind: 'materiel' as const,
+              article_id: l.article_id,
+              quantite: Number(l.quantite),
+              prix_unitaire_ht: Number(l.prix_unitaire_ht),
+              tva: Number(l.tva),
+              nom: l.articles?.nom || `Article #${l.article_id}`,
+              unite: l.articles?.unite || 'piece',
+            };
+          }
+          const meta = l.metadata || {};
+          const unite = (meta.unite as LigneMO['unite']) || 'forfait';
+          return {
+            kind: 'mo' as const,
+            uid: `existing-${i}`,
+            description: meta.description || meta.nom || 'Main d\'œuvre',
+            quantite: Number(l.quantite),
+            prix_unitaire_ht: Number(l.prix_unitaire_ht),
+            unite: UNITES_MO.includes(unite) ? unite : 'forfait',
+            tva: Number(l.tva) || 20,
+          };
+        });
         setLignes(init);
       })
       .catch(() => toast.error('Erreur chargement devis'))
@@ -114,14 +157,15 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
     return { ht, tva, ttc: ht + tva };
   }, [lignes]);
 
-  const ajouterLigne = (a: Article) => {
-    if (lignes.some((l) => l.article_id === a.id)) {
+  const ajouterMateriel = (a: Article) => {
+    if (lignes.some((l) => l.kind === 'materiel' && l.article_id === a.id)) {
       toast.info('Article déjà dans le devis');
       return;
     }
     setLignes((prev) => [
       ...prev,
       {
+        kind: 'materiel',
         article_id: a.id,
         quantite: 1,
         prix_unitaire_ht: Number(a.prix_ht),
@@ -134,8 +178,48 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
     setSearchResults([]);
   };
 
-  const supprimerLigne = (article_id: number) => {
-    setLignes((prev) => prev.filter((l) => l.article_id !== article_id));
+  const ajouterMO = () => {
+    const desc = moDescription.trim();
+    if (!desc) {
+      toast.error('Décrivez la main d\'œuvre');
+      return;
+    }
+    if (moQuantite <= 0 || moPrix <= 0) {
+      toast.error('Quantité et prix doivent être > 0');
+      return;
+    }
+    setLignes((prev) => [
+      ...prev,
+      {
+        kind: 'mo',
+        uid: `new-${Date.now()}`,
+        description: desc,
+        quantite: moQuantite,
+        prix_unitaire_ht: moPrix,
+        unite: moUnite,
+        tva: 20,
+      },
+    ]);
+    setMoDescription('');
+    setMoQuantite(1);
+    setMoPrix(0);
+    setMoUnite('heures');
+  };
+
+  const supprimerLigne = (idx: number) => {
+    setLignes((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateQuantite = (idx: number, v: number) => {
+    if (isNaN(v) || v <= 0) return;
+    setLignes((prev) => prev.map((p, i) => (i === idx ? { ...p, quantite: v } : p)));
+  };
+
+  const updatePrixMO = (idx: number, v: number) => {
+    if (isNaN(v) || v < 0) return;
+    setLignes((prev) =>
+      prev.map((p, i) => (i === idx && p.kind === 'mo' ? { ...p, prix_unitaire_ht: v } : p))
+    );
   };
 
   const handleSave = async () => {
@@ -146,9 +230,18 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
     }
     setSubmitting(true);
     try {
-      await api.put(`/devis/${devisId}`, {
-        lignes: lignes.map((l) => ({ article_id: l.article_id, quantite: l.quantite })),
-      });
+      const payload = lignes.map((l) =>
+        l.kind === 'materiel'
+          ? { article_id: l.article_id, quantite: l.quantite }
+          : {
+              description: l.description,
+              quantite: l.quantite,
+              prix_unitaire_ht: l.prix_unitaire_ht,
+              unite: l.unite,
+              tva: l.tva,
+            }
+      );
+      await api.put(`/devis/${devisId}`, { lignes: payload });
       toast.success('Devis mis à jour');
       onOpenChange(false);
       onSaved?.();
@@ -174,45 +267,65 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="space-y-2">
               <Label>Lignes du devis ({lignes.length})</Label>
               {lignes.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic px-3 py-4 border border-dashed rounded-lg text-center">
-                  Aucune ligne. Ajoutez au moins un article ci-dessous.
+                  Aucune ligne. Ajoutez du matériel ou de la main d&apos;œuvre ci-dessous.
                 </p>
               ) : (
                 <div className="border rounded-lg divide-y">
-                  {lignes.map((l) => {
+                  {lignes.map((l, idx) => {
                     const sousTotal = l.prix_unitaire_ht * l.quantite;
+                    const Icon = l.kind === 'materiel' ? Package : Wrench;
+                    const colorIcon =
+                      l.kind === 'materiel' ? 'text-blue-600' : 'text-amber-600';
                     return (
                       <div
-                        key={l.article_id}
+                        key={l.kind === 'materiel' ? `m-${l.article_id}` : `mo-${l.uid}`}
                         className="flex items-center gap-3 px-3 py-2 hover:bg-muted/30"
                       >
+                        <Icon className={`h-4 w-4 shrink-0 ${colorIcon}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm truncate">{l.nom}</p>
+                          <p className="font-medium text-sm truncate">
+                            {l.kind === 'materiel' ? l.nom : l.description}
+                          </p>
                           <p className="text-xs text-muted-foreground">
-                            {l.prix_unitaire_ht.toFixed(2)} € / {l.unite} &middot; TVA {l.tva}%
+                            {l.kind === 'materiel' ? (
+                              <>
+                                {l.prix_unitaire_ht.toFixed(2)} € / {l.unite} &middot; TVA {l.tva}%
+                              </>
+                            ) : (
+                              <>Main d&apos;œuvre &middot; {l.unite} &middot; TVA {l.tva}%</>
+                            )}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
+                          {l.kind === 'mo' && (
+                            <>
+                              <span className="text-xs text-muted-foreground">€/u</span>
+                              <Input
+                                type="number"
+                                min={0}
+                                step={0.5}
+                                value={l.prix_unitaire_ht}
+                                onChange={(e) =>
+                                  updatePrixMO(idx, parseFloat(e.target.value))
+                                }
+                                className="w-20 h-8"
+                              />
+                            </>
+                          )}
                           <span className="text-xs text-muted-foreground">Qté</span>
                           <Input
                             type="number"
                             min={0.01}
                             step={0.01}
                             value={l.quantite}
-                            onChange={(e) => {
-                              const v = parseFloat(e.target.value);
-                              setLignes((prev) =>
-                                prev.map((p) =>
-                                  p.article_id === l.article_id
-                                    ? { ...p, quantite: isNaN(v) || v <= 0 ? p.quantite : v }
-                                    : p
-                                )
-                              );
-                            }}
+                            onChange={(e) =>
+                              updateQuantite(idx, parseFloat(e.target.value))
+                            }
                             className="w-20 h-8"
                           />
                           <span className="text-sm font-semibold w-20 text-right">
@@ -222,7 +335,7 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => supprimerLigne(l.article_id)}
+                            onClick={() => supprimerLigne(idx)}
                             title="Supprimer la ligne"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -236,7 +349,9 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
             </div>
 
             <div className="space-y-2 pt-2 border-t">
-              <Label>Ajouter un article</Label>
+              <Label className="flex items-center gap-2">
+                <Package className="h-4 w-4 text-blue-600" /> Ajouter du matériel
+              </Label>
               <div className="relative">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -255,15 +370,17 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                 <p className="text-xs text-muted-foreground px-1">Aucun article trouvé.</p>
               )}
               {searchResults.length > 0 && (
-                <div className="border rounded-lg max-h-48 overflow-y-auto divide-y">
+                <div className="border rounded-lg max-h-40 overflow-y-auto divide-y">
                   {searchResults.map((a) => {
-                    const deja = lignes.some((l) => l.article_id === a.id);
+                    const deja = lignes.some(
+                      (l) => l.kind === 'materiel' && l.article_id === a.id
+                    );
                     return (
                       <button
                         key={a.id}
                         type="button"
                         disabled={deja}
-                        onClick={() => ajouterLigne(a)}
+                        onClick={() => ajouterMateriel(a)}
                         className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-muted/40 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <div className="flex-1 min-w-0">
@@ -282,6 +399,63 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                   })}
                 </div>
               )}
+            </div>
+
+            <div className="space-y-2 pt-2 border-t">
+              <Label className="flex items-center gap-2">
+                <Wrench className="h-4 w-4 text-amber-600" /> Ajouter de la main d&apos;œuvre
+              </Label>
+              <Input
+                placeholder="Description (ex : Pose et raccordement, démontage...)"
+                value={moDescription}
+                onChange={(e) => setMoDescription(e.target.value)}
+              />
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-3">
+                  <Input
+                    type="number"
+                    min={0.01}
+                    step={0.5}
+                    placeholder="Qté"
+                    value={moQuantite || ''}
+                    onChange={(e) => setMoQuantite(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="col-span-3">
+                  <Select value={moUnite} onValueChange={(v) => setMoUnite(v as LigneMO['unite'])}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UNITES_MO.map((u) => (
+                        <SelectItem key={u} value={u}>
+                          {u}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="col-span-3">
+                  <Input
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    placeholder="€ HT / unité"
+                    value={moPrix || ''}
+                    onChange={(e) => setMoPrix(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="col-span-3">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={ajouterMO}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Ajouter
+                  </Button>
+                </div>
+              </div>
             </div>
 
             <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
