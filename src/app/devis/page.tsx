@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
-import { Download, FileText, PenLine, MessageCircle, Mail, Mic, Layers } from 'lucide-react';
+import { Download, FileText, PenLine, MessageCircle, Mail, Mic, Layers, Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { SignatureModal } from '@/components/signature-modal';
 import { SituationModal } from '@/components/situation-modal';
+import { EditDevisModal } from '@/components/edit-devis-modal';
 
 interface ArtisanProfile {
   nom: string;
@@ -58,6 +59,7 @@ export default function DevisPage() {
   const [loading, setLoading] = useState(true);
   const [signDevis, setSignDevis] = useState<Devis | null>(null);
   const [situationDevis, setSituationDevis] = useState<Devis | null>(null);
+  const [editDevis, setEditDevis] = useState<Devis | null>(null);
   const [artisan, setArtisan] = useState<ArtisanProfile | null>(null);
   const router = useRouter();
 
@@ -202,6 +204,17 @@ export default function DevisPage() {
               + Travaux
             </Button>
           )}
+          {(r.statut === 'brouillon' || r.statut === 'genere') && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setEditDevis(r)}
+              title="Modifier les lignes du devis"
+            >
+              <Pencil className="h-4 w-4 mr-1" />
+              Modifier
+            </Button>
+          )}
           {r.pdf_url && (
             <Button
               variant="ghost"
@@ -292,6 +305,14 @@ export default function DevisPage() {
         open={!!situationDevis}
         onOpenChange={(open) => { if (!open) setSituationDevis(null); }}
         onCreated={loadDevis}
+      />
+
+      <EditDevisModal
+        devisId={editDevis?.id ?? null}
+        devisNumero={editDevis?.numero ?? ''}
+        open={!!editDevis}
+        onOpenChange={(open) => { if (!open) setEditDevis(null); }}
+        onSaved={loadDevis}
       />
     </ProtectedLayout>
   );
