@@ -26,13 +26,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 function decodeToken(token: string): User | null {
   try {
     const base64 = token.split('.')[1];
-    // base64url -> base64
     const normalized = base64.replace(/-/g, '+').replace(/_/g, '/');
     const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
-    const json =
-      typeof atob !== 'undefined'
-        ? atob(padded)
-        : Buffer.from(padded, 'base64').toString('utf-8');
+    const json = atob(padded);
     const payload = JSON.parse(json);
     if (payload.exp * 1000 <= Date.now()) return null;
     return {
