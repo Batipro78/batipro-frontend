@@ -79,7 +79,7 @@ export default function ProfilScreen() {
           fullWidth
         />
 
-        <Text style={styles.version}>BatiPro Mobile · v0.1.0</Text>
+        <Text style={styles.version}>MonDevisMinute Mobile · v0.1.0</Text>
       </ScrollView>
     </SafeAreaView>
   );

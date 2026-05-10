@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "BatiPro",
-    "slug": "batipro-mobile",
+    "name": "MonDevisMinute",
+    "slug": "mondevisminute-mobile",
     "version": "0.1.0",
     "orientation": "portrait",
-    "scheme": "batipro",
+    "scheme": "mondevisminute",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.batipro.mobile"
+      "bundleIdentifier": "com.mondevisminute.mobile"
     },
     "android": {
-      "package": "com.batipro.mobile",
+      "package": "com.mondevisminute.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#0F172A"
       }
@@ -22,7 +22,20 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "MonDevisMinute utilise le microphone pour la dictée vocale de vos devis."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MonDevisMinute accède à vos photos pour ajouter le logo de votre entreprise.",
+          "cameraPermission": "MonDevisMinute utilise l'appareil photo pour scanner le logo ou ajouter une photo de chantier."
+        }
+      ]
     ],
     "extra": {
       "apiUrl": "https://batipro-backend.onrender.com/api",

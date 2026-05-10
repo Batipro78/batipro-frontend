@@ -52,7 +52,7 @@ export default function LoginScreen() {
               <Ionicons name="flash" size={28} color="#fff" />
             </View>
             <Text style={styles.title}>Connexion</Text>
-            <Text style={styles.subtitle}>Accédez à votre espace BatiPro</Text>
+            <Text style={styles.subtitle}>Accédez à votre espace MonDevisMinute</Text>
 
             <View style={styles.form}>
               <Input

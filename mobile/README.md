@@ -1,8 +1,8 @@
-# BatiPro Mobile
+# MonDevisMinute Mobile
 
-Application mobile iOS / Android de BatiPro — Expo + React Native + TypeScript.
+Application mobile iOS / Android de MonDevisMinute — Expo + React Native + TypeScript.
 
-Réutilise le backend du web (`batipro-backend.onrender.com`).
+Réutilise le backend du web (`batipro-backend.onrender.com`, hébergement technique inchangé).
 
 ## Stack
 
