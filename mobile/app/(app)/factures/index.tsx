@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Badge } from '@/components/Badge';
@@ -91,7 +91,7 @@ export default function FacturesScreen() {
     return (
       <Pressable
         style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
-        onPress={() => item.pdf_url && Linking.openURL(item.pdf_url)}
+        onPress={() => router.push(`/factures/${item.id}`)}
       >
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>

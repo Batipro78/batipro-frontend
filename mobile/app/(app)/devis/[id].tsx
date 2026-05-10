@@ -2,13 +2,17 @@ import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Linking,
+  Modal,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
   Share,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
@@ -16,6 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
+import { Input } from '@/components/Input';
+import { SignaturePad } from '@/components/SignaturePad';
 import { api } from '@/lib/api';
 import { colors, fontSize, radius, spacing } from '@/lib/theme';
 
@@ -77,6 +83,12 @@ export default function DevisDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [acting, setActing] = useState(false);
+  const [signOpen, setSignOpen] = useState(false);
+  const [situationOpen, setSituationOpen] = useState(false);
+  const [situationPct, setSituationPct] = useState('');
+  const [situationRetenue, setSituationRetenue] = useState('');
+  const [situationSubmitting, setSituationSubmitting] = useState(false);
+  const [situationError, setSituationError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -189,6 +201,69 @@ export default function DevisDetailScreen() {
         },
       ]
     );
+  };
+
+  const onSignature = async (base64DataUrl: string) => {
+    if (!devis) return;
+    setSignOpen(false);
+    setActing(true);
+    try {
+      await api.post(`/devis/${devis.id}/signature`, {
+        signature: base64DataUrl,
+      });
+      Alert.alert('Devis signé', 'La signature a été enregistrée.');
+      await load();
+    } catch (e) {
+      Alert.alert(
+        'Erreur',
+        e instanceof Error ? e.message : 'Impossible d\'enregistrer la signature'
+      );
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const openSituation = () => {
+    setSituationPct('');
+    setSituationRetenue('');
+    setSituationError(null);
+    setSituationOpen(true);
+  };
+
+  const onCreateSituation = async () => {
+    if (!devis) return;
+    const pct = parseFloat(situationPct.replace(',', '.'));
+    if (!pct || pct < 1 || pct > 100) {
+      setSituationError('Le pourcentage doit être entre 1 et 100.');
+      return;
+    }
+    const retenue = situationRetenue
+      ? parseFloat(situationRetenue.replace(',', '.'))
+      : 0;
+    if (situationRetenue && (retenue < 0 || retenue > 5)) {
+      setSituationError('La retenue de garantie doit être entre 0 et 5 %.');
+      return;
+    }
+    setSituationSubmitting(true);
+    setSituationError(null);
+    try {
+      await api.post(`/devis/${devis.id}/situations`, {
+        pourcentage_avancement: pct,
+        retenue_garantie_pct: retenue || undefined,
+      });
+      setSituationOpen(false);
+      Alert.alert(
+        'Facture de situation créée',
+        `${pct}% du devis a été facturé. Voyez-la dans Factures.`
+      );
+      await load();
+    } catch (e) {
+      setSituationError(
+        e instanceof Error ? e.message : 'Erreur lors de la création'
+      );
+    } finally {
+      setSituationSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -333,10 +408,39 @@ export default function DevisDetailScreen() {
           )}
         </View>
 
-        {devis.statut !== 'facture' ? (
+        {devis.statut !== 'facture' && devis.statut !== 'annule' ? (
           <View style={{ gap: spacing.sm }}>
+            {devis.statut !== 'signe' && !devis.signature ? (
+              <Button
+                title="Faire signer le client"
+                onPress={() => setSignOpen(true)}
+                fullWidth
+                loading={acting}
+              />
+            ) : (
+              <View style={styles.signedBox}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={colors.success}
+                />
+                <Text style={styles.signedText}>
+                  Signé{' '}
+                  {devis.signed_at
+                    ? `le ${new Date(devis.signed_at).toLocaleDateString('fr-FR')}`
+                    : ''}
+                </Text>
+              </View>
+            )}
             <Button
-              title="Convertir en facture"
+              title="Facturer une situation (% d'avancement)"
+              variant="outline"
+              fullWidth
+              onPress={openSituation}
+              loading={acting}
+            />
+            <Button
+              title="Convertir en facture finale"
               variant="outline"
               fullWidth
               onPress={onConvertFacture}
@@ -344,12 +448,90 @@ export default function DevisDetailScreen() {
             />
           </View>
         ) : null}
-
-        <Text style={styles.todoNote}>
-          Signature client et factures de situation arrivent dans la prochaine
-          mise à jour.
-        </Text>
       </ScrollView>
+
+      <SignaturePad
+        visible={signOpen}
+        onClose={() => setSignOpen(false)}
+        onSign={onSignature}
+        title={`Signature — ${devis.numero}`}
+      />
+
+      <Modal
+        visible={situationOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setSituationOpen(false)}
+      >
+        <SafeAreaView style={styles.modalSafe} edges={['top', 'bottom']}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <View style={styles.modalHeader}>
+              <Pressable
+                onPress={() => setSituationOpen(false)}
+                disabled={situationSubmitting}
+              >
+                <Text style={styles.modalCancel}>Annuler</Text>
+              </Pressable>
+              <Text style={styles.modalTitle}>Facture de situation</Text>
+              <Pressable
+                onPress={onCreateSituation}
+                disabled={situationSubmitting}
+              >
+                <Text
+                  style={[
+                    styles.modalSave,
+                    situationSubmitting && { opacity: 0.5 },
+                  ]}
+                >
+                  {situationSubmitting ? '...' : 'Créer'}
+                </Text>
+              </Pressable>
+            </View>
+            <ScrollView contentContainerStyle={styles.modalForm}>
+              <Text style={styles.modalHint}>
+                Une facture de situation correspond à un % d'avancement du
+                chantier. Vous pourrez en créer plusieurs (30 %, puis 60 %, puis
+                solde).
+              </Text>
+              <Input
+                label="Pourcentage d'avancement *"
+                value={situationPct}
+                onChangeText={setSituationPct}
+                placeholder="30"
+                keyboardType="decimal-pad"
+              />
+              <Input
+                label="Retenue de garantie (%, optionnel)"
+                value={situationRetenue}
+                onChangeText={setSituationRetenue}
+                placeholder="5"
+                keyboardType="decimal-pad"
+              />
+              {situationPct && devis.total_ttc ? (
+                <View style={styles.preview}>
+                  <Text style={styles.previewLabel}>Montant facturé</Text>
+                  <Text style={styles.previewValue}>
+                    {(
+                      ((parseFloat(situationPct.replace(',', '.')) || 0) / 100) *
+                      devis.total_ttc *
+                      (1 -
+                        (parseFloat(situationRetenue.replace(',', '.')) || 0) /
+                          100)
+                    ).toFixed(2)}{' '}
+                    € TTC
+                  </Text>
+                </View>
+              ) : null}
+              {situationError ? (
+                <Text style={styles.formError}>{situationError}</Text>
+              ) : null}
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -518,11 +700,55 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: spacing.md,
   },
-  todoNote: {
-    fontSize: fontSize.xs,
+  signedBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: '#DCFCE7',
+    padding: spacing.md,
+    borderRadius: radius.md,
+  },
+  signedText: { color: '#15803D', fontSize: fontSize.sm, fontWeight: '600' },
+  modalSafe: { flex: 1, backgroundColor: colors.background },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalCancel: { fontSize: fontSize.base, color: colors.mutedForeground },
+  modalTitle: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.foreground,
+  },
+  modalSave: { fontSize: fontSize.base, fontWeight: '600', color: colors.primary },
+  modalForm: { padding: spacing.lg, gap: spacing.md },
+  modalHint: {
+    fontSize: fontSize.sm,
     color: colors.mutedForeground,
+    lineHeight: 20,
+  },
+  preview: {
+    backgroundColor: colors.muted,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  previewLabel: { fontSize: fontSize.sm, color: colors.mutedForeground },
+  previewValue: {
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    color: colors.foreground,
+  },
+  formError: {
+    color: colors.destructive,
+    fontSize: fontSize.sm,
     textAlign: 'center',
-    fontStyle: 'italic',
-    marginTop: spacing.md,
   },
 });

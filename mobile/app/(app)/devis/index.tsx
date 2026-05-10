@@ -152,13 +152,22 @@ export default function DevisScreen() {
         />
       )}
 
-      <Pressable
-        onPress={() => router.push('/devis/nouveau-vocal')}
-        style={({ pressed }) => [styles.fab, pressed && { opacity: 0.9 }]}
-      >
-        <Ionicons name="mic" size={26} color="#fff" />
-        <Text style={styles.fabText}>Devis vocal</Text>
-      </Pressable>
+      <View style={styles.fabBar}>
+        <Pressable
+          onPress={() => router.push('/devis/nouveau')}
+          style={({ pressed }) => [styles.fabSecondary, pressed && { opacity: 0.85 }]}
+        >
+          <Ionicons name="add" size={20} color={colors.foreground} />
+          <Text style={styles.fabSecondaryText}>Manuel</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => router.push('/devis/nouveau-vocal')}
+          style={({ pressed }) => [styles.fab, pressed && { opacity: 0.9 }]}
+        >
+          <Ionicons name="mic" size={22} color="#fff" />
+          <Text style={styles.fabText}>Vocal</Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -223,10 +232,15 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   emptyText: { color: colors.mutedForeground, fontSize: fontSize.sm },
-  fab: {
+  fabBar: {
     position: 'absolute',
     right: spacing.lg,
     bottom: spacing.lg,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    alignItems: 'center',
+  },
+  fab: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
@@ -241,4 +255,25 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   fabText: { color: '#fff', fontWeight: '700', fontSize: fontSize.base },
+  fabSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  fabSecondaryText: {
+    color: colors.foreground,
+    fontWeight: '600',
+    fontSize: fontSize.sm,
+  },
 });
