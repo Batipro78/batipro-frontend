@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Badge } from '@/components/Badge';
@@ -87,7 +87,7 @@ export default function DevisScreen() {
   const renderItem = ({ item }: { item: Devis }) => (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
-      onPress={() => openPdf(item.pdf_url)}
+      onPress={() => router.push(`/devis/${item.id}`)}
     >
       <View style={styles.cardHeader}>
         <View style={{ flex: 1 }}>
@@ -151,6 +151,14 @@ export default function DevisScreen() {
           }
         />
       )}
+
+      <Pressable
+        onPress={() => router.push('/devis/nouveau-vocal')}
+        style={({ pressed }) => [styles.fab, pressed && { opacity: 0.9 }]}
+      >
+        <Ionicons name="mic" size={26} color="#fff" />
+        <Text style={styles.fabText}>Devis vocal</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -215,4 +223,22 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   emptyText: { color: colors.mutedForeground, fontSize: fontSize.sm },
+  fab: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.accent,
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  fabText: { color: '#fff', fontWeight: '700', fontSize: fontSize.base },
 });

@@ -57,6 +57,15 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
+        name="clients"
+        options={{
+          title: 'Clients',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profil"
         options={{
           title: 'Profil',
@@ -65,6 +74,7 @@ export default function AppLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="articles" options={{ href: null }} />
     </Tabs>
   );
 }

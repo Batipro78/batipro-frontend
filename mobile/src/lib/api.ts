@@ -46,6 +46,37 @@ async function apiFetch<T>(endpoint: string, options: ApiOptions = {}): Promise<
   return json;
 }
 
+async function apiUpload<T>(
+  endpoint: string,
+  formData: FormData,
+  method: 'POST' | 'PUT' = 'POST'
+): Promise<T> {
+  const token = await storage.get('token');
+
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  if (res.status === 401) {
+    await storage.remove('token');
+    await storage.remove('refreshToken');
+    onUnauthorized?.();
+    throw new Error('Non autorisé');
+  }
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.error?.message || json.message || 'Erreur API');
+  }
+
+  return json;
+}
+
 export const api = {
   get: <T>(endpoint: string) => apiFetch<T>(endpoint),
   post: <T>(endpoint: string, body: unknown) =>
@@ -53,6 +84,8 @@ export const api = {
   put: <T>(endpoint: string, body: unknown) =>
     apiFetch<T>(endpoint, { method: 'PUT', body }),
   delete: <T>(endpoint: string) => apiFetch<T>(endpoint, { method: 'DELETE' }),
+  upload: <T>(endpoint: string, formData: FormData, method: 'POST' | 'PUT' = 'POST') =>
+    apiUpload<T>(endpoint, formData, method),
 };
 
 export const apiBaseUrl = API_BASE;
