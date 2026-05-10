@@ -59,6 +59,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://mondevisminute.com',
   },
+  verification: {
+    google: 'QxU3v4fcs4iHa9a9uYOFkAJAL25l4bp0C8Jq0hkJ_bA',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
