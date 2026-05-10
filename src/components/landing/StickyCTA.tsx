@@ -30,7 +30,7 @@ export default function StickyCTA() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[13px] font-bold text-foreground leading-tight truncate">
-              Tester BatiPro gratuitement
+              Tester MonDevisMinute gratuitement
             </p>
             <p className="text-[11px] text-muted-foreground leading-tight">
               14 jours · sans CB · annulable en 1 clic

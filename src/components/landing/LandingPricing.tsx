@@ -36,7 +36,7 @@ export default function LandingPricing() {
             <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">Toutes les fonctionnalités.</span>
           </h2>
           <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-            Pas de plan compliqué, pas de fonction bloquée. 29 € par mois et vous avez tout BatiPro.
+            Pas de plan compliqué, pas de fonction bloquée. 29 € par mois et vous avez tout MonDevisMinute.
           </p>
         </div>
 
@@ -85,7 +85,7 @@ export default function LandingPricing() {
             </div>
 
             <h3 className="font-display text-3xl font-semibold tracking-tight text-slate-900 text-center">
-              BatiPro
+              MonDevisMinute
             </h3>
             <p className="mt-2 text-center text-slate-600">
               L&apos;outil complet pour piloter votre activité d&apos;artisan.

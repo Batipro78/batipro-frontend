@@ -8,7 +8,7 @@ const inter = Inter({ weight: '400', variable: '--font-inter', subsets: ['latin'
 const interTight = Inter_Tight({ weight: '600', variable: '--font-inter-tight', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'BatiPro - Gestion Artisan',
+  title: 'MonDevisMinute - Gestion Artisan',
   description: 'Application de gestion pour artisans électriciens et plombiers',
 };
 

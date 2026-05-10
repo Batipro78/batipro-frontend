@@ -98,11 +98,11 @@ export default function AbonnementPage() {
         <div className="text-center mb-8">
           <CreditCard className="mx-auto h-12 w-12 text-violet-600 mb-4" />
           <h1 className="text-3xl font-bold text-gray-900">
-            {isSubscribed ? 'Votre abonnement' : 'Activez BatiPro'}
+            {isSubscribed ? 'Votre abonnement' : 'Activez MonDevisMinute'}
           </h1>
           <p className="mt-2 text-gray-500 max-w-md mx-auto">
             {isSubscribed
-              ? 'Gérez votre abonnement BatiPro Pro ci-dessous.'
+              ? 'Gérez votre abonnement MonDevisMinute Pro ci-dessous.'
               : 'Votre période d\'essai est terminée. Choisissez votre formule pour continuer.'}
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function AbonnementPage() {
               <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
                 <Shield className="h-6 w-6 text-green-600" />
               </div>
-              <CardTitle className="text-xl">BatiPro Pro</CardTitle>
+              <CardTitle className="text-xl">MonDevisMinute Pro</CardTitle>
               <CardDescription>
                 {subStatus?.subscription_status === 'active' && (
                   <Badge className="bg-green-100 text-green-700 hover:bg-green-100 mt-1">

@@ -45,7 +45,7 @@ export default function LandingMetiers() {
             <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">parlent déjà notre langue.</span>
           </h2>
           <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-            BatiPro reconnaît le vocabulaire technique de chaque corps d&apos;état.
+            MonDevisMinute reconnaît le vocabulaire technique de chaque corps d&apos;état.
             La dictée vocale s&apos;adapte au métier sélectionné.
           </p>
         </div>

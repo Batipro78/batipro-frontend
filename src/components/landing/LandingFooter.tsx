@@ -12,7 +12,7 @@ export default function LandingFooter() {
                 <Mic className="w-5 h-5 text-primary-foreground" />
               </span>
               <span className="font-display font-bold text-xl tracking-tight text-foreground">
-                BatiPro
+                MonDevisMinute
               </span>
             </div>
             <p className="mt-4 text-sm text-muted-foreground max-w-sm">
@@ -42,7 +42,7 @@ export default function LandingFooter() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} BatiPro. Tous droits réservés.</p>
+          <p>© {new Date().getFullYear()} MonDevisMinute. Tous droits réservés.</p>
           <p>Hébergé en France · Conforme RGPD · Facturation électronique 2026</p>
         </div>
       </div>

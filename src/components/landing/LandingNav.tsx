@@ -29,7 +29,7 @@ export default function LandingNav() {
             <Mic className="w-5 h-5 text-primary-foreground" />
           </span>
           <span className="font-display font-bold text-xl tracking-tight text-foreground">
-            BatiPro
+            MonDevisMinute
           </span>
         </Link>
 

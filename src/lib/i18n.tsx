@@ -38,7 +38,7 @@ const translations = {
     date: 'Date',
     total: 'Total',
     // Login
-    loginTitle: 'Connexion à BatiPro',
+    loginTitle: 'Connexion à MonDevisMinute',
     loginSubtitle: 'Entrez vos identifiants pour accéder à votre espace',
     password: 'Mot de passe',
     loginButton: 'Se connecter',
@@ -164,7 +164,7 @@ const translations = {
     date: 'Date',
     total: 'Total',
     // Login
-    loginTitle: 'Login to BatiPro',
+    loginTitle: 'Login to MonDevisMinute',
     loginSubtitle: 'Enter your credentials to access your workspace',
     password: 'Password',
     loginButton: 'Sign in',

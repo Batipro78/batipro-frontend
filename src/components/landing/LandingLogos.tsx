@@ -22,7 +22,7 @@ export default function LandingLogos() {
             Programme bêta privée — premiers artisans embarqués
           </div>
           <p className="mt-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Des artisans français de tous corps d&apos;état découvrent BatiPro
+            Des artisans français de tous corps d&apos;état découvrent MonDevisMinute
           </p>
         </div>
 

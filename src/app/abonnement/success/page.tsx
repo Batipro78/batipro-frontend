@@ -37,7 +37,7 @@ export default function AbonnementSuccessPage() {
           </div>
           <CardTitle className="text-2xl">Paiement réussi !</CardTitle>
           <CardDescription>
-            Bienvenue dans BatiPro Pro. Votre abonnement est maintenant actif.
+            Bienvenue dans MonDevisMinute Pro. Votre abonnement est maintenant actif.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

@@ -51,15 +51,15 @@ export function CguModal() {
           <h3 className="font-semibold text-foreground">1. Objet</h3>
           <p>
             Les presentes Conditions Generales d&apos;Utilisation (CGU) ont pour objet de definir les
-            modalites et conditions d&apos;utilisation de la plateforme BatiPro, accessible via
-            l&apos;application web et mobile. BatiPro est un service de gestion destine aux artisans
+            modalites et conditions d&apos;utilisation de la plateforme MonDevisMinute, accessible via
+            l&apos;application web et mobile. MonDevisMinute est un service de gestion destine aux artisans
             du batiment, incluant la creation de devis, factures, la gestion de clients et
             l&apos;assistance vocale par intelligence artificielle.
           </p>
 
           <h3 className="font-semibold text-foreground">2. Acceptation des CGU</h3>
           <p>
-            L&apos;utilisation de BatiPro implique l&apos;acceptation pleine et entiere des
+            L&apos;utilisation de MonDevisMinute implique l&apos;acceptation pleine et entiere des
             presentes CGU. En cliquant sur &quot;J&apos;accepte les conditions&quot;, l&apos;Utilisateur
             reconnait avoir pris connaissance de l&apos;ensemble des presentes conditions et les
             accepter sans reserve.
@@ -67,7 +67,7 @@ export function CguModal() {
 
           <h3 className="font-semibold text-foreground">3. Description du service</h3>
           <p>
-            BatiPro propose les fonctionnalites suivantes : creation et gestion de devis et
+            MonDevisMinute propose les fonctionnalites suivantes : creation et gestion de devis et
             factures, gestion de la base clients, dictee vocale assistee par IA pour la creation
             de devis, catalogue d&apos;articles et de prix, generation de documents PDF, et mode
             comparatif multi-gammes.
@@ -82,7 +82,7 @@ export function CguModal() {
 
           <h3 className="font-semibold text-foreground">5. Protection des donnees personnelles</h3>
           <p>
-            Conformement au Reglement General sur la Protection des Donnees (RGPD), BatiPro
+            Conformement au Reglement General sur la Protection des Donnees (RGPD), MonDevisMinute
             s&apos;engage a proteger les donnees personnelles de ses utilisateurs. Les donnees
             collectees sont necessaires au fonctionnement du service et ne sont pas cedees a des
             tiers. L&apos;Utilisateur dispose d&apos;un droit d&apos;acces, de rectification, de
@@ -91,14 +91,14 @@ export function CguModal() {
 
           <h3 className="font-semibold text-foreground">6. Propriete intellectuelle</h3>
           <p>
-            L&apos;ensemble des elements de BatiPro (logiciel, interface, contenus, marques) sont
+            L&apos;ensemble des elements de MonDevisMinute (logiciel, interface, contenus, marques) sont
             proteges par le droit de la propriete intellectuelle. Toute reproduction ou utilisation
             non autorisee est interdite.
           </p>
 
           <h3 className="font-semibold text-foreground">7. Responsabilite</h3>
           <p>
-            BatiPro s&apos;efforce d&apos;assurer la disponibilite et la fiabilite du service, mais
+            MonDevisMinute s&apos;efforce d&apos;assurer la disponibilite et la fiabilite du service, mais
             ne saurait etre tenu responsable des interruptions temporaires, des erreurs de
             transcription vocale ou des inexactitudes dans les prix du catalogue. L&apos;Utilisateur
             reste seul responsable de la verification des devis et factures generes.
@@ -106,14 +106,14 @@ export function CguModal() {
 
           <h3 className="font-semibold text-foreground">8. Abonnement et paiement</h3>
           <p>
-            L&apos;acces a BatiPro est soumis a un abonnement payant apres une periode d&apos;essai
+            L&apos;acces a MonDevisMinute est soumis a un abonnement payant apres une periode d&apos;essai
             gratuite de 14 jours. Les tarifs et modalites de paiement sont detailles sur la page
             d&apos;abonnement. L&apos;Utilisateur peut resilier son abonnement a tout moment.
           </p>
 
           <h3 className="font-semibold text-foreground">9. Modification des CGU</h3>
           <p>
-            BatiPro se reserve le droit de modifier les presentes CGU a tout moment. Les
+            MonDevisMinute se reserve le droit de modifier les presentes CGU a tout moment. Les
             utilisateurs seront informes de toute modification substantielle et devront accepter
             les nouvelles conditions pour continuer a utiliser le service.
           </p>

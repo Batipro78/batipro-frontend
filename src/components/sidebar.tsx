@@ -48,7 +48,7 @@ function NavContent({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex flex-col h-full">
       <div className="p-6">
-        <h1 className="text-2xl font-bold text-primary">BatiPro</h1>
+        <h1 className="text-2xl font-bold text-primary">MonDevisMinute</h1>
         <p className="text-sm text-muted-foreground">Gestion artisan</p>
       </div>
       <Separator />
@@ -146,7 +146,7 @@ export function Sidebar() {
 
       {/* Mobile header + sheet */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b px-4 py-3 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-primary">BatiPro</h1>
+        <h1 className="text-lg font-bold text-primary">MonDevisMinute</h1>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">

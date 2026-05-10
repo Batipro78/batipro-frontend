@@ -175,7 +175,7 @@ export default function LandingHero() {
                 <span className="w-3 h-3 rounded-full bg-chart-5/80" />
                 <span className="w-3 h-3 rounded-full bg-success/70" />
                 <span className="ml-4 text-xs text-muted-foreground font-mono">
-                  app.batipro.fr/devis/nouveau
+                  app.mondevisminute.com/devis/nouveau
                 </span>
               </div>
               <div className="p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-3 gap-6">

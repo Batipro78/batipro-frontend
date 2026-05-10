@@ -31,7 +31,7 @@ const TESTIMONIALS = [
     color: 'bg-success text-white',
     metric: '~30 min économisées par devis',
     text:
-      'Les 524 articles déjà chiffrés, ça me fait gagner un temps fou. Je n\'ai plus à fouiller mes anciens devis pour retrouver mes prix, BatiPro propose des montants déjà ajustés.',
+      'Les 524 articles déjà chiffrés, ça me fait gagner un temps fou. Je n\'ai plus à fouiller mes anciens devis pour retrouver mes prix, MonDevisMinute propose des montants déjà ajustés.',
     rating: 5,
   },
 ];

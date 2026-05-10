@@ -6,7 +6,7 @@ import { ChevronDown } from 'lucide-react';
 const FAQS = [
   {
     q: 'Et si je ne suis pas à l\'aise avec l\'informatique ?',
-    a: 'BatiPro est conçu pour être utilisé sans formation. Vous parlez, l\'IA structure le devis. Pas de menus complexes, pas de tableurs. Si vous savez utiliser WhatsApp, vous savez utiliser BatiPro. Notre support répond par email en moins de 24h ouvrées si vous bloquez sur quelque chose.',
+    a: 'MonDevisMinute est conçu pour être utilisé sans formation. Vous parlez, l\'IA structure le devis. Pas de menus complexes, pas de tableurs. Si vous savez utiliser WhatsApp, vous savez utiliser MonDevisMinute. Notre support répond par email en moins de 24h ouvrées si vous bloquez sur quelque chose.',
   },
   {
     q: 'C\'est compatible avec mon comptable ?',

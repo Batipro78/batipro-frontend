@@ -4,7 +4,7 @@ const STEPS = [
   {
     icon: Mic,
     title: 'Vous parlez',
-    desc: 'Décrivez votre chantier en langage naturel. BatiPro comprend les 14 métiers du BTP.',
+    desc: 'Décrivez votre chantier en langage naturel. MonDevisMinute comprend les 14 métiers du BTP.',
     color: 'bg-primary text-primary-foreground',
   },
   {

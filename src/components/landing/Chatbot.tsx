@@ -9,7 +9,7 @@ const KB: { keywords: string[]; answer: string }[] = [
   {
     keywords: ['prix', 'tarif', 'coute', 'coût', 'cout', 'combien', 'cher', 'mensuel', 'annuel'],
     answer:
-      'BatiPro coûte 29 € HT par mois, ou 290 € HT par an (soit 24,17 €/mois, 2 mois offerts). Toutes les fonctionnalités sont incluses, pas de plan caché.',
+      'MonDevisMinute coûte 29 € HT par mois, ou 290 € HT par an (soit 24,17 €/mois, 2 mois offerts). Toutes les fonctionnalités sont incluses, pas de plan caché.',
   },
   {
     keywords: ['gratuit', 'essai', 'tester', 'test', 'demo', 'démo'],
@@ -69,12 +69,12 @@ const KB: { keywords: string[]; answer: string }[] = [
   {
     keywords: ['support', 'aide', 'contact', 'email', 'mail'],
     answer:
-      'Support par email sous 24h ouvrées. Pour toute question complexe que je ne peux pas traiter ici, écrivez-nous à contact@batipro.fr',
+      'Support par email sous 24h ouvrées. Pour toute question complexe que je ne peux pas traiter ici, écrivez-nous à contact@mondevisminute.com',
   },
   {
     keywords: ['mobile', 'téléphone', 'telephone', 'iphone', 'android', 'app'],
     answer:
-      'BatiPro est accessible depuis votre navigateur mobile (Safari, Chrome). Optimisé pour iPhone et Android. Pas besoin d\'installer d\'application.',
+      'MonDevisMinute est accessible depuis votre navigateur mobile (Safari, Chrome). Optimisé pour iPhone et Android. Pas besoin d\'installer d\'application.',
   },
   {
     keywords: ['mise à jour', 'mise a jour', 'update', 'nouveauté', 'nouveaute'],
@@ -103,7 +103,7 @@ function findAnswer(question: string): string {
     }
   }
   if (best) return best.answer;
-  return 'Je ne suis sûr de pouvoir répondre à celle-là. Pour une réponse précise, écrivez-nous à contact@batipro.fr — on vous répond sous 24h ouvrées.';
+  return 'Je ne suis sûr de pouvoir répondre à celle-là. Pour une réponse précise, écrivez-nous à contact@mondevisminute.com — on vous répond sous 24h ouvrées.';
 }
 
 export default function Chatbot() {
@@ -112,7 +112,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: 'bot',
-      text: 'Bonjour ! Je peux répondre aux questions simples sur BatiPro (tarif, essai, données, annulation…). Choisissez une suggestion ou posez votre question.',
+      text: 'Bonjour ! Je peux répondre aux questions simples sur MonDevisMinute (tarif, essai, données, annulation…). Choisissez une suggestion ou posez votre question.',
     },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -159,7 +159,7 @@ export default function Chatbot() {
                 <Sparkles className="h-4 w-4" />
               </div>
               <div>
-                <p className="font-semibold text-sm">Assistant BatiPro</p>
+                <p className="font-semibold text-sm">Assistant MonDevisMinute</p>
                 <p className="text-xs text-white/80">Réponses rapides aux questions courantes</p>
               </div>
             </div>
