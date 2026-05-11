@@ -7,98 +7,31 @@ import { Button } from '@/components/ui/button';
 export default function LandingHero() {
   return (
     <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden bg-white">
-      {/* ============ MESH GRADIENT BACKGROUND ============ */}
-      <div className="absolute inset-0 -z-10 pointer-events-none">
-        <svg
-          className="absolute inset-0 w-full h-full"
-          viewBox="0 0 1440 900"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
-        >
-          <defs>
-            {/* Liquid distortion filter — turbulence + displacement = mesh organique */}
-            <filter id="liquid" x="-20%" y="-20%" width="140%" height="140%">
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.012 0.018"
-                numOctaves="2"
-                seed="7"
-                result="noise"
-              >
-                <animate
-                  attributeName="baseFrequency"
-                  dur="24s"
-                  values="0.012 0.018; 0.020 0.014; 0.012 0.018"
-                  repeatCount="indefinite"
-                />
-              </feTurbulence>
-              <feDisplacementMap
-                in="SourceGraphic"
-                in2="noise"
-                scale="60"
-                xChannelSelector="R"
-                yChannelSelector="G"
-              />
-            </filter>
-
-            {/* Soft blur to keep edges silky */}
-            <filter id="silk" x="-10%" y="-10%" width="120%" height="120%">
-              <feGaussianBlur stdDeviation="50" />
-            </filter>
-
-            {/* Color blobs */}
-            <radialGradient id="g-violet" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#4b39ef" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#4b39ef" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="g-teal" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#39d2c0" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#39d2c0" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="g-yellow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#f9cf58" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#f9cf58" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="g-pink" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#ff8aa6" stopOpacity="0.45" />
-              <stop offset="100%" stopColor="#ff8aa6" stopOpacity="0" />
-            </radialGradient>
-            <radialGradient id="g-indigo" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#6753ff" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#6753ff" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-
-          {/* Mesh layer 1 — colors blurred and distorted */}
-          <g filter="url(#liquid)">
-            <g filter="url(#silk)">
-              <circle className="animate-mesh-1" cx="280" cy="260" r="320" fill="url(#g-violet)" />
-              <circle className="animate-mesh-2" cx="1180" cy="220" r="360" fill="url(#g-teal)" />
-              <circle className="animate-mesh-3" cx="720" cy="500" r="340" fill="url(#g-yellow)" />
-              <circle className="animate-mesh-4" cx="1080" cy="640" r="300" fill="url(#g-pink)" />
-              <circle className="animate-mesh-5" cx="380" cy="700" r="320" fill="url(#g-indigo)" />
-            </g>
-          </g>
-        </svg>
-
-        {/* Whiteish veil so text stays readable on top of the mesh */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(to bottom, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 35%, rgba(241,244,248,0.55) 100%)',
-          }}
-        />
-
-        {/* Subtle vignette at bottom for mockup contrast */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse 70% 40% at 50% 100%, rgba(20,24,27,0.06), transparent 60%)',
-          }}
-        />
-      </div>
+      {/* ============ STATIC CSS GRADIENT BACKGROUND ============ */}
+      {/* Replaces the previous animated SVG mesh (feTurbulence + feDisplacementMap + feGaussianBlur)
+          which was killing perf on mobile. Same visual identity, ~0 GPU cost. */}
+      <div
+        className="absolute inset-0 -z-10 pointer-events-none"
+        style={{
+          background: [
+            'radial-gradient(60rem 40rem at 18% 22%, rgba(75, 57, 239, 0.32), transparent 60%)',
+            'radial-gradient(55rem 38rem at 82% 18%, rgba(57, 210, 192, 0.28), transparent 60%)',
+            'radial-gradient(50rem 36rem at 50% 56%, rgba(249, 207, 88, 0.22), transparent 60%)',
+            'radial-gradient(45rem 32rem at 75% 75%, rgba(255, 138, 166, 0.20), transparent 60%)',
+            'radial-gradient(50rem 36rem at 26% 80%, rgba(103, 83, 255, 0.24), transparent 60%)',
+            'linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0.20) 35%, rgba(241,244,248,0.65))',
+          ].join(', '),
+        }}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 -z-10 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse 70% 40% at 50% 100%, rgba(20,24,27,0.06), transparent 60%)',
+        }}
+        aria-hidden="true"
+      />
 
       {/* ============ CONTENT ============ */}
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
