@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Mic, ArrowRight, Check, Sparkles } from 'lucide-react';
+import { Mic, ArrowRight, Check, Sparkles, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function LandingHero() {
@@ -159,6 +159,13 @@ export default function LandingHero() {
             <span className="flex items-center gap-1.5">
               <Check className="w-4 h-4 text-success" />
               Sans engagement
+            </span>
+          </div>
+
+          <div className="animate-fade-up delay-500 mt-8 flex justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-foreground/5 px-4 py-1.5 text-xs font-medium text-muted-foreground border border-border">
+              <Smartphone className="w-3.5 h-3.5" />
+              Application Android bientôt disponible sur Google Play
             </span>
           </div>
         </div>
