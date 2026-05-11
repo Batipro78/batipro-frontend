@@ -207,7 +207,7 @@ Section par section :
 
 **Security practices** :
 - Data encrypted in transit : **Yes**
-- Users can request data deletion : **Yes** (⚠️ mais l'endpoint n'existe pas encore — à fixer avant ou répondre "Yes via support email" et fournir un email)
+- Users can request data deletion : **Yes** — endpoints `GET /auth/rgpd/export` et `POST /auth/rgpd/delete` en place côté backend, UI dans **Profil → Mes données** (mobile + web). Anonymisation immédiate via fonction Postgres `anonymize_artisan`, audit dans `rgpd_logs`.
 
 ### 5.5. Pricing & distribution
 - Free (l'achat in-app sera géré via Stripe, pas Google Play Billing → **important** : ne PAS cocher "Contains ads" ni "In-app products" car le paiement est externe)
@@ -251,7 +251,7 @@ Pour pousser une mise à jour :
 
 ## TODO avant lancement public
 
-- [ ] **Backend RGPD** : créer `GET /auth/rgpd/export` et `POST /auth/rgpd/delete` pour pouvoir cocher "Users can request data deletion" en toute honnêteté
+- [x] **Backend RGPD** : `POST /auth/rgpd/consent`, `GET /auth/rgpd/export`, `POST /auth/rgpd/delete` (avec confirmation password) — déjà en place + migration `013_rgpd_compliance.sql` + UI Profil → Mes données mobile + web
 - [ ] **Deep links** : configurer Android App Links via `assetlinks.json` sur `mondevisminute.com` pour que les liens reset-password/verify-email s'ouvrent dans l'app (cf. note dans memory `project_mondevisminute_mobile.md`)
 - [ ] **Feature graphic 1024×500** : créer la bannière Play Store
 - [ ] **Screenshots** : 4-6 captures depuis un vrai device

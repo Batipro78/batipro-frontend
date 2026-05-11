@@ -7,6 +7,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -18,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Card } from '@/components/Card';
+import { DeleteAccountModal } from '@/components/DeleteAccountModal';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { colors, fontSize, radius, spacing } from '@/lib/theme';
@@ -83,6 +85,8 @@ export default function ProfilScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -222,6 +226,31 @@ export default function ProfilScreen() {
       { text: 'Annuler', style: 'cancel' },
       { text: 'Se déconnecter', style: 'destructive', onPress: () => logout() },
     ]);
+
+  async function handleExportData() {
+    setExporting(true);
+    try {
+      const res = await api.get<{ data: Record<string, unknown> }>('/auth/rgpd/export');
+      const json = JSON.stringify(res.data, null, 2);
+      await Share.share({
+        title: 'Mes données MonDevisMinute',
+        message: json,
+      });
+    } catch (err: unknown) {
+      Alert.alert('Erreur', err instanceof Error ? err.message : 'Export impossible.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  function handleAccountDeleted() {
+    setDeleteOpen(false);
+    Alert.alert(
+      'Compte supprimé',
+      'Vos données ont été anonymisées. Merci d\'avoir utilisé MonDevisMinute.',
+      [{ text: 'OK', onPress: () => logout() }]
+    );
+  }
 
   const trialDaysLeft = (() => {
     if (!user?.trial_start) return null;
@@ -528,6 +557,31 @@ export default function ProfilScreen() {
             fullWidth
           />
 
+          {/* Mes données (RGPD) */}
+          <Card style={{ gap: spacing.md }}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="shield-checkmark-outline" size={20} color={colors.foreground} />
+              <Text style={styles.sectionTitle}>Mes données</Text>
+            </View>
+            <Text style={styles.hint}>
+              Conformément au RGPD, vous pouvez à tout moment exporter vos données ou demander la
+              suppression de votre compte.
+            </Text>
+
+            <Button
+              title={exporting ? 'Export...' : 'Exporter mes données'}
+              onPress={handleExportData}
+              loading={exporting}
+              variant="outline"
+              fullWidth
+            />
+
+            <Pressable onPress={() => setDeleteOpen(true)} style={styles.dangerLink}>
+              <Ionicons name="trash-outline" size={16} color={colors.destructive} />
+              <Text style={styles.dangerLinkText}>Supprimer mon compte</Text>
+            </Pressable>
+          </Card>
+
           <Button
             title="Se déconnecter"
             variant="destructive"
@@ -535,9 +589,15 @@ export default function ProfilScreen() {
             fullWidth
           />
 
-          <Text style={styles.version}>MonDevisMinute Mobile · v0.1.0</Text>
+          <Text style={styles.version}>MonDevisMinute Mobile · v1.0.0</Text>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <DeleteAccountModal
+        visible={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={handleAccountDeleted}
+      />
     </SafeAreaView>
   );
 }
@@ -628,5 +688,17 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
     fontSize: fontSize.xs,
     marginTop: spacing.md,
+  },
+  dangerLink: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: spacing.sm,
+  },
+  dangerLinkText: {
+    color: colors.destructive,
+    fontSize: fontSize.sm,
+    fontWeight: '600',
   },
 });
