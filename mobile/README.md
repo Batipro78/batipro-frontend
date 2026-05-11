@@ -12,15 +12,21 @@ Réutilise le backend du web (`batipro-backend.onrender.com`, hébergement techn
 - **TypeScript** strict
 - **@expo/vector-icons** (Ionicons)
 
-## Périmètre actuel (MVP)
+## Périmètre actuel (v1.0.0 — prêt pour Google Play)
 
-- Auth (login + signup avec essai 14 jours)
+- Auth (signup + login + reset/verify-email avec deep links)
+- CGU modal non-fermable au premier login
 - Dashboard (stats + derniers devis)
-- Liste des devis (statut, montant, ouverture du PDF)
-- Liste des factures (type, statut, montant)
-- Profil (info compte + déconnexion)
+- Devis : création **vocale** (IA via /voice/generate) + manuelle, détail PDF, signature client (canvas), conversion en facture, partage natif
+- Factures : factures de situation (acomptes), retenue de garantie, paiements multi-méthodes
+- Clients CRUD complet (B2C / B2B / B2G)
+- Profil édition complète 13 champs + upload logo (expo-image-picker)
+- Abonnement Stripe (checkout + portail via expo-web-browser)
+- **RGPD** : export JSON + suppression compte avec anonymisation (Profil → Mes données)
 
-À venir : création vocale de devis, signature, partage WhatsApp, gestion clients/articles, écran abonnement Stripe.
+## Publication Google Play
+
+Voir [`GOOGLE_PLAY_RELEASE.md`](./GOOGLE_PLAY_RELEASE.md) pour le guide complet : compte Play Console, EAS build/submit, fiche store, data safety form, Android App Links.
 
 ## Démarrage
 
@@ -31,6 +37,12 @@ npm start
 ```
 
 Puis scan du QR code avec **Expo Go** (iOS / Android), ou `i` / `a` pour les simulateurs.
+
+> ⚠️ Le canvas de signature et l'audio dans Expo Go ont des limitations. Pour un test complet, utiliser un **EAS Build preview** :
+> ```bash
+> npx eas build --profile preview --platform android
+> ```
+> Puis installer l'APK sur un device Android (~10 min de build cloud).
 
 ## Configuration
 
