@@ -78,6 +78,7 @@ export default function AppLayout() {
           }}
         />
         <Tabs.Screen name="articles" options={{ href: null }} />
+        <Tabs.Screen name="abonnement" options={{ href: null }} />
       </Tabs>
     </>
   );
