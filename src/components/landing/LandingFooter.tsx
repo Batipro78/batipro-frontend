@@ -5,7 +5,7 @@ export default function LandingFooter() {
   return (
     <footer className="border-t border-border bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-8">
           <div className="col-span-2">
             <div className="flex items-center gap-2">
               <span className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
@@ -37,6 +37,15 @@ export default function LandingFooter() {
               <li><Link href="/signup" className="hover:text-foreground transition">Créer un compte</Link></li>
               <li><Link href="/login" className="hover:text-foreground transition">Se connecter</Link></li>
               <li><Link href="/forgot-password" className="hover:text-foreground transition">Mot de passe oublié</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-foreground mb-3">Légal</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/cgu" className="hover:text-foreground transition">CGU</Link></li>
+              <li><Link href="/confidentialite" className="hover:text-foreground transition">Confidentialité</Link></li>
+              <li><a href="mailto:contact@mondevisminute.com" className="hover:text-foreground transition">Contact</a></li>
             </ul>
           </div>
         </div>

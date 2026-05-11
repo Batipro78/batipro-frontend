@@ -252,7 +252,8 @@ Pour pousser une mise à jour :
 ## TODO avant lancement public
 
 - [x] **Backend RGPD** : `POST /auth/rgpd/consent`, `GET /auth/rgpd/export`, `POST /auth/rgpd/delete` (avec confirmation password) — déjà en place + migration `013_rgpd_compliance.sql` + UI Profil → Mes données mobile + web
-- [ ] **Deep links** : configurer Android App Links via `assetlinks.json` sur `mondevisminute.com` pour que les liens reset-password/verify-email s'ouvrent dans l'app (cf. note dans memory `project_mondevisminute_mobile.md`)
+- [x] **Feature graphic 1024×500** : généré dans `assets/feature-graphic.png` (placeholder, peut être remplacé par un design pro)
+- [🟡] **Deep links Android App Links** : `app.json` configuré avec `intentFilters` autoVerify sur `mondevisminute.com/reset-password` et `/verify-email`. **Template `assetlinks.json` créé dans `public/.well-known/`** mais avec un placeholder pour le SHA-256 fingerprint. Voir section "Android App Links" ci-dessous pour finaliser après le 1er build.
 - [ ] **Feature graphic 1024×500** : créer la bannière Play Store
 - [ ] **Screenshots** : 4-6 captures depuis un vrai device
 - [ ] **Privacy Policy** : vérifier que `mondevisminute.com/confidentialite` mentionne explicitement Stripe, le traitement des données, et le contact RGPD
@@ -262,9 +263,74 @@ Pour pousser une mise à jour :
 
 ---
 
+## Android App Links — finalisation après le 1er build
+
+Le but : que cliquer un lien `https://mondevisminute.com/reset-password?token=xxx` depuis un email ouvre **directement l'app MonDevisMinute** au lieu du navigateur (= UX mobile correcte pour le reset password et la vérification email).
+
+### Étape 1 — Récupérer le SHA-256 fingerprint après ton 1er upload Play Console
+
+Après l'upload de l'AAB sur Play Console (étape 4 plus haut) :
+
+1. Play Console → **Setup** → **App signing**
+2. Section **App signing key certificate**
+3. Copie la valeur **SHA-256 certificate fingerprint**
+4. Format attendu : `AB:CD:EF:01:23:...` (64 caractères hex séparés par `:`)
+
+> ⚠️ Pas le fingerprint **Upload key certificate** — c'est celui d'**App signing key** qui sert pour les App Links (Play Console re-signe l'app avec sa propre clé).
+
+### Étape 2 — Mettre à jour `public/.well-known/assetlinks.json`
+
+```json
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mondevisminute.mobile",
+      "sha256_cert_fingerprints": [
+        "TON_FINGERPRINT_ICI"
+      ]
+    }
+  }
+]
+```
+
+Remplace `REPLACE_WITH_SHA256_FROM_EAS_CREDENTIALS` par la valeur copiée à l'étape 1.
+
+### Étape 3 — Déployer le fichier sur mondevisminute.com
+
+Le fichier doit être accessible à `https://mondevisminute.com/.well-known/assetlinks.json` :
+- **Content-Type** : `application/json` (Next.js le sert automatiquement)
+- **Pas de redirect** (Google Verifier rejette si redirect)
+- **HTTPS valide**
+
+Le fichier est déjà dans `public/.well-known/assetlinks.json` du repo `batipro-frontend`. Une fois mis à jour avec le bon SHA-256, push sur main → Vercel déploie automatiquement.
+
+### Étape 4 — Tester
+
+1. Aller sur https://developers.google.com/digital-asset-links/tools/generator?hl=fr
+2. Tester avec :
+   - Hosting site domain : `mondevisminute.com`
+   - App package name : `com.mondevisminute.mobile`
+   - SHA-256 fingerprint : la valeur copiée
+3. Cliquer "Test statement" → doit retourner OK
+
+Ensuite, installer un nouveau build EAS sur ton device et cliquer un lien reset-password → l'app doit s'ouvrir directement (ou montrer un sélecteur "Ouvrir avec : Navigateur / MonDevisMinute").
+
+### Étape 5 — Bonus : changer le backend pour envoyer les liens directs
+
+Optionnel mais recommandé : dans `batipro-backend/src/services/auth.service.ts`, là où le backend construit les URLs envoyées dans les emails de reset-password et verify-email, garde `https://mondevisminute.com/...` (pas `mondevisminute://...`) — c'est plus universel : les utilisateurs sans l'app les ouvrent dans le navigateur (qui redirige vers les pages web reset-password/verify-email correspondantes), et les utilisateurs avec l'app les ouvrent directement dans l'app grâce à App Links.
+
+### Pour iOS (future v1.1)
+
+Quand tu publieras sur l'App Store, il faudra l'équivalent via **Universal Links** : ajouter un fichier `public/.well-known/apple-app-site-association` avec le `appID`. Skip pour la v1 Google Play.
+
+---
+
 ## Liens utiles
 
 - Play Console : https://play.google.com/console
 - EAS Dashboard : https://expo.dev/accounts/[ton-compte]/projects/mondevisminute-mobile
 - Docs EAS Submit : https://docs.expo.dev/submit/android/
+- Docs Android App Links : https://developer.android.com/training/app-links/verify-android-applinks
 - Badge officiel Play Store : https://play.google.com/intl/en_us/badges/

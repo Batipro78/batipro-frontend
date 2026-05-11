@@ -22,7 +22,26 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F172A"
-      }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "mondevisminute.com",
+              "pathPrefix": "/reset-password"
+            },
+            {
+              "scheme": "https",
+              "host": "mondevisminute.com",
+              "pathPrefix": "/verify-email"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
