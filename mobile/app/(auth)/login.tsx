@@ -71,6 +71,12 @@ export default function LoginScreen() {
                 secureTextEntry
                 autoComplete="password"
               />
+              <Pressable
+                onPress={() => router.push('/forgot-password')}
+                style={styles.forgotLink}
+              >
+                <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+              </Pressable>
               {error ? <Text style={styles.error}>{error}</Text> : null}
               <Button
                 title="Se connecter"
@@ -131,4 +137,6 @@ const styles = StyleSheet.create({
   footerLink: { marginTop: spacing.md, alignItems: 'center' },
   footerText: { color: colors.mutedForeground, fontSize: fontSize.sm },
   footerHighlight: { color: colors.primary, fontWeight: '600' },
+  forgotLink: { alignSelf: 'flex-end', marginTop: -spacing.xs },
+  forgotText: { color: colors.primary, fontSize: fontSize.sm, fontWeight: '500' },
 });
