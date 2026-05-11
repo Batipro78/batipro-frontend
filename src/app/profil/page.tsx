@@ -2,14 +2,24 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { PageHeader } from '@/components/page-header';
 import { ProtectedLayout } from '@/components/protected-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
@@ -26,6 +36,8 @@ import {
   Loader2,
   ImageIcon,
   Shield,
+  ShieldCheck,
+  Download,
   Info,
 } from 'lucide-react';
 
@@ -54,13 +66,23 @@ function RequiredStar() {
   return <span className="text-red-500 ml-0.5">*</span>;
 }
 
+const DELETE_CONFIRM_PHRASE = 'SUPPRIMER';
+
 export default function ProfilPage() {
   const { t } = useI18n();
+  const { logout } = useAuth();
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -185,6 +207,61 @@ export default function ProfilPage() {
         delete next[field];
         return next;
       });
+    }
+  }
+
+  async function handleExportData() {
+    setExporting(true);
+    try {
+      const res = await api.get<{ data: Record<string, unknown> }>('/auth/rgpd/export');
+      const json = JSON.stringify(res.data, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mondevisminute-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('Export téléchargé');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur export');
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  function resetDeleteDialog() {
+    setDeleteOpen(false);
+    setDeletePassword('');
+    setDeleteConfirm('');
+    setDeleteError('');
+    setDeleting(false);
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteError('');
+    if (deleteConfirm.trim().toUpperCase() !== DELETE_CONFIRM_PHRASE) {
+      setDeleteError(`Tapez exactement « ${DELETE_CONFIRM_PHRASE} » pour confirmer.`);
+      return;
+    }
+    if (!deletePassword) {
+      setDeleteError('Mot de passe requis.');
+      return;
+    }
+    setDeleting(true);
+    try {
+      await api.post('/auth/rgpd/delete', { password: deletePassword });
+      toast.success('Compte supprimé. Vos données ont été anonymisées.');
+      resetDeleteDialog();
+      logout();
+      router.push('/login');
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Suppression impossible. Vérifiez votre mot de passe.'
+      );
+      setDeleting(false);
     }
   }
 
@@ -559,6 +636,118 @@ export default function ProfilPage() {
           </div>
         </div>
       </div>
+
+      {/* ============================================= */}
+      {/* SECTION RGPD - Mes données                    */}
+      {/* ============================================= */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            Mes données
+          </CardTitle>
+          <CardDescription>
+            Conformément au RGPD, vous pouvez à tout moment exporter vos données ou demander la
+            suppression de votre compte.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleExportData}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              Exporter mes données
+            </Button>
+            <Button
+              variant="destructive"
+              className="w-full"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Supprimer mon compte
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            L&apos;export contient vos coordonnées, vos clients et vos devis. La suppression
+            anonymise toutes vos données personnelles de façon définitive.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Modal de suppression */}
+      <Dialog open={deleteOpen} onOpenChange={(o) => { if (!o) resetDeleteDialog(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Supprimer mon compte
+            </DialogTitle>
+            <DialogDescription>
+              Cette action est définitive. Vos données personnelles seront anonymisées
+              immédiatement conformément au RGPD et ne pourront pas être restaurées.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <ul className="space-y-1 text-sm text-muted-foreground list-disc pl-5">
+              <li>Vos coordonnées seront anonymisées</li>
+              <li>Vos clients seront anonymisés (devis/factures conservés en archive légale)</li>
+              <li>Les enregistrements audio de la dictée vocale seront supprimés</li>
+              <li>Pensez à annuler votre abonnement Stripe avant suppression</li>
+            </ul>
+            <div className="space-y-2">
+              <Label htmlFor="delete-confirm">
+                Tapez « <span className="font-bold">{DELETE_CONFIRM_PHRASE}</span> » pour
+                confirmer
+              </Label>
+              <Input
+                id="delete-confirm"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                placeholder={DELETE_CONFIRM_PHRASE}
+                autoComplete="off"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="delete-password">Votre mot de passe</Label>
+              <Input
+                id="delete-password"
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={resetDeleteDialog} disabled={deleting}>
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deleting || !deletePassword || !deleteConfirm}
+            >
+              {deleting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              Supprimer définitivement
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ProtectedLayout>
   );
 }

@@ -323,15 +323,56 @@
   100%     { opacity: 0; }
 }
 
-.animate-demo-cursor     { opacity: 0; animation: demo-cursor     14s ease-in-out infinite; will-change: transform, top, left; }
-.animate-demo-mic        { animation: demo-mic        14s ease-in-out infinite; will-change: transform, box-shadow; }
-.animate-demo-transcript { opacity: 0; animation: demo-transcript 14s ease-in-out infinite; will-change: opacity, transform; }
-.animate-demo-line-1     { opacity: 0; animation: demo-line-1     14s ease-in-out infinite; will-change: opacity, transform; }
-.animate-demo-line-2     { opacity: 0; animation: demo-line-2     14s ease-in-out infinite; will-change: opacity, transform; }
-.animate-demo-line-3     { opacity: 0; animation: demo-line-3     14s ease-in-out infinite; will-change: opacity, transform; }
-.animate-demo-total      { opacity: 0; animation: demo-total      14s ease-in-out infinite; will-change: opacity, transform; }
-.animate-demo-send       { opacity: 0; animation: demo-send       14s ease-in-out infinite; will-change: opacity, transform; }
-.animate-demo-badge      { opacity: 0; animation: demo-badge      14s ease-in-out infinite; will-change: opacity, transform; }
+.animate-demo-cursor     { opacity: 0; animation: demo-cursor     14s ease-in-out infinite; }
+.animate-demo-mic        { animation: demo-mic        14s ease-in-out infinite; }
+.animate-demo-transcript { opacity: 0; animation: demo-transcript 14s ease-in-out infinite; }
+.animate-demo-line-1     { opacity: 0; animation: demo-line-1     14s ease-in-out infinite; }
+.animate-demo-line-2     { opacity: 0; animation: demo-line-2     14s ease-in-out infinite; }
+.animate-demo-line-3     { opacity: 0; animation: demo-line-3     14s ease-in-out infinite; }
+.animate-demo-total      { opacity: 0; animation: demo-total      14s ease-in-out infinite; }
+.animate-demo-send       { opacity: 0; animation: demo-send       14s ease-in-out infinite; }
+.animate-demo-badge      { opacity: 0; animation: demo-badge      14s ease-in-out infinite; }
 
-/* prefers-reduced-motion respect intentionally disabled — Fethi wants the
-   animations always visible, even when the OS asks to reduce motion. */
+/* ============================================================
+   PERF — désactive les animations infinies coûteuses :
+   - quand l'OS demande à réduire le mouvement
+   - sur mobile (< 768px), pour éviter les freezes sur low-end Android
+   Pour Fethi : le site reste vivant côté desktop, fluide partout.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob-a, .animate-blob-b, .animate-blob-c, .animate-blob-d,
+  .animate-mesh-1, .animate-mesh-2, .animate-mesh-3, .animate-mesh-4, .animate-mesh-5,
+  .animate-grid-pan, .animate-shimmer, .animate-mockup-tilt, .animate-pulse-glow,
+  .animate-marquee,
+  .animate-demo-cursor, .animate-demo-mic, .animate-demo-transcript,
+  .animate-demo-line-1, .animate-demo-line-2, .animate-demo-line-3,
+  .animate-demo-total, .animate-demo-send, .animate-demo-badge {
+    animation: none !important;
+  }
+  .animate-demo-cursor, .animate-demo-transcript,
+  .animate-demo-line-1, .animate-demo-line-2, .animate-demo-line-3,
+  .animate-demo-total, .animate-demo-send, .animate-demo-badge {
+    opacity: 1 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* mockup-tilt + perspective 3D = repaint lourd sur mobile */
+  .animate-mockup-tilt { animation: none !important; transform: none !important; }
+  /* marquee infinite = repaint continu sur les logos artisans */
+  .animate-marquee { animation: none !important; }
+  /* virer tous les will-change qui forcent des GPU layers en RAM pour rien */
+  .animate-mesh-1, .animate-mesh-2, .animate-mesh-3, .animate-mesh-4, .animate-mesh-5,
+  .animate-blob-a, .animate-blob-b, .animate-blob-c, .animate-blob-d {
+    will-change: auto;
+  }
+}
+
+/* ============================================================
+   PERF — sections sous-le-fold rendues à la volée quand on scroll.
+   Évite de faire du layout/paint sur du contenu invisible.
+   ============================================================ */
+.deferred-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 600px;
+}

@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+web-build/
+.env
+*.log
+.DS_Store
+ios/
+android/
+
+# Google Play credentials (never commit)
+google-play-service-account.json
+*.keystore
+*.jks

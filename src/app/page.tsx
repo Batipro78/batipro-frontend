@@ -11,8 +11,7 @@ import LandingPricing from '@/components/landing/LandingPricing';
 import LandingFAQ from '@/components/landing/LandingFAQ';
 import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
-import StickyCTA from '@/components/landing/StickyCTA';
-import Chatbot from '@/components/landing/Chatbot';
+import DeferredLandingExtras from '@/components/landing/DeferredLandingExtras';
 
 export default function Home() {
   return (
@@ -20,18 +19,17 @@ export default function Home() {
       <AuthRedirect />
       <LandingNav />
       <LandingHero />
-      <LandingLogos />
-      <LandingVoiceDemo />
-      <LandingFeatures />
-      <LandingTestimonials />
-      <LandingStats />
-      <LandingMetiers />
-      <LandingPricing />
-      <LandingFAQ />
-      <LandingCTA />
+      <section className="deferred-section"><LandingLogos /></section>
+      <section className="deferred-section"><LandingVoiceDemo /></section>
+      <section className="deferred-section"><LandingFeatures /></section>
+      <section className="deferred-section"><LandingTestimonials /></section>
+      <section className="deferred-section"><LandingStats /></section>
+      <section className="deferred-section"><LandingMetiers /></section>
+      <section className="deferred-section"><LandingPricing /></section>
+      <section className="deferred-section"><LandingFAQ /></section>
+      <section className="deferred-section"><LandingCTA /></section>
       <LandingFooter />
-      <StickyCTA />
-      <Chatbot />
+      <DeferredLandingExtras />
     </main>
   );
 }

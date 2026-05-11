@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "MonDevisMinute",
+    "slug": "mondevisminute-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "mondevisminute",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F172A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mondevisminute.mobile"
+    },
+    "android": {
+      "package": "com.mondevisminute.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F172A"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "mondevisminute.com",
+              "pathPrefix": "/reset-password"
+            },
+            {
+              "scheme": "https",
+              "host": "mondevisminute.com",
+              "pathPrefix": "/verify-email"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-av",
+        {
+          "microphonePermission": "MonDevisMinute utilise le microphone pour la dictée vocale de vos devis."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "MonDevisMinute accède à vos photos pour ajouter le logo de votre entreprise.",
+          "cameraPermission": "MonDevisMinute utilise l'appareil photo pour scanner le logo ou ajouter une photo de chantier."
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://batipro-backend.onrender.com/api",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "6886c377-4d2e-41a0-992f-69820954675e"
+      }
+    }
+  }
+}
