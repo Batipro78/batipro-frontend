@@ -371,6 +371,15 @@ export default function FactureDetailScreen() {
         <View style={styles.actionsGrid}>
           <ActionButton icon="document-attach-outline" label="PDF" onPress={openPdf} />
           <ActionButton icon="share-outline" label="Partager" onPress={onShare} />
+          <ActionButton
+            icon="paper-plane-outline"
+            label="Factur-X"
+            onPress={() =>
+              Linking.openURL(
+                `https://mondevisminute.com/facture-electronique?numero=${encodeURIComponent(facture?.numero ?? '')}`
+              )
+            }
+          />
         </View>
 
         {paiements.length > 0 ? (
