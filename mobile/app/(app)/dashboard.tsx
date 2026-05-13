@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -21,15 +21,74 @@ interface Devis {
   total_ttc: number;
   statut: string;
   created_at: string;
+  signed_at: string | null;
   clients?: { nom?: string };
 }
 
-interface Stats {
-  totalDevis: number;
-  totalFactures: number;
-  caMonth: number;
-  caPrevMonth: number;
-  pendingDevis: number;
+type Period = 'month' | 'quarter' | 'year';
+
+const PERIOD_LABEL: Record<Period, string> = {
+  month: 'Mois',
+  quarter: 'Trimestre',
+  year: 'Année',
+};
+
+const PERIOD_HERO_LABEL: Record<Period, string> = {
+  month: 'CA DU MOIS',
+  quarter: 'CA DU TRIMESTRE',
+  year: 'CA DE L\'ANNÉE',
+};
+
+const PERIOD_DELTA_LABEL: Record<Period, string> = {
+  month: 'vs mois dernier',
+  quarter: 'vs trimestre précédent',
+  year: 'vs année dernière',
+};
+
+function getPeriodRange(period: Period, now: Date): { from: Date; to: Date } {
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  if (period === 'month') {
+    return {
+      from: new Date(y, m, 1, 0, 0, 0, 0),
+      to: new Date(y, m + 1, 0, 23, 59, 59, 999),
+    };
+  }
+  if (period === 'quarter') {
+    const qStartMonth = Math.floor(m / 3) * 3;
+    return {
+      from: new Date(y, qStartMonth, 1, 0, 0, 0, 0),
+      to: new Date(y, qStartMonth + 3, 0, 23, 59, 59, 999),
+    };
+  }
+  // year
+  return {
+    from: new Date(y, 0, 1, 0, 0, 0, 0),
+    to: new Date(y, 11, 31, 23, 59, 59, 999),
+  };
+}
+
+function getPreviousPeriodRange(period: Period, now: Date): { from: Date; to: Date } {
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  if (period === 'month') {
+    return {
+      from: new Date(y, m - 1, 1, 0, 0, 0, 0),
+      to: new Date(y, m, 0, 23, 59, 59, 999),
+    };
+  }
+  if (period === 'quarter') {
+    const qStartMonth = Math.floor(m / 3) * 3;
+    return {
+      from: new Date(y, qStartMonth - 3, 1, 0, 0, 0, 0),
+      to: new Date(y, qStartMonth, 0, 23, 59, 59, 999),
+    };
+  }
+  // year
+  return {
+    from: new Date(y - 1, 0, 1, 0, 0, 0, 0),
+    to: new Date(y - 1, 11, 31, 23, 59, 59, 999),
+  };
 }
 
 const STATUT_COLOR: Record<string, string> = {
@@ -59,14 +118,9 @@ const formatEuros = (n: number) => {
 
 export default function DashboardScreen() {
   const { user } = useAuth();
-  const [stats, setStats] = useState<Stats>({
-    totalDevis: 0,
-    totalFactures: 0,
-    caMonth: 0,
-    caPrevMonth: 0,
-    pendingDevis: 0,
-  });
-  const [recent, setRecent] = useState<Devis[]>([]);
+  const [allDevis, setAllDevis] = useState<Devis[]>([]);
+  const [facturesCount, setFacturesCount] = useState(0);
+  const [period, setPeriod] = useState<Period>('month');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -81,39 +135,46 @@ export default function DashboardScreen() {
           .catch(() => ({ data: { data: [] } })),
       ]);
 
-      const allDevis = devisRes.data?.data || [];
-      const allFactures = facturesRes.data?.data || [];
-
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-
-      const inRange = (d: Devis, from: Date, to: Date) => {
-        const created = new Date(d.created_at);
-        return created >= from && created <= to;
-      };
-
-      setStats({
-        totalDevis: allDevis.length,
-        totalFactures: allFactures.length,
-        caMonth: allDevis
-          .filter(
-            (d) => new Date(d.created_at) >= monthStart && d.statut === 'signe'
-          )
-          .reduce((sum, d) => sum + (d.total_ttc || 0), 0),
-        caPrevMonth: allDevis
-          .filter((d) => inRange(d, prevMonthStart, prevMonthEnd) && d.statut === 'signe')
-          .reduce((sum, d) => sum + (d.total_ttc || 0), 0),
-        pendingDevis: allDevis.filter((d) => d.statut === 'brouillon').length,
-      });
-
-      setRecent(allDevis.slice(0, 5));
+      setAllDevis(devisRes.data?.data || []);
+      setFacturesCount((facturesRes.data?.data || []).length);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
+
+  const periodStats = useMemo(() => {
+    const now = new Date();
+    const cur = getPeriodRange(period, now);
+    const prev = getPreviousPeriodRange(period, now);
+
+    const inRange = (signedAt: string | null, from: Date, to: Date) => {
+      if (!signedAt) return false;
+      const d = new Date(signedAt);
+      return d >= from && d <= to;
+    };
+
+    const signedCur = allDevis.filter(
+      (d) => d.statut === 'signe' && inRange(d.signed_at, cur.from, cur.to)
+    );
+    const signedPrev = allDevis.filter(
+      (d) => d.statut === 'signe' && inRange(d.signed_at, prev.from, prev.to)
+    );
+
+    const caCurrent = signedCur.reduce((sum, d) => sum + (d.total_ttc || 0), 0);
+    const caPrevious = signedPrev.reduce((sum, d) => sum + (d.total_ttc || 0), 0);
+    const signedCount = signedCur.length;
+
+    const delta = caPrevious > 0
+      ? ((caCurrent - caPrevious) / caPrevious) * 100
+      : null;
+
+    return { caCurrent, caPrevious, signedCount, delta };
+  }, [allDevis, period]);
+
+  const totalDevis = allDevis.length;
+  const pendingDevis = allDevis.filter((d) => d.statut === 'brouillon').length;
+  const recent = allDevis.slice(0, 5);
 
   useFocusEffect(
     useCallback(() => {
@@ -135,10 +196,6 @@ export default function DashboardScreen() {
 
   const firstName = user?.email?.split('@')[0] ?? '';
   const initial = firstName ? firstName.charAt(0).toUpperCase() : '?';
-
-  const delta = stats.caPrevMonth > 0
-    ? ((stats.caMonth - stats.caPrevMonth) / stats.caPrevMonth) * 100
-    : null;
 
   return (
     <View style={styles.root}>
@@ -178,34 +235,67 @@ export default function DashboardScreen() {
             <Text style={styles.greetingSub}>Voici votre activité du moment</Text>
           </View>
 
+          {/* Toggle Mois / Trimestre / Année */}
+          <View style={styles.periodToggle}>
+            {(['month', 'quarter', 'year'] as Period[]).map((p) => {
+              const active = p === period;
+              return (
+                <Pressable
+                  key={p}
+                  onPress={() => setPeriod(p)}
+                  style={[
+                    styles.periodTab,
+                    active && styles.periodTabActive,
+                  ]}
+                  hitSlop={4}
+                >
+                  <Text
+                    style={[
+                      styles.periodTabText,
+                      active && styles.periodTabTextActive,
+                    ]}
+                  >
+                    {PERIOD_LABEL[p]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
           {/* Carte CA vedette */}
           <View style={styles.heroCard}>
             {/* Cercle décoratif */}
             <View style={styles.heroDecoCircle1} />
             <View style={styles.heroDecoCircle2} />
 
-            <Text style={styles.heroLabel}>CA DU MOIS</Text>
+            <Text style={styles.heroLabel}>{PERIOD_HERO_LABEL[period]}</Text>
             <View style={styles.heroAmountRow}>
               <Text style={styles.heroAmount}>
-                {loading ? '—' : formatEuros(stats.caMonth)}
+                {loading ? '—' : formatEuros(periodStats.caCurrent)}
               </Text>
               <Text style={styles.heroCurrency}>€</Text>
             </View>
 
-            {!loading && delta !== null ? (
+            {!loading ? (
+              <Text style={styles.heroSignedCount}>
+                {periodStats.signedCount === 0
+                  ? 'Aucun devis signé pour le moment'
+                  : `${periodStats.signedCount} devis signé${periodStats.signedCount > 1 ? 's' : ''}`}
+              </Text>
+            ) : null}
+
+            {!loading && periodStats.delta !== null ? (
               <View style={styles.heroDeltaRow}>
                 <Ionicons
-                  name={delta >= 0 ? 'trending-up' : 'trending-down'}
+                  name={periodStats.delta >= 0 ? 'trending-up' : 'trending-down'}
                   size={14}
                   color="rgba(255,255,255,0.95)"
                 />
                 <Text style={styles.heroDeltaText}>
-                  {delta >= 0 ? '+' : ''}
-                  {delta.toFixed(0)}% vs mois dernier
+                  {periodStats.delta >= 0 ? '+' : ''}
+                  {periodStats.delta.toFixed(0)}% {PERIOD_DELTA_LABEL[period]}
                 </Text>
               </View>
-            ) : !loading ? (
-              <Text style={styles.heroDeltaText}>Premier mois d'activité</Text>
             ) : null}
           </View>
 
@@ -216,7 +306,7 @@ export default function DashboardScreen() {
                 <Ionicons name="document-text" size={16} color="#3B82F6" />
               </View>
               <Text style={styles.miniValue}>
-                {loading ? '—' : stats.totalDevis}
+                {loading ? '—' : totalDevis}
               </Text>
               <Text style={styles.miniLabel}>Devis</Text>
             </View>
@@ -225,7 +315,7 @@ export default function DashboardScreen() {
                 <Ionicons name="receipt" size={16} color="#10B981" />
               </View>
               <Text style={styles.miniValue}>
-                {loading ? '—' : stats.totalFactures}
+                {loading ? '—' : facturesCount}
               </Text>
               <Text style={styles.miniLabel}>Factures</Text>
             </View>
@@ -234,7 +324,7 @@ export default function DashboardScreen() {
                 <Ionicons name="time" size={16} color="#F59E0B" />
               </View>
               <Text style={styles.miniValue}>
-                {loading ? '—' : stats.pendingDevis}
+                {loading ? '—' : pendingDevis}
               </Text>
               <Text style={styles.miniLabel}>En attente</Text>
             </View>
@@ -393,6 +483,38 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
   },
 
+  /* Toggle période */
+  periodToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#EEF2F7',
+    padding: 4,
+    borderRadius: radius.full,
+    gap: 2,
+  },
+  periodTab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  periodTabActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 2,
+  },
+  periodTabText: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.mutedForeground,
+  },
+  periodTabTextActive: {
+    color: colors.primary,
+  },
+
   /* Hero card CA */
   heroCard: {
     backgroundColor: colors.primary,
@@ -446,6 +568,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
     marginLeft: 4,
+  },
+  heroSignedCount: {
+    fontSize: fontSize.sm,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 4,
+    fontWeight: '500',
   },
   heroDeltaRow: {
     flexDirection: 'row',
