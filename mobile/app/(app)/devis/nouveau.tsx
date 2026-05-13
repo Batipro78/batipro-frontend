@@ -13,7 +13,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/Button';
@@ -41,17 +41,22 @@ interface Article {
 
 interface DraftLigne {
   uid: string;
-  article_id: number;
+  article_id: number | null;
   nom: string;
   prix_unitaire_ht: number;
   tva: number;
   unite?: string;
   quantite: string;
+  isMo?: boolean;
 }
 
 const newUid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
 export default function NouveauDevisScreen() {
+  const { edit } = useLocalSearchParams<{ edit?: string }>();
+  const editId = edit ? parseInt(edit, 10) : null;
+  const isEditing = !!editId;
+
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState<number | null>(null);
   const [clientPickerOpen, setClientPickerOpen] = useState(false);
@@ -65,19 +70,72 @@ export default function NouveauDevisScreen() {
   const [articleSearch, setArticleSearch] = useState('');
   const [articlesLoading, setArticlesLoading] = useState(false);
 
+  // Main d'oeuvre (ligne libre)
+  const [moModalOpen, setMoModalOpen] = useState(false);
+  const [moDesc, setMoDesc] = useState('');
+  const [moPrix, setMoPrix] = useState('');
+  const [moQte, setMoQte] = useState('1');
+  const [moTva, setMoTva] = useState('20');
+  const [moError, setMoError] = useState<string | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get<{ data: Client[] }>('/clients');
-        setClients(res.data || []);
+        const res = await api.get<{ data: { data: Client[]; pagination?: unknown } }>('/clients');
+        setClients(res.data?.data || []);
       } catch {
         /* ignore */
       }
     })();
   }, []);
+
+  // Mode édition : charger le devis existant
+  useEffect(() => {
+    if (!editId) return;
+    (async () => {
+      try {
+        type DevisLigne = {
+          id?: number;
+          description?: string;
+          article_id?: number | null;
+          quantite: number;
+          prix_unitaire_ht: number;
+          tva: number;
+          unite?: string;
+        };
+        type DevisDetail = {
+          id: number;
+          clients?: { id?: number };
+          lignes?: DevisLigne[];
+          lignes_devis?: DevisLigne[];
+        };
+        const res = await api.get<{ data: DevisDetail }>(`/devis/${editId}`);
+        const d = res.data;
+        if (d?.clients?.id) setClientId(d.clients.id);
+        const existingLignes = d?.lignes ?? d?.lignes_devis ?? [];
+        setLignes(
+          existingLignes.map((l) => ({
+            uid: newUid(),
+            article_id: l.article_id ?? null,
+            nom: l.description ?? `Article #${l.article_id ?? '?'}`,
+            prix_unitaire_ht: l.prix_unitaire_ht,
+            tva: l.tva ?? 20,
+            unite: l.unite,
+            quantite: String(l.quantite ?? 1),
+            isMo: !l.article_id,
+          }))
+        );
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Impossible de charger le devis');
+      } finally {
+        setLoadingExisting(false);
+      }
+    })();
+  }, [editId]);
 
   const selectedClient = clients.find((c) => c.id === clientId) ?? null;
 
@@ -131,6 +189,49 @@ export default function NouveauDevisScreen() {
     setArticlePickerOpen(false);
   };
 
+  const openMoModal = () => {
+    setMoDesc('');
+    setMoPrix('');
+    setMoQte('1');
+    setMoTva('20');
+    setMoError(null);
+    setMoModalOpen(true);
+  };
+
+  const onAddMo = () => {
+    setMoError(null);
+    const desc = moDesc.trim();
+    const prix = parseFloat(moPrix.replace(',', '.'));
+    const qte = parseFloat(moQte.replace(',', '.'));
+    const tva = parseFloat(moTva.replace(',', '.'));
+    if (!desc) {
+      setMoError('Description requise.');
+      return;
+    }
+    if (!prix || prix <= 0) {
+      setMoError('Le prix unitaire doit être supérieur à 0.');
+      return;
+    }
+    if (!qte || qte <= 0) {
+      setMoError('La quantité doit être supérieure à 0.');
+      return;
+    }
+    setLignes((prev) => [
+      ...prev,
+      {
+        uid: newUid(),
+        article_id: null,
+        nom: desc,
+        prix_unitaire_ht: prix,
+        tva: isNaN(tva) ? 20 : tva,
+        unite: 'h',
+        quantite: String(qte),
+        isMo: true,
+      },
+    ]);
+    setMoModalOpen(false);
+  };
+
   const updateLigneQte = (uid: string, value: string) => {
     setLignes((prev) =>
       prev.map((l) => (l.uid === uid ? { ...l, quantite: value } : l))
@@ -174,10 +275,18 @@ export default function NouveauDevisScreen() {
       return;
     }
     const payloadLignes = lignes
-      .map((l) => ({
-        article_id: l.article_id,
-        quantite: parseFloat(l.quantite.replace(',', '.')) || 0,
-      }))
+      .map((l) => {
+        const quantite = parseFloat(l.quantite.replace(',', '.')) || 0;
+        if (l.article_id) {
+          return { article_id: l.article_id, quantite };
+        }
+        return {
+          description: l.nom,
+          prix_unitaire_ht: l.prix_unitaire_ht,
+          tva: l.tva,
+          quantite,
+        };
+      })
       .filter((l) => l.quantite > 0);
 
     if (payloadLignes.length === 0) {
@@ -187,18 +296,28 @@ export default function NouveauDevisScreen() {
 
     setSubmitting(true);
     try {
-      const res = await api.post<{ data: { id: number; numero: string } }>(
-        '/devis',
-        { client_id: clientId, lignes: payloadLignes }
-      );
-      const id = res.data?.id;
-      if (id) {
-        router.replace(`/devis/${id}`);
+      if (isEditing && editId) {
+        await api.put(`/devis/${editId}`, {
+          client_id: clientId,
+          lignes: payloadLignes,
+        });
+        router.replace(`/devis/${editId}`);
       } else {
-        router.replace('/devis');
+        const res = await api.post<{ data: { id: number; numero: string } }>(
+          '/devis',
+          { client_id: clientId, lignes: payloadLignes }
+        );
+        const id = res.data?.id;
+        if (id) {
+          router.replace(`/devis/${id}`);
+        } else {
+          router.replace('/devis');
+        }
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erreur lors de la création');
+      setError(
+        e instanceof Error ? e.message : "Erreur lors de l'enregistrement"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -206,12 +325,13 @@ export default function NouveauDevisScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="close" size={24} color={colors.foreground} />
         </Pressable>
-        <Text style={styles.headerTitle}>Nouveau devis</Text>
+        <Text style={styles.headerTitle}>
+          {isEditing ? 'Modifier le devis' : 'Nouveau devis'}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -251,10 +371,28 @@ export default function NouveauDevisScreen() {
           </View>
 
           <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Lignes ({lignes.length})</Text>
-              <Pressable onPress={openArticlePicker} hitSlop={8}>
-                <Text style={styles.addLink}>+ Ajouter</Text>
+            <Text style={styles.sectionTitle}>Lignes ({lignes.length})</Text>
+
+            <View style={styles.addButtonsRow}>
+              <Pressable
+                onPress={openArticlePicker}
+                style={({ pressed }) => [
+                  styles.addBtn,
+                  pressed && { opacity: 0.85 },
+                ]}
+              >
+                <Ionicons name="cube-outline" size={18} color={colors.primary} />
+                <Text style={styles.addBtnText}>Matériel</Text>
+              </Pressable>
+              <Pressable
+                onPress={openMoModal}
+                style={({ pressed }) => [
+                  styles.addBtn,
+                  pressed && { opacity: 0.85 },
+                ]}
+              >
+                <Ionicons name="hammer-outline" size={18} color={colors.primary} />
+                <Text style={styles.addBtnText}>Main d'œuvre</Text>
               </Pressable>
             </View>
 
@@ -274,9 +412,16 @@ export default function NouveauDevisScreen() {
                 return (
                   <View key={l.uid} style={styles.ligneCard}>
                     <View style={styles.ligneTop}>
-                      <Text style={styles.ligneNom} numberOfLines={2}>
-                        {l.nom}
-                      </Text>
+                      <View style={{ flex: 1 }}>
+                        {l.isMo ? (
+                          <View style={styles.moBadge}>
+                            <Text style={styles.moBadgeText}>MAIN D'ŒUVRE</Text>
+                          </View>
+                        ) : null}
+                        <Text style={styles.ligneNom} numberOfLines={2}>
+                          {l.nom}
+                        </Text>
+                      </View>
                       <Pressable onPress={() => removeLigne(l.uid)} hitSlop={8}>
                         <Ionicons
                           name="trash-outline"
@@ -335,9 +480,9 @@ export default function NouveauDevisScreen() {
           ) : null}
 
           <Button
-            title="Créer le devis"
+            title={isEditing ? 'Enregistrer les modifications' : 'Créer le devis'}
             onPress={onSubmit}
-            loading={submitting}
+            loading={submitting || loadingExisting}
             fullWidth
           />
 
@@ -530,6 +675,75 @@ export default function NouveauDevisScreen() {
           )}
         </SafeAreaView>
       </Modal>
+
+      {/* Modal main d'oeuvre */}
+      <Modal
+        visible={moModalOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setMoModalOpen(false)}
+      >
+        <SafeAreaView style={styles.modalSafe} edges={['top', 'bottom']}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <View style={styles.modalHeader}>
+              <Pressable onPress={() => setMoModalOpen(false)}>
+                <Text style={styles.modalCancel}>Annuler</Text>
+              </Pressable>
+              <Text style={styles.modalTitle}>Main d'œuvre</Text>
+              <Pressable onPress={onAddMo}>
+                <Text style={styles.modalSave}>Ajouter</Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={styles.reviewHint}>
+                Ajoutez une prestation de main d'œuvre avec un prix libre.
+              </Text>
+              <Input
+                label="Description *"
+                value={moDesc}
+                onChangeText={setMoDesc}
+                placeholder="Pose de carrelage, déplacement, etc."
+              />
+              <View style={{ flexDirection: 'row', gap: spacing.md }}>
+                <View style={{ flex: 2 }}>
+                  <Input
+                    label="Prix unitaire HT (€) *"
+                    value={moPrix}
+                    onChangeText={setMoPrix}
+                    placeholder="45.00"
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Input
+                    label="Quantité *"
+                    value={moQte}
+                    onChangeText={setMoQte}
+                    placeholder="1"
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+              </View>
+              <Input
+                label="TVA (%)"
+                value={moTva}
+                onChangeText={setMoTva}
+                placeholder="20"
+                keyboardType="decimal-pad"
+              />
+              {moError ? (
+                <Text style={styles.formError}>{moError}</Text>
+              ) : null}
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -566,6 +780,53 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   addLink: { fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' },
+  addButtonsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  addBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderStyle: 'dashed',
+  },
+  addBtnText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: fontSize.sm,
+  },
+  moBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.sm,
+    marginBottom: 4,
+  },
+  moBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#92400E',
+    letterSpacing: 0.5,
+  },
+  modalSave: { fontSize: fontSize.base, fontWeight: '600', color: colors.primary },
+  reviewHint: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    lineHeight: 20,
+  },
+  formError: {
+    color: colors.destructive,
+    fontSize: fontSize.sm,
+    textAlign: 'center',
+  },
   selectorRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -15,9 +15,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router, useFocusEffect, useLocalSearchParams, Stack } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
@@ -125,7 +126,9 @@ export default function DevisDetailScreen() {
         url = res.data?.pdf_url;
       }
       if (url) {
-        await Linking.openURL(url);
+        await WebBrowser.openBrowserAsync(url, {
+          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
+        });
       } else {
         Alert.alert('PDF indisponible', 'Le PDF n\'a pas encore été généré.');
       }
@@ -174,6 +177,34 @@ export default function DevisDetailScreen() {
     }
   };
 
+  const onDelete = () => {
+    if (!devis) return;
+    Alert.alert(
+      'Supprimer ce devis ?',
+      `Le devis ${devis.numero} sera définitivement supprimé. Cette action est irréversible.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            setActing(true);
+            try {
+              await api.delete(`/devis/${devis.id}`);
+              router.replace('/devis');
+            } catch (e) {
+              Alert.alert(
+                'Erreur',
+                e instanceof Error ? e.message : 'Suppression impossible'
+              );
+              setActing(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const onConvertFacture = () => {
     if (!devis) return;
     Alert.alert(
@@ -208,8 +239,11 @@ export default function DevisDetailScreen() {
     setSignOpen(false);
     setActing(true);
     try {
+      const base64 = base64DataUrl.includes(',')
+        ? base64DataUrl.split(',')[1]
+        : base64DataUrl;
       await api.post(`/devis/${devis.id}/signature`, {
-        signature: base64DataUrl,
+        signature: base64,
       });
       Alert.alert('Devis signé', 'La signature a été enregistrée.');
       await load();
@@ -269,8 +303,7 @@ export default function DevisDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.fullCenter}>
+          <View style={styles.fullCenter}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
@@ -280,8 +313,7 @@ export default function DevisDetailScreen() {
   if (!devis) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.header}>
+          <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
             <Ionicons name="arrow-back" size={24} color={colors.foreground} />
           </Pressable>
@@ -302,7 +334,6 @@ export default function DevisDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="arrow-back" size={24} color={colors.foreground} />
@@ -410,6 +441,16 @@ export default function DevisDetailScreen() {
 
         {devis.statut !== 'facture' && devis.statut !== 'annule' ? (
           <View style={{ gap: spacing.sm }}>
+            {(devis.statut === 'brouillon' || devis.statut === 'genere') &&
+            !devis.signature ? (
+              <Button
+                title="Modifier le devis"
+                variant="outline"
+                fullWidth
+                onPress={() => router.push(`/devis/nouveau?edit=${devis.id}`)}
+                loading={acting}
+              />
+            ) : null}
             {devis.statut !== 'signe' && !devis.signature ? (
               <Button
                 title="Faire signer le client"
@@ -446,6 +487,16 @@ export default function DevisDetailScreen() {
               onPress={onConvertFacture}
               loading={acting}
             />
+            {(devis.statut === 'brouillon' || devis.statut === 'genere') &&
+            !devis.signature ? (
+              <Button
+                title="Supprimer le devis"
+                variant="destructive"
+                fullWidth
+                onPress={onDelete}
+                loading={acting}
+              />
+            ) : null}
           </View>
         ) : null}
       </ScrollView>

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -13,7 +15,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -71,14 +73,15 @@ export default function NouveauVocalScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get<{ data: Client[] }>('/clients');
-        setClients(res.data || []);
+        const res = await api.get<{ data: { data: Client[]; pagination?: unknown } }>('/clients');
+        setClients(res.data?.data || []);
       } catch {
-        // silencieux : sera retenté à l'ouverture du picker
+        // silencieux : retenté à l'ouverture du picker
       }
     })();
 
@@ -91,8 +94,33 @@ export default function NouveauVocalScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (step === 'recording') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.15,
+            duration: 700,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 700,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.stopAnimation();
+      pulseAnim.setValue(1);
+    }
+  }, [step, pulseAnim]);
+
   const selectedClient = clients.find((c) => c.id === clientId) ?? null;
   const selectedMetier = METIERS.find((m) => m.key === metier);
+  const showGammes = selectedMetier?.hasGammes ?? false;
 
   const startRecording = async () => {
     setError(null);
@@ -201,8 +229,10 @@ export default function NouveauVocalScreen() {
       const payload: Record<string, unknown> = {
         text: transcript.trim(),
         metier,
-        gamme,
       };
+      if (showGammes) {
+        payload.gamme = gamme;
+      }
       if (clientId) {
         payload.client_id = clientId;
       } else if (quickClientNom && quickClientTel) {
@@ -256,20 +286,42 @@ export default function NouveauVocalScreen() {
       ? `${quickClientNom} (création rapide)`
       : 'Sélectionner un client';
 
+  // Step indicator : config = 1, recording/transcribing = 2, review/generating = 3
+  const currentStepNum =
+    step === 'config' ? 1 : step === 'review' || step === 'generating' ? 3 : 2;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="close" size={24} color={colors.foreground} />
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.headerBtn}
+        >
+          <Ionicons name="close" size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={styles.headerTitle}>Devis vocal</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>Nouveau devis vocal</Text>
+        <View style={styles.headerBtn} />
+      </View>
+
+      {/* Progress bar 3 étapes */}
+      <View style={styles.progressWrap}>
+        {[1, 2, 3].map((n) => (
+          <View
+            key={n}
+            style={[
+              styles.progressBar,
+              n <= currentStepNum && styles.progressBarActive,
+            ]}
+          />
+        ))}
       </View>
 
       {step === 'transcribing' || step === 'generating' ? (
         <View style={styles.fullCenter}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <View style={styles.loaderRing}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
           <Text style={styles.loadingText}>
             {step === 'transcribing'
               ? 'Transcription en cours...'
@@ -277,49 +329,62 @@ export default function NouveauVocalScreen() {
           </Text>
           <Text style={styles.loadingHint}>
             {step === 'transcribing'
-              ? 'L\'IA convertit votre voix en texte.'
-              : 'L\'IA crée les lignes du devis avec les prix.'}
+              ? "L'IA convertit votre voix en texte."
+              : "L'IA crée les lignes avec les bons prix."}
           </Text>
         </View>
       ) : null}
 
       {step === 'recording' ? (
         <View style={styles.fullCenter}>
-          <View style={styles.recordingPulse}>
-            <Ionicons name="mic" size={48} color="#fff" />
-          </View>
+          <Animated.View
+            style={[
+              styles.recordingPulse,
+              { transform: [{ scale: pulseAnim }] },
+            ]}
+          >
+            <View style={styles.recordingPulseInner}>
+              <Ionicons name="mic" size={56} color="#fff" />
+            </View>
+          </Animated.View>
           <Text style={styles.timer}>{formatTime(recordingDuration)}</Text>
           <Text style={styles.recordingHint}>
-            Décrivez les travaux. Soyez précis sur les quantités, les surfaces, le
-            type de matériel.
+            Décrivez les travaux. Soyez précis sur les quantités, surfaces et
+            matériel.
           </Text>
           <View style={styles.recordingActions}>
-            <Button
-              title="Annuler"
-              variant="outline"
-              onPress={cancelRecording}
-            />
+            <Button title="Annuler" variant="outline" onPress={cancelRecording} />
             <Button title="Terminer" onPress={stopRecording} />
           </View>
         </View>
       ) : null}
 
       {step === 'config' ? (
-        <ScrollView contentContainerStyle={styles.scroll}>
-          <Section title="Client">
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <Section title="Client" icon="person-outline">
             <Pressable
               onPress={() => setClientPickerOpen(true)}
-              style={styles.selectorRow}
+              style={({ pressed }) => [
+                styles.selectorRow,
+                pressed && styles.pressedCard,
+              ]}
             >
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color={colors.mutedForeground}
-              />
+              <View style={styles.selectorIcon}>
+                <Ionicons
+                  name="person"
+                  size={16}
+                  color={selectedClient || quickClientNom ? colors.primary : colors.mutedForeground}
+                />
+              </View>
               <Text
                 style={[
                   styles.selectorText,
-                  !selectedClient && !quickClientNom && { color: colors.mutedForeground },
+                  !selectedClient && !quickClientNom && {
+                    color: colors.mutedForeground,
+                  },
                 ]}
                 numberOfLines={1}
               >
@@ -334,13 +399,14 @@ export default function NouveauVocalScreen() {
             <Pressable
               onPress={() => setQuickClientOpen(true)}
               style={styles.linkRow}
+              hitSlop={8}
             >
-              <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
-              <Text style={styles.linkText}>Création rapide (nom + téléphone)</Text>
+              <Ionicons name="add-circle" size={16} color={colors.primary} />
+              <Text style={styles.linkText}>Création rapide (nom + tél.)</Text>
             </Pressable>
           </Section>
 
-          <Section title="Métier">
+          <Section title="Métier" icon="briefcase-outline">
             <View style={styles.metierGrid}>
               {METIERS.map((m) => {
                 const active = m.key === metier;
@@ -348,63 +414,91 @@ export default function NouveauVocalScreen() {
                   <Pressable
                     key={m.key}
                     onPress={() => setMetier(m.key)}
-                    style={[styles.metierChip, active && styles.metierChipActive]}
+                    style={({ pressed }) => [
+                      styles.metierCard,
+                      active && styles.metierCardActive,
+                      pressed && !active && styles.pressedCard,
+                    ]}
                   >
-                    <Ionicons
-                      name={m.icon}
-                      size={18}
-                      color={active ? '#fff' : colors.foreground}
-                    />
+                    <View
+                      style={[
+                        styles.metierIconWrap,
+                        active && styles.metierIconWrapActive,
+                      ]}
+                    >
+                      <Ionicons
+                        name={m.icon}
+                        size={20}
+                        color={active ? '#fff' : colors.primary}
+                      />
+                    </View>
                     <Text
                       style={[
-                        styles.metierChipText,
-                        active && styles.metierChipTextActive,
+                        styles.metierLabel,
+                        active && styles.metierLabelActive,
                       ]}
+                      numberOfLines={1}
                     >
                       {m.label}
                     </Text>
+                    {m.hasGammes ? (
+                      <View style={styles.metierBadge}>
+                        <Text style={styles.metierBadgeText}>3 gammes</Text>
+                      </View>
+                    ) : null}
                   </Pressable>
                 );
               })}
             </View>
           </Section>
 
-          <Section title="Gamme">
-            <View style={styles.gammeList}>
-              {GAMMES.map((g) => {
-                const active = g.key === gamme;
-                const disabled = !selectedMetier?.hasGammes && g.key === 'comparatif';
-                return (
-                  <Pressable
-                    key={g.key}
-                    onPress={() => !disabled && setGamme(g.key)}
-                    style={[
-                      styles.gammeRow,
-                      active && styles.gammeRowActive,
-                      disabled && { opacity: 0.4 },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.gammeRadio,
-                        active && styles.gammeRadioActive,
+          {showGammes ? (
+            <Section title="Gamme" icon="layers-outline">
+              <View style={styles.gammeList}>
+                {GAMMES.map((g) => {
+                  const active = g.key === gamme;
+                  return (
+                    <Pressable
+                      key={g.key}
+                      onPress={() => setGamme(g.key)}
+                      style={({ pressed }) => [
+                        styles.gammeRow,
+                        active && styles.gammeRowActive,
+                        pressed && !active && styles.pressedCard,
                       ]}
                     >
-                      {active ? <View style={styles.gammeRadioDot} /> : null}
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.gammeLabel}>{g.label}</Text>
-                      <Text style={styles.gammeDesc}>
-                        {disabled
-                          ? 'Non disponible pour ce métier'
-                          : g.description}
-                      </Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </Section>
+                      <View
+                        style={[
+                          styles.gammeRadio,
+                          active && styles.gammeRadioActive,
+                        ]}
+                      >
+                        {active ? <View style={styles.gammeRadioDot} /> : null}
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[
+                            styles.gammeLabel,
+                            active && styles.gammeLabelActive,
+                          ]}
+                        >
+                          {g.label}
+                        </Text>
+                        <Text style={styles.gammeDesc}>{g.description}</Text>
+                      </View>
+                      {active ? (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={22}
+                          color={colors.primary}
+                        />
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Section>
+          ) : null}
 
           {error ? (
             <View style={styles.errorBox}>
@@ -418,14 +512,14 @@ export default function NouveauVocalScreen() {
               onPress={startRecording}
               style={({ pressed }) => [
                 styles.recordButton,
-                pressed && { transform: [{ scale: 0.98 }] },
+                pressed && { transform: [{ scale: 0.96 }] },
               ]}
             >
-              <Ionicons name="mic" size={32} color="#fff" />
+              <Ionicons name="mic" size={36} color="#fff" />
             </Pressable>
-            <Text style={styles.recordCtaLabel}>Toucher pour enregistrer</Text>
+            <Text style={styles.recordCtaLabel}>Touchez pour enregistrer</Text>
             <Text style={styles.recordCtaHint}>
-              Décrivez les travaux à l'oral
+              Décrivez les travaux à voix haute
             </Text>
           </View>
         </ScrollView>
@@ -439,10 +533,11 @@ export default function NouveauVocalScreen() {
           <ScrollView
             contentContainerStyle={styles.scroll}
             keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Section title="Transcription">
+            <Section title="Transcription" icon="document-text-outline">
               <Text style={styles.reviewHint}>
-                Vous pouvez corriger le texte avant de générer le devis.
+                Corrigez le texte si besoin avant de générer le devis.
               </Text>
               <TextInput
                 value={transcript}
@@ -454,13 +549,18 @@ export default function NouveauVocalScreen() {
               />
             </Section>
 
-            <Section title="Récapitulatif">
-              <SummaryRow label="Client" value={clientLabel} />
-              <SummaryRow label="Métier" value={selectedMetier?.label ?? metier} />
-              <SummaryRow
-                label="Gamme"
-                value={GAMMES.find((g) => g.key === gamme)?.label ?? gamme}
-              />
+            <Section title="Récapitulatif" icon="list-outline">
+              <View style={styles.summaryCard}>
+                <SummaryRow label="Client" value={clientLabel} />
+                <SummaryRow label="Métier" value={selectedMetier?.label ?? metier} />
+                {showGammes ? (
+                  <SummaryRow
+                    label="Gamme"
+                    value={GAMMES.find((g) => g.key === gamme)?.label ?? gamme}
+                    last
+                  />
+                ) : null}
+              </View>
             </Section>
 
             {error ? (
@@ -509,7 +609,7 @@ export default function NouveauVocalScreen() {
               name="search-outline"
               size={18}
               color={colors.mutedForeground}
-              style={{ position: 'absolute', left: spacing.md, top: 15, zIndex: 1 }}
+              style={{ position: 'absolute', left: spacing.lg + spacing.md, top: 15, zIndex: 1 }}
             />
             <TextInput
               value={clientSearch}
@@ -538,11 +638,7 @@ export default function NouveauVocalScreen() {
                   </Text>
                 </View>
                 {clientId === item.id ? (
-                  <Ionicons
-                    name="checkmark"
-                    size={20}
-                    color={colors.primary}
-                  />
+                  <Ionicons name="checkmark" size={20} color={colors.primary} />
                 ) : null}
               </Pressable>
             )}
@@ -602,18 +698,39 @@ export default function NouveauVocalScreen() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  children: React.ReactNode;
+}) {
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionTitleRow}>
+        {icon ? (
+          <Ionicons name={icon} size={14} color={colors.mutedForeground} />
+        ) : null}
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
       {children}
     </View>
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function SummaryRow({
+  label,
+  value,
+  last,
+}: {
+  label: string;
+  value: string;
+  last?: boolean;
+}) {
   return (
-    <View style={styles.summaryRow}>
+    <View style={[styles.summaryRow, last && { borderBottomWidth: 0 }]}>
       <Text style={styles.summaryLabel}>{label}</Text>
       <Text style={styles.summaryValue} numberOfLines={1}>
         {value}
@@ -623,27 +740,42 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.muted },
+  safe: { flex: 1, backgroundColor: '#F8FAFC' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingVertical: spacing.sm,
+    backgroundColor: '#F8FAFC',
   },
+  headerBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   headerTitle: {
-    fontSize: fontSize.lg,
-    fontWeight: '600',
+    fontSize: fontSize.base,
+    fontWeight: '700',
     color: colors.foreground,
   },
+  progressWrap: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    gap: spacing.xs + 2,
+  },
+  progressBar: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E2E8F0',
+  },
+  progressBarActive: { backgroundColor: colors.primary },
+
   scroll: {
     padding: spacing.lg,
+    paddingTop: spacing.sm,
     gap: spacing.lg,
     paddingBottom: spacing.xxl * 2,
   },
+
   fullCenter: {
     flex: 1,
     alignItems: 'center',
@@ -651,17 +783,35 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.lg,
   },
+  loaderRing: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   loadingText: {
     fontSize: fontSize.lg,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.foreground,
   },
   loadingHint: {
     fontSize: fontSize.sm,
     color: colors.mutedForeground,
     textAlign: 'center',
+    maxWidth: 280,
   },
+
   recordingPulse: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: 'rgba(239, 68, 68, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recordingPulseInner: {
     width: 120,
     height: 120,
     borderRadius: 60,
@@ -669,101 +819,162 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.destructive,
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
   },
   timer: {
-    fontSize: 48,
-    fontWeight: '700',
+    fontSize: 52,
+    fontWeight: '800',
     color: colors.foreground,
     fontVariant: ['tabular-nums'],
+    letterSpacing: -1,
   },
   recordingHint: {
     fontSize: fontSize.sm,
     color: colors.mutedForeground,
     textAlign: 'center',
     paddingHorizontal: spacing.xl,
+    maxWidth: 300,
   },
   recordingActions: {
     flexDirection: 'row',
     gap: spacing.md,
+    marginTop: spacing.md,
   },
+
   section: { gap: spacing.sm },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
   sectionTitle: {
-    fontSize: fontSize.sm,
-    fontWeight: '600',
+    fontSize: fontSize.xs,
+    fontWeight: '700',
     color: colors.mutedForeground,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
   },
+
   selectorRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.background,
+    backgroundColor: '#fff',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#EEF2F7',
+  },
+  selectorIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   selectorText: {
     flex: 1,
     fontSize: fontSize.base,
     color: colors.foreground,
+    fontWeight: '500',
   },
   linkRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.xs,
   },
   linkText: {
     fontSize: fontSize.sm,
     color: colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
+
   metierGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  metierChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+  metierCard: {
+    width: '48%',
+    flexGrow: 1,
+    minWidth: 0,
+    backgroundColor: '#fff',
+    borderRadius: radius.lg,
+    padding: spacing.md,
+    borderWidth: 1.5,
+    borderColor: '#EEF2F7',
+    gap: spacing.sm,
+    position: 'relative',
   },
-  metierChipActive: {
-    backgroundColor: colors.primary,
+  metierCardActive: {
     borderColor: colors.primary,
+    backgroundColor: '#F5F3FF',
   },
-  metierChipText: { fontSize: fontSize.sm, color: colors.foreground },
-  metierChipTextActive: { color: '#fff', fontWeight: '600' },
+  metierIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#EEF2FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  metierIconWrapActive: {
+    backgroundColor: colors.primary,
+  },
+  metierLabel: {
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+    color: colors.foreground,
+  },
+  metierLabelActive: {
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  metierBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  metierBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#92400E',
+    letterSpacing: 0.3,
+  },
+
   gammeList: { gap: spacing.sm },
   gammeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.background,
+    backgroundColor: '#fff',
     padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: '#EEF2F7',
   },
-  gammeRowActive: { borderColor: colors.primary },
+  gammeRowActive: {
+    borderColor: colors.primary,
+    backgroundColor: '#F5F3FF',
+  },
   gammeRadio: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: '#CBD5E1',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -776,10 +987,20 @@ const styles = StyleSheet.create({
   },
   gammeLabel: {
     fontSize: fontSize.base,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.foreground,
   },
-  gammeDesc: { fontSize: fontSize.sm, color: colors.mutedForeground, marginTop: 2 },
+  gammeLabelActive: { color: colors.primary },
+  gammeDesc: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    marginTop: 2,
+  },
+
+  pressedCard: {
+    opacity: 0.8,
+  },
+
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -789,36 +1010,40 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   errorText: { color: colors.destructive, fontSize: fontSize.sm, flex: 1 },
+
   recordCta: {
     alignItems: 'center',
     gap: spacing.sm,
     paddingVertical: spacing.lg,
+    marginTop: spacing.sm,
   },
   recordButton: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.accent,
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
   },
   recordCtaLabel: {
     fontSize: fontSize.base,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.foreground,
+    marginTop: spacing.xs,
   },
   recordCtaHint: { fontSize: fontSize.sm, color: colors.mutedForeground },
+
   transcriptInput: {
-    minHeight: 160,
-    backgroundColor: colors.background,
-    borderRadius: radius.md,
+    minHeight: 180,
+    backgroundColor: '#fff',
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#EEF2F7',
     padding: spacing.md,
     color: colors.foreground,
     fontSize: fontSize.base,
@@ -834,23 +1059,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.md,
   },
+
+  summaryCard: {
+    backgroundColor: '#fff',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: '#EEF2F7',
+    overflow: 'hidden',
+  },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: colors.background,
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#EEF2F7',
   },
   summaryLabel: { fontSize: fontSize.sm, color: colors.mutedForeground },
   summaryValue: {
     fontSize: fontSize.sm,
     color: colors.foreground,
-    fontWeight: '500',
+    fontWeight: '600',
     maxWidth: '70%',
   },
-  modalSafe: { flex: 1, backgroundColor: colors.background },
+
+  modalSafe: { flex: 1, backgroundColor: '#fff' },
   modalHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -858,13 +1092,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#EEF2F7',
   },
   modalCancel: { fontSize: fontSize.base, color: colors.mutedForeground },
-  modalSave: { fontSize: fontSize.base, fontWeight: '600', color: colors.primary },
+  modalSave: { fontSize: fontSize.base, fontWeight: '700', color: colors.primary },
   modalTitle: {
     fontSize: fontSize.base,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.foreground,
   },
   modalSearchWrap: { padding: spacing.lg, paddingBottom: spacing.sm },
@@ -874,8 +1108,8 @@ const styles = StyleSheet.create({
     paddingRight: spacing.md,
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderColor: '#EEF2F7',
+    backgroundColor: '#F8FAFC',
     color: colors.foreground,
     fontSize: fontSize.base,
   },
@@ -885,11 +1119,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#EEF2F7',
   },
   clientPickerName: {
     fontSize: fontSize.base,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.foreground,
   },
   clientPickerSub: {

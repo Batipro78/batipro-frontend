@@ -30,7 +30,7 @@ const FEATURES = [
   'IA vocale pour dicter vos devis',
   'Gestion clients complète',
   'Export PDF professionnel',
-  'Mode comparatif 3 gammes',
+  '3 gammes pour électricien et plombier',
   'Support prioritaire',
 ];
 

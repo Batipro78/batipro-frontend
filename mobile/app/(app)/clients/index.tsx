@@ -82,8 +82,8 @@ export default function ClientsScreen() {
   const load = useCallback(async () => {
     try {
       setError(null);
-      const res = await api.get<{ data: Client[] }>('/clients');
-      setClients(res.data || []);
+      const res = await api.get<{ data: { data: Client[]; pagination?: unknown } }>('/clients');
+      setClients(res.data?.data || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur de chargement');
     } finally {
@@ -153,11 +153,11 @@ export default function ClientsScreen() {
         nom: form.nom.trim(),
         adresse: form.adresse.trim(),
         telephone: form.telephone.trim(),
-        email: form.email.trim() || null,
-        ville: form.ville.trim() || null,
-        codepostal: form.codepostal.trim() || null,
+        email: form.email.trim(),
+        ville: form.ville.trim(),
+        code_postal: form.codepostal.trim(),
         categorie_client: form.categorie_client,
-        siret: form.siret.trim() || null,
+        siret: form.siret.trim(),
       };
       if (editing) {
         await api.put(`/clients/${editing.id}`, payload);
@@ -309,8 +309,9 @@ export default function ClientsScreen() {
       <Pressable
         onPress={openCreate}
         style={({ pressed }) => [styles.fab, pressed && { opacity: 0.85 }]}
+        accessibilityLabel="Ajouter un client"
       >
-        <Ionicons name="add" size={28} color="#fff" />
+        <Text style={styles.fabPlus}>+</Text>
       </Pressable>
 
       <ClientFormModal
@@ -574,17 +575,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.lg,
     bottom: spacing.lg,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  fabPlus: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: '300',
+    lineHeight: 36,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   modalSafe: { flex: 1, backgroundColor: colors.background },
   modalHeader: {

@@ -23,7 +23,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '3. Description du service',
-    body: "MonDevisMinute propose les fonctionnalités suivantes : création et gestion de devis et factures, gestion de la base clients, dictée vocale assistée par IA pour la création de devis, catalogue d'articles et de prix, génération de documents PDF, et mode comparatif multi-gammes.",
+    body: "MonDevisMinute propose les fonctionnalités suivantes : création et gestion de devis et factures, gestion de la base clients, dictée vocale assistée par IA pour la création de devis, catalogue d'articles et de prix, génération de documents PDF, et choix de gammes (éco, standard, premium) pour les métiers d'électricien et de plombier.",
   },
   {
     title: '4. Inscription et compte',

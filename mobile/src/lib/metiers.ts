@@ -45,7 +45,7 @@ export const METIER_BY_KEY: Record<MetierKey, Metier> = METIERS.reduce(
   {} as Record<MetierKey, Metier>
 );
 
-export type Gamme = 'eco' | 'standard' | 'premium' | 'comparatif';
+export type Gamme = 'eco' | 'standard' | 'premium';
 
 export const GAMMES: { key: Gamme; label: string; description: string }[] = [
   {
@@ -62,10 +62,5 @@ export const GAMMES: { key: Gamme; label: string; description: string }[] = [
     key: 'premium',
     label: 'Premium',
     description: 'Matériel haut de gamme',
-  },
-  {
-    key: 'comparatif',
-    label: 'Comparatif 3 gammes',
-    description: 'Présentez les 3 options au client',
   },
 ];

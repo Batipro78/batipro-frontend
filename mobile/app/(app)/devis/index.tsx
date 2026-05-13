@@ -157,15 +157,15 @@ export default function DevisScreen() {
           onPress={() => router.push('/devis/nouveau')}
           style={({ pressed }) => [styles.fabSecondary, pressed && { opacity: 0.85 }]}
         >
-          <Ionicons name="add" size={20} color={colors.foreground} />
-          <Text style={styles.fabSecondaryText}>Manuel</Text>
+          <Ionicons name="create-outline" size={20} color={colors.foreground} />
+          <Text style={styles.fabSecondaryText}>Écrire un devis</Text>
         </Pressable>
         <Pressable
           onPress={() => router.push('/devis/nouveau-vocal')}
           style={({ pressed }) => [styles.fab, pressed && { opacity: 0.9 }]}
         >
           <Ionicons name="mic" size={22} color="#fff" />
-          <Text style={styles.fabText}>Vocal</Text>
+          <Text style={styles.fabText}>Nouveau devis vocal</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -234,15 +234,16 @@ const styles = StyleSheet.create({
   emptyText: { color: colors.mutedForeground, fontSize: fontSize.sm },
   fabBar: {
     position: 'absolute',
+    left: spacing.lg,
     right: spacing.lg,
     bottom: spacing.lg,
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: spacing.sm,
-    alignItems: 'center',
   },
   fab: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     height: 56,
@@ -258,10 +259,11 @@ const styles = StyleSheet.create({
   fabSecondary: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    gap: spacing.sm,
     paddingHorizontal: spacing.md,
-    height: 48,
-    borderRadius: 24,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.border,
@@ -274,6 +276,6 @@ const styles = StyleSheet.create({
   fabSecondaryText: {
     color: colors.foreground,
     fontWeight: '600',
-    fontSize: fontSize.sm,
+    fontSize: fontSize.base,
   },
 });

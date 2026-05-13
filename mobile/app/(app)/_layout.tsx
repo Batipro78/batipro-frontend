@@ -29,15 +29,29 @@ export default function AppLayout() {
           headerShown: false,
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.mutedForeground,
-          tabBarStyle: { borderTopColor: colors.border },
+          tabBarStyle: {
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+            height: 92,
+            paddingTop: 10,
+            paddingBottom: 14,
+            backgroundColor: colors.background,
+            elevation: 8,
+            shadowColor: '#000',
+            shadowOpacity: 0.06,
+            shadowOffset: { width: 0, height: -2 },
+            shadowRadius: 6,
+          },
+          tabBarLabelStyle: { fontSize: 16, fontWeight: '700', marginTop: 4 },
+          tabBarIconStyle: { marginBottom: 0 },
         }}
       >
         <Tabs.Screen
           name="dashboard"
           options={{
             title: 'Accueil',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="home-outline" size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="home-outline" size={28} color={color} />
             ),
           }}
         />
@@ -45,8 +59,8 @@ export default function AppLayout() {
           name="devis"
           options={{
             title: 'Devis',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="document-text-outline" size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="document-text-outline" size={28} color={color} />
             ),
           }}
         />
@@ -54,8 +68,8 @@ export default function AppLayout() {
           name="factures"
           options={{
             title: 'Factures',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="receipt-outline" size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="receipt-outline" size={28} color={color} />
             ),
           }}
         />
@@ -63,8 +77,8 @@ export default function AppLayout() {
           name="clients"
           options={{
             title: 'Clients',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="people-outline" size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="people-outline" size={28} color={color} />
             ),
           }}
         />
@@ -72,8 +86,8 @@ export default function AppLayout() {
           name="profil"
           options={{
             title: 'Profil',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person-outline" size={size} color={color} />
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="person-outline" size={28} color={color} />
             ),
           }}
         />

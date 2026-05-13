@@ -2,12 +2,13 @@
   "expo": {
     "name": "MonDevisMinute",
     "slug": "mondevisminute-mobile",
+    "owner": "fethi.ameur",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "mondevisminute",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -39,8 +40,15 @@
               "pathPrefix": "/verify-email"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
+      ],
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ]
     },
     "web": {
@@ -62,7 +70,9 @@
           "photosPermission": "MonDevisMinute accède à vos photos pour ajouter le logo de votre entreprise.",
           "cameraPermission": "MonDevisMinute utilise l'appareil photo pour scanner le logo ou ajouter une photo de chantier."
         }
-      ]
+      ],
+      "expo-asset",
+      "expo-font"
     ],
     "extra": {
       "apiUrl": "https://batipro-backend.onrender.com/api",
@@ -70,7 +80,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "6886c377-4d2e-41a0-992f-69820954675e"
+        "projectId": "20f870cb-f29c-44ce-a36e-aa8ef8496c4c"
       }
     }
   }
