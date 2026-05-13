@@ -148,28 +148,37 @@ export default function DashboardScreen() {
     const cur = getPeriodRange(period, now);
     const prev = getPreviousPeriodRange(period, now);
 
-    const inRange = (signedAt: string | null, from: Date, to: Date) => {
-      if (!signedAt) return false;
-      const d = new Date(signedAt);
-      return d >= from && d <= to;
+    // On compte tous les devis "actifs" : brouillon, genere, envoye, signe, facture.
+    // On exclut uniquement annule et refuse (devis perdus).
+    // Date de reference : signed_at si rempli, sinon created_at (devis non encore signe).
+    const ACTIVE_STATUTS = new Set(['brouillon', 'genere', 'envoye', 'signe', 'facture']);
+
+    const refDate = (d: Devis): Date | null => {
+      const raw = d.signed_at || d.created_at;
+      if (!raw) return null;
+      return new Date(raw);
     };
 
-    const signedCur = allDevis.filter(
-      (d) => d.statut === 'signe' && inRange(d.signed_at, cur.from, cur.to)
-    );
-    const signedPrev = allDevis.filter(
-      (d) => d.statut === 'signe' && inRange(d.signed_at, prev.from, prev.to)
-    );
+    const inRange = (d: Devis, from: Date, to: Date) => {
+      if (!ACTIVE_STATUTS.has(d.statut)) return false;
+      const ref = refDate(d);
+      if (!ref) return false;
+      return ref >= from && ref <= to;
+    };
 
-    const caCurrent = signedCur.reduce((sum, d) => sum + (d.total_ttc || 0), 0);
-    const caPrevious = signedPrev.reduce((sum, d) => sum + (d.total_ttc || 0), 0);
-    const signedCount = signedCur.length;
+    const cur_ = allDevis.filter((d) => inRange(d, cur.from, cur.to));
+    const prev_ = allDevis.filter((d) => inRange(d, prev.from, prev.to));
+
+    const caCurrent = cur_.reduce((sum, d) => sum + (d.total_ttc || 0), 0);
+    const caPrevious = prev_.reduce((sum, d) => sum + (d.total_ttc || 0), 0);
+    const devisCount = cur_.length;
+    const signedCount = cur_.filter((d) => d.statut === 'signe' || d.statut === 'facture').length;
 
     const delta = caPrevious > 0
       ? ((caCurrent - caPrevious) / caPrevious) * 100
       : null;
 
-    return { caCurrent, caPrevious, signedCount, delta };
+    return { caCurrent, caPrevious, devisCount, signedCount, delta };
   }, [allDevis, period]);
 
   const totalDevis = allDevis.length;
@@ -278,9 +287,13 @@ export default function DashboardScreen() {
 
             {!loading ? (
               <Text style={styles.heroSignedCount}>
-                {periodStats.signedCount === 0
-                  ? 'Aucun devis signé pour le moment'
-                  : `${periodStats.signedCount} devis signé${periodStats.signedCount > 1 ? 's' : ''}`}
+                {periodStats.devisCount === 0
+                  ? 'Aucun devis pour le moment'
+                  : `${periodStats.devisCount} devis${periodStats.devisCount > 1 ? '' : ''}${
+                      periodStats.signedCount > 0
+                        ? ` · ${periodStats.signedCount} signé${periodStats.signedCount > 1 ? 's' : ''}`
+                        : ''
+                    }`}
               </Text>
             ) : null}
 

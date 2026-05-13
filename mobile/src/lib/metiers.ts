@@ -10,10 +10,7 @@ export type MetierKey =
   | 'carreleur'
   | 'menuisier'
   | 'charpentier'
-  | 'solier'
   | 'serrurier'
-  | 'vitrier'
-  | 'terrassier'
   | 'paysagiste';
 
 export interface Metier {
@@ -33,10 +30,7 @@ export const METIERS: Metier[] = [
   { key: 'carreleur', label: 'Carreleur', icon: 'apps-outline', hasGammes: false },
   { key: 'menuisier', label: 'Menuisier', icon: 'hammer-outline', hasGammes: false },
   { key: 'charpentier', label: 'Charpentier', icon: 'construct-outline', hasGammes: false },
-  { key: 'solier', label: 'Solier', icon: 'layers-outline', hasGammes: false },
   { key: 'serrurier', label: 'Serrurier', icon: 'lock-closed-outline', hasGammes: false },
-  { key: 'vitrier', label: 'Vitrier', icon: 'square-outline', hasGammes: false },
-  { key: 'terrassier', label: 'Terrassier', icon: 'earth-outline', hasGammes: false },
   { key: 'paysagiste', label: 'Paysagiste', icon: 'leaf-outline', hasGammes: false },
 ];
 

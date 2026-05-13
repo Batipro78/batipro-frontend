@@ -185,6 +185,35 @@ export default function FactureDetailScreen() {
     }
   };
 
+  const onDelete = () => {
+    if (!facture) return;
+    Alert.alert(
+      'Supprimer cette facture ?',
+      `La facture ${facture.numero} sera définitivement supprimée. Cette action est irréversible.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            setActing(true);
+            try {
+              await api.delete(`/factures/${facture.id}`);
+              router.replace('/factures');
+            } catch (e) {
+              Alert.alert(
+                'Erreur',
+                e instanceof Error ? e.message : 'Suppression impossible'
+              );
+            } finally {
+              setActing(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const openPaiement = () => {
     setPaiementMontant(restant.toFixed(2));
     setPaiementMethode('virement');
@@ -454,6 +483,13 @@ export default function FactureDetailScreen() {
               loading={acting}
             />
           ) : null}
+          <Button
+            title="Supprimer la facture"
+            variant="destructive"
+            fullWidth
+            onPress={onDelete}
+            loading={acting}
+          />
         </View>
       </ScrollView>
 

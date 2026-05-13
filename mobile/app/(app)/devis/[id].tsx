@@ -487,16 +487,13 @@ export default function DevisDetailScreen() {
               onPress={onConvertFacture}
               loading={acting}
             />
-            {(devis.statut === 'brouillon' || devis.statut === 'genere') &&
-            !devis.signature ? (
-              <Button
-                title="Supprimer le devis"
-                variant="destructive"
-                fullWidth
-                onPress={onDelete}
-                loading={acting}
-              />
-            ) : null}
+            <Button
+              title="Supprimer le devis"
+              variant="destructive"
+              fullWidth
+              onPress={onDelete}
+              loading={acting}
+            />
           </View>
         ) : null}
       </ScrollView>
