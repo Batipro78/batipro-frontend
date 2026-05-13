@@ -144,20 +144,41 @@ export default function FactureDetailScreen() {
   const totalPaye = paiements.reduce((s, p) => s + (p.montant || 0), 0);
   const restant = facture ? Math.max(0, facture.total_ttc - totalPaye) : 0;
 
-  const openPdf = async () => {
-    if (!facture?.pdf_url) {
-      Alert.alert('PDF indisponible');
-      return;
+  const ensurePdfUrl = async (): Promise<string | null> => {
+    if (!facture) return null;
+    if (facture.pdf_url) return facture.pdf_url;
+    try {
+      const res = await api.get<{ data: { pdf_url: string } }>(
+        `/factures/${facture.id}/pdf-url`
+      );
+      const url = res.data?.pdf_url;
+      if (url) {
+        setFacture({ ...facture, pdf_url: url });
+        return url;
+      }
+      return null;
+    } catch (e) {
+      Alert.alert(
+        'PDF indisponible',
+        e instanceof Error ? e.message : 'Impossible de générer le PDF de la facture.'
+      );
+      return null;
     }
-    Linking.openURL(facture.pdf_url);
+  };
+
+  const openPdf = async () => {
+    const url = await ensurePdfUrl();
+    if (!url) return;
+    Linking.openURL(url);
   };
 
   const onShare = async () => {
     if (!facture) return;
+    const url = await ensurePdfUrl();
     try {
       await Share.share({
-        message: `Facture ${facture.numero} — ${facture.total_ttc?.toFixed(2)} € TTC${facture.pdf_url ? `\n${facture.pdf_url}` : ''}`,
-        url: facture.pdf_url ?? undefined,
+        message: `Facture ${facture.numero} — ${facture.total_ttc?.toFixed(2)} € TTC${url ? `\n${url}` : ''}`,
+        url: url ?? undefined,
       });
     } catch {
       /* user cancelled */
