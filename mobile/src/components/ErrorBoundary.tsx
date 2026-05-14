@@ -29,14 +29,16 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
           <Text style={styles.icon}>⚠️</Text>
           <Text style={styles.title}>Une erreur s'est produite</Text>
           <Text style={styles.subtitle}>
-            L'application a rencontré un problème. Envoyez ce message à Fethi :
+            L'application a rencontré un problème. Réessayez ou redémarrez l'application.
           </Text>
-          <View style={styles.box}>
-            <Text style={styles.errorName}>{err.name}: {err.message}</Text>
-            {err.stack ? (
-              <Text style={styles.stack}>{err.stack.split('\n').slice(0, 10).join('\n')}</Text>
-            ) : null}
-          </View>
+          {__DEV__ ? (
+            <View style={styles.box}>
+              <Text style={styles.errorName}>{err.name}: {err.message}</Text>
+              {err.stack ? (
+                <Text style={styles.stack}>{err.stack.split('\n').slice(0, 10).join('\n')}</Text>
+              ) : null}
+            </View>
+          ) : null}
           <Pressable onPress={this.reset} style={styles.btn}>
             <Text style={styles.btnText}>Réessayer</Text>
           </Pressable>
