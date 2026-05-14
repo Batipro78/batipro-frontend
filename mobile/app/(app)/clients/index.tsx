@@ -155,7 +155,7 @@ export default function ClientsScreen() {
         telephone: form.telephone.trim(),
         email: form.email.trim(),
         ville: form.ville.trim(),
-        code_postal: form.codepostal.trim(),
+        codepostal: form.codepostal.trim(),
         categorie_client: form.categorie_client,
         siret: form.siret.trim(),
       };
