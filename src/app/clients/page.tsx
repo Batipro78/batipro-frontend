@@ -21,10 +21,10 @@ interface Client {
   telephone: string;
   adresse: string;
   ville: string;
-  code_postal: string;
+  codepostal: string;
 }
 
-const emptyClient = { nom: '', prenom: '', email: '', telephone: '', adresse: '', ville: '', code_postal: '' };
+const emptyClient = { nom: '', prenom: '', email: '', telephone: '', adresse: '', ville: '', codepostal: '' };
 
 export default function ClientsPage() {
   const { t } = useI18n();
@@ -150,7 +150,7 @@ export default function ClientsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>{t('zipCode')}</Label>
-                    <Input value={editingClient.code_postal || ''} onChange={(e) => setEditingClient({ ...editingClient, code_postal: e.target.value })} />
+                    <Input value={editingClient.codepostal || ''} onChange={(e) => setEditingClient({ ...editingClient, codepostal: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label>{t('city')}</Label>
