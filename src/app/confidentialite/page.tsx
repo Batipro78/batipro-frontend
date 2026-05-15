@@ -39,8 +39,8 @@ export default function ConfidentialitePage() {
           <p>
             MonDevisMinute est éditée par Fethi Ameur, exerçant en France. Pour toute question
             relative à vos données, vous pouvez nous contacter à l&apos;adresse :{' '}
-            <a href="mailto:contact@mondevisminute.com" className="underline">
-              contact@mondevisminute.com
+            <a href="mailto:mondevisminute@zohomail.eu" className="underline">
+              mondevisminute@zohomail.eu
             </a>
             .
           </p>
@@ -182,8 +182,8 @@ export default function ConfidentialitePage() {
             </li>
             <li>
               <strong>Droit d&apos;opposition et de limitation</strong> : contactez-nous à{' '}
-              <a href="mailto:contact@mondevisminute.com" className="underline">
-                contact@mondevisminute.com
+              <a href="mailto:mondevisminute@zohomail.eu" className="underline">
+                mondevisminute@zohomail.eu
               </a>
               .
             </li>
@@ -234,8 +234,8 @@ export default function ConfidentialitePage() {
           <h2 className="mt-8 text-xl font-semibold">11. Contact</h2>
           <p>
             Pour exercer vos droits ou pour toute question :{' '}
-            <a href="mailto:contact@mondevisminute.com" className="underline">
-              contact@mondevisminute.com
+            <a href="mailto:mondevisminute@zohomail.eu" className="underline">
+              mondevisminute@zohomail.eu
             </a>
             .
           </p>

@@ -83,10 +83,10 @@ export default function CguPage() {
             <p className="mt-2 text-muted-foreground">
               Pour toute question relative aux présentes CGU :{' '}
               <a
-                href="mailto:contact@mondevisminute.com"
+                href="mailto:mondevisminute@zohomail.eu"
                 className="underline"
               >
-                contact@mondevisminute.com
+                mondevisminute@zohomail.eu
               </a>
               .
             </p>

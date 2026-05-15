@@ -69,7 +69,7 @@ const KB: { keywords: string[]; answer: string }[] = [
   {
     keywords: ['support', 'aide', 'contact', 'email', 'mail'],
     answer:
-      'Support par email sous 24h ouvrées. Pour toute question complexe que je ne peux pas traiter ici, écrivez-nous à contact@mondevisminute.com',
+      'Support par email sous 24h ouvrées. Pour toute question complexe que je ne peux pas traiter ici, écrivez-nous à mondevisminute@zohomail.eu',
   },
   {
     keywords: ['mobile', 'téléphone', 'telephone', 'iphone', 'android', 'app'],
@@ -103,7 +103,7 @@ function findAnswer(question: string): string {
     }
   }
   if (best) return best.answer;
-  return 'Je ne suis sûr de pouvoir répondre à celle-là. Pour une réponse précise, écrivez-nous à contact@mondevisminute.com — on vous répond sous 24h ouvrées.';
+  return 'Je ne suis sûr de pouvoir répondre à celle-là. Pour une réponse précise, écrivez-nous à mondevisminute@zohomail.eu — on vous répond sous 24h ouvrées.';
 }
 
 export default function Chatbot() {

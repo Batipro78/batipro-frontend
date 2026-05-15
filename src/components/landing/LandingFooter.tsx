@@ -41,11 +41,12 @@ export default function LandingFooter() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-foreground mb-3">Légal</h4>
+            <h4 className="text-sm font-bold text-foreground mb-3">Aide & Légal</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/aide" className="hover:text-foreground transition">Aide & FAQ</Link></li>
               <li><Link href="/cgu" className="hover:text-foreground transition">CGU</Link></li>
               <li><Link href="/confidentialite" className="hover:text-foreground transition">Confidentialité</Link></li>
-              <li><a href="mailto:contact@mondevisminute.com" className="hover:text-foreground transition">Contact</a></li>
+              <li><a href="mailto:mondevisminute@zohomail.eu" className="hover:text-foreground transition">Nous contacter</a></li>
             </ul>
           </div>
         </div>

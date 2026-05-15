@@ -248,10 +248,10 @@ export default function FactureElectroniquePage() {
           </Link>
           <span className="mx-2">·</span>
           <a
-            href="mailto:contact@mondevisminute.com"
+            href="mailto:mondevisminute@zohomail.eu"
             className="hover:text-foreground"
           >
-            Une question ? contact@mondevisminute.com
+            Une question ? mondevisminute@zohomail.eu
           </a>
         </div>
       </div>
