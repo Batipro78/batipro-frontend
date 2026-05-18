@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { trackSignup } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +25,7 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup(nomEntreprise, email, password);
+      trackSignup(email);
       setEmailSent(true);
     } catch {
       setError('Erreur lors de la création du compte. Vérifiez vos informations.');

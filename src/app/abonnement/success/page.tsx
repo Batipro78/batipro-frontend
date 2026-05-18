@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { trackPurchase } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Loader2 } from 'lucide-react';
@@ -16,6 +17,7 @@ export default function AbonnementSuccessPage() {
 
   useEffect(() => {
     let cancelled = false;
+    trackPurchase(29, 'EUR');
     const refresh = async () => {
       // Polling : on tente jusqu'à 6 fois (max ~12s) pour laisser le temps au webhook Stripe.
       for (let i = 0; i < 6 && !cancelled; i++) {

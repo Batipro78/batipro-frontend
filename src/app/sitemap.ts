@@ -10,5 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/facture-electronique`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/cgu`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${base}/confidentialite`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${base}/mentions-legales`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${base}/contact`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ];
 }

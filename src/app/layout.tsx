@@ -3,6 +3,7 @@ import { Inter, Inter_Tight } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from '@/components/ui/sonner';
+import { AnalyticsScripts } from '@/components/AnalyticsScripts';
 
 const inter = Inter({ weight: '400', variable: '--font-inter', subsets: ['latin'] });
 const interTight = Inter_Tight({ weight: '600', variable: '--font-inter-tight', subsets: ['latin'] });
@@ -65,11 +66,23 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={`${inter.variable} ${interTight.variable} antialiased`}>
+        {GTM_ID ? (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: 'none', visibility: 'hidden' }}
+            />
+          </noscript>
+        ) : null}
         <Providers>{children}</Providers>
         <Toaster />
+        <AnalyticsScripts />
       </body>
     </html>
   );
