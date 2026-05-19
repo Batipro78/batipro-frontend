@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Zap, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import BrandPicto from '@/components/branding/BrandPicto';
 import Link from 'next/link';
 
 export default function SignupPage() {
@@ -67,9 +68,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary">
-            <Zap className="h-7 w-7 text-primary-foreground" />
-          </div>
+          <BrandPicto size={56} className="mx-auto mb-4" />
           <CardTitle className="text-2xl">Créer un compte</CardTitle>
           <CardDescription>Essai gratuit de 14 jours, sans carte bancaire</CardDescription>
         </CardHeader>

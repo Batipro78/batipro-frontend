@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, Loader2, Zap } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import BrandPicto from '@/components/branding/BrandPicto';
 import Link from 'next/link';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://batipro-backend.onrender.com/api';
@@ -82,9 +83,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary">
-            <Zap className="h-7 w-7 text-primary-foreground" />
-          </div>
+          <BrandPicto size={56} className="mx-auto mb-4" />
           <CardTitle className="text-2xl">Vérification email</CardTitle>
         </CardHeader>
         <Suspense fallback={
