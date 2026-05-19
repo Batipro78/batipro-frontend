@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import BrandPicto from '@/components/branding/BrandPicto';
 
 export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false);
@@ -25,9 +25,7 @@ export default function LandingNav() {
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <span className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-            <Mic className="w-5 h-5 text-primary-foreground" />
-          </span>
+          <BrandPicto size={36} className="group-hover:scale-105 transition-transform shadow-sm rounded-xl" />
           <span className="font-display font-bold text-xl tracking-tight text-foreground">
             MonDevisMinute
           </span>

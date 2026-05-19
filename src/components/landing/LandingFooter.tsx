@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Mic } from 'lucide-react';
+import BrandPicto from '@/components/branding/BrandPicto';
 
 export default function LandingFooter() {
   return (
@@ -8,9 +8,7 @@ export default function LandingFooter() {
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-8">
           <div className="col-span-2">
             <div className="flex items-center gap-2">
-              <span className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                <Mic className="w-5 h-5 text-primary-foreground" />
-              </span>
+              <BrandPicto size={36} className="rounded-xl" />
               <span className="font-display font-bold text-xl tracking-tight text-foreground">
                 MonDevisMinute
               </span>
