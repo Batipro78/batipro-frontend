@@ -1,0 +1,18 @@
+<svg viewBox="0 0 1800 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4b39ef"/>
+      <stop offset="100%" stop-color="#39d2c0"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(40, 40)">
+    <rect width="320" height="320" rx="70" fill="#14181b"/>
+    <g transform="scale(0.625)">
+      <path fill="url(#mGradient)" d="M 96 96 L 176 96 L 232 232 L 196 232 L 256 360 L 316 232 L 280 232 L 336 96 L 416 96 L 416 416 L 356 416 L 356 232 L 296 360 L 216 360 L 156 232 L 156 416 L 96 416 Z"/>
+    </g>
+  </g>
+  <text x="420" y="230" font-family="Inter, -apple-system, system-ui, Arial, sans-serif" font-size="140" font-weight="800" fill="#14181b" letter-spacing="-3">
+    Mon<tspan font-weight="800" fill="#4b39ef">Devis</tspan><tspan font-weight="800" fill="#39d2c0">Minute</tspan>
+  </text>
+  <text x="420" y="305" font-family="Inter, -apple-system, system-ui, Arial, sans-serif" font-size="42" font-weight="500" fill="#57636c" letter-spacing="2">DEVIS &amp; FACTURES &middot; IA VOCALE</text>
+</svg>
