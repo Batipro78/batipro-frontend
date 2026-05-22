@@ -1,6 +1,7 @@
 import { Component, ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, fontSize, radius, spacing } from '@/lib/theme';
+import { reportCrash } from '@/lib/crash-reporter';
 
 interface State {
   error: Error | null;
@@ -15,6 +16,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   componentDidCatch(error: Error, info: { componentStack: string }) {
     console.error('[ErrorBoundary]', error, info.componentStack);
+    // Envoi crash report au backend (logs Render). Fire-and-forget.
+    reportCrash(error, info.componentStack).catch(() => {});
   }
 
   reset = () => this.setState({ error: null });
