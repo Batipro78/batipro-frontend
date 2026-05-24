@@ -17,6 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         '/abonnement',
         '/verify-email',
         '/reset-password',
+        '/admin',
       ],
     },
     sitemap: 'https://mondevisminute.com/sitemap.xml',
