@@ -14,5 +14,5 @@
   <text x="420" y="230" font-family="Inter, -apple-system, system-ui, Arial, sans-serif" font-size="140" font-weight="800" fill="#14181b" letter-spacing="-3">
     Mon<tspan font-weight="800" fill="#4b39ef">Devis</tspan><tspan font-weight="800" fill="#39d2c0">Minute</tspan>
   </text>
-  <text x="420" y="305" font-family="Inter, -apple-system, system-ui, Arial, sans-serif" font-size="42" font-weight="500" fill="#57636c" letter-spacing="2">DEVIS &amp; FACTURES &middot; IA VOCALE</text>
+  <text x="420" y="305" font-family="Inter, -apple-system, system-ui, Arial, sans-serif" font-size="42" font-weight="500" fill="#57636c" letter-spacing="2">DEVIS &amp; FACTURES · IA VOCALE</text>
 </svg>
