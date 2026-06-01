@@ -474,13 +474,6 @@ export default function DevisDetailScreen() {
               </View>
             )}
             <Button
-              title="Facturer une situation (% d'avancement)"
-              variant="outline"
-              fullWidth
-              onPress={openSituation}
-              loading={acting}
-            />
-            <Button
               title="Convertir en facture finale"
               variant="outline"
               fullWidth

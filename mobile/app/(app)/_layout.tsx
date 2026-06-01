@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Tabs, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth';
 import { colors } from '@/lib/theme';
 import { CGUModal } from '@/components/CGUModal';
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login');
@@ -32,9 +34,9 @@ export default function AppLayout() {
           tabBarStyle: {
             borderTopColor: colors.border,
             borderTopWidth: 1,
-            height: 92,
+            height: 70 + insets.bottom,
             paddingTop: 10,
-            paddingBottom: 14,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 14,
             backgroundColor: colors.background,
             elevation: 8,
             shadowColor: '#000',

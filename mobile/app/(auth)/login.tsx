@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,12 +11,11 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Card } from '@/components/Card';
 import { useAuth } from '@/lib/auth';
-import { colors, spacing, fontSize, radius } from '@/lib/theme';
+import { colors, spacing, fontSize } from '@/lib/theme';
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -48,9 +48,11 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Card style={styles.card}>
-            <View style={styles.logo}>
-              <Ionicons name="flash" size={28} color="#fff" />
-            </View>
+            <Image
+              source={require('../../assets/icon.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Connexion</Text>
             <Text style={styles.subtitle}>Accédez à votre espace MonDevisMinute</Text>
 
@@ -109,12 +111,9 @@ const styles = StyleSheet.create({
   card: { gap: spacing.md },
   logo: {
     alignSelf: 'center',
-    width: 56,
-    height: 56,
-    borderRadius: radius.full,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 84,
+    height: 84,
+    borderRadius: 20,
     marginBottom: spacing.sm,
   },
   title: {
