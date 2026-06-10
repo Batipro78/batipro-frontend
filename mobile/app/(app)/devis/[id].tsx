@@ -28,12 +28,22 @@ import { colors, fontSize, radius, spacing } from '@/lib/theme';
 
 interface Ligne {
   id: number;
-  description: string;
+  description?: string;
   quantite: number;
   prix_unitaire_ht: number;
   tva: number;
   unite?: string;
+  articles?: { nom?: string; unite?: string } | null;
+  metadata?: { nom?: string; description?: string; unite?: string; a_chiffrer?: boolean } | null;
 }
+
+// Le nom d'une ligne vit dans metadata.nom (lignes vocales/manuelles) ou
+// articles.nom (lignes catalogue) — le champ description n'existe pas en BDD.
+// Meme chaine de fallback que le PDF backend.
+const ligneNom = (l: Ligne) =>
+  l.articles?.nom || l.metadata?.nom || l.metadata?.description || l.description || 'Article';
+
+const ligneUnite = (l: Ligne) => l.unite ?? l.metadata?.unite ?? 'u';
 
 interface Devis {
   id: number;
@@ -425,10 +435,10 @@ export default function DevisDetailScreen() {
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.ligneDesc} numberOfLines={2}>
-                    {l.description}
+                    {ligneNom(l)}
                   </Text>
                   <Text style={styles.ligneSub}>
-                    {l.quantite} {l.unite ?? 'u'} × {l.prix_unitaire_ht?.toFixed(2)} € HT
+                    {l.quantite} {ligneUnite(l)} × {l.prix_unitaire_ht?.toFixed(2)} € HT
                   </Text>
                 </View>
                 <Text style={styles.ligneTotal}>

@@ -36,10 +36,12 @@ interface Client {
 
 interface VoiceGenerateResponse {
   data: {
-    devis: {
-      id: number;
-      numero: string;
-    };
+    mode: string;
+    devisId: number;
+    linesAdded: number;
+    totalHT: number;
+    totalTTC: number;
+    articlesNonTrouves?: string[];
   };
 }
 
@@ -75,15 +77,17 @@ export default function NouveauVocalScreen() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  const loadClients = async () => {
+    try {
+      const res = await api.get<{ data: { data: Client[]; pagination?: unknown } }>('/clients');
+      setClients(res.data?.data || []);
+    } catch {
+      // silencieux au chargement initial : retenté à l'ouverture du picker
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.get<{ data: { data: Client[]; pagination?: unknown } }>('/clients');
-        setClients(res.data?.data || []);
-      } catch {
-        // silencieux : retenté à l'ouverture du picker
-      }
-    })();
+    loadClients();
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -241,11 +245,24 @@ export default function NouveauVocalScreen() {
       }
 
       const res = await api.post<VoiceGenerateResponse>('/voice/generate', payload);
-      const devisId = res.data?.devis?.id;
-      if (devisId) {
-        router.replace(`/devis/${devisId}`);
+      // Le backend renvoie data.devisId (pas data.devis.id) : l'ancien chemin
+      // etait toujours undefined -> l'artisan retombait sur la liste au lieu
+      // d'ouvrir son devis.
+      const devisId = res.data?.devisId;
+      const nonTrouves = res.data?.articlesNonTrouves ?? [];
+      const goToDevis = () => {
+        if (devisId) router.replace(`/devis/${devisId}`);
+        else router.replace('/devis');
+      };
+      if (nonTrouves.length > 0) {
+        Alert.alert(
+          'Articles à chiffrer',
+          `${nonTrouves.length} article(s) hors catalogue ajouté(s) à 0 € :\n\n• ${nonTrouves.join('\n• ')}\n\nPensez à mettre vos prix.`,
+          [{ text: 'Voir le devis', onPress: goToDevis }],
+          { cancelable: false }
+        );
       } else {
-        router.replace('/devis');
+        goToDevis();
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la génération');
@@ -366,7 +383,10 @@ export default function NouveauVocalScreen() {
         >
           <Section title="Client" icon="person-outline">
             <Pressable
-              onPress={() => setClientPickerOpen(true)}
+              onPress={() => {
+                if (clients.length === 0) loadClients();
+                setClientPickerOpen(true);
+              }}
               style={({ pressed }) => [
                 styles.selectorRow,
                 pressed && styles.pressedCard,

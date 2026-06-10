@@ -34,11 +34,20 @@ interface Paiement {
 
 interface Ligne {
   id: number;
-  description: string;
+  description?: string;
   quantite: number;
   prix_unitaire_ht: number;
   unite?: string;
+  articles?: { nom?: string; unite?: string } | null;
+  metadata?: { nom?: string; description?: string; unite?: string } | null;
 }
+
+// Le nom d'une ligne vit dans metadata.nom ou articles.nom — le champ
+// description n'existe pas en BDD (meme fallback que le PDF backend).
+const ligneNom = (l: Ligne) =>
+  l.articles?.nom || l.metadata?.nom || l.metadata?.description || l.description || 'Article';
+
+const ligneUnite = (l: Ligne) => l.unite ?? l.metadata?.unite ?? 'u';
 
 interface Facture {
   id: number;
@@ -61,6 +70,7 @@ interface Facture {
     email?: string;
   };
   lignes?: Ligne[];
+  factures_lignes?: Ligne[];
   paiements?: Paiement[];
 }
 
@@ -139,7 +149,9 @@ export default function FactureDetailScreen() {
     load();
   };
 
-  const lignes = facture?.lignes ?? [];
+  // L'API renvoie les lignes sous la cle factures_lignes (pas lignes) :
+  // sans ce fallback l'ecran affichait "Aucune ligne" sur toutes les factures.
+  const lignes = facture?.lignes ?? facture?.factures_lignes ?? [];
   const paiements = facture?.paiements ?? [];
   const totalPaye = paiements.reduce((s, p) => s + (p.montant || 0), 0);
   const restant = facture ? Math.max(0, facture.total_ttc - totalPaye) : 0;
@@ -452,10 +464,10 @@ export default function FactureDetailScreen() {
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.ligneDesc} numberOfLines={2}>
-                    {l.description}
+                    {ligneNom(l)}
                   </Text>
                   <Text style={styles.ligneSub}>
-                    {l.quantite} {l.unite ?? 'u'} × {l.prix_unitaire_ht?.toFixed(2)} € HT
+                    {l.quantite} {ligneUnite(l)} × {l.prix_unitaire_ht?.toFixed(2)} € HT
                   </Text>
                 </View>
                 <Text style={styles.ligneTotal}>

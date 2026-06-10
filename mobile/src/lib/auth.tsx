@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { router } from 'expo-router';
-import { api, setUnauthorizedHandler } from './api';
+import { api, refreshAccessToken, setUnauthorizedHandler } from './api';
 import { storage } from './storage';
 
 interface User {
@@ -60,8 +60,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (decoded) {
           setUser(decoded);
         } else {
-          await storage.remove('token');
-          await storage.remove('refreshToken');
+          // Access token expire (15 min) mais le refreshToken vaut 30 jours :
+          // on tente le refresh avant de jeter la session, sinon l'artisan
+          // devait se reconnecter a CHAQUE ouverture de l'app.
+          const newToken = await refreshAccessToken();
+          const refreshed = newToken ? decodeToken(newToken) : null;
+          if (refreshed) {
+            setUser(refreshed);
+          } else {
+            await storage.remove('token');
+            await storage.remove('refreshToken');
+          }
         }
       }
       setLoading(false);

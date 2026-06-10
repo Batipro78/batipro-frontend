@@ -82,15 +82,17 @@ export default function NouveauDevisScreen() {
   const [loadingExisting, setLoadingExisting] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
 
+  const loadClients = async () => {
+    try {
+      const res = await api.get<{ data: { data: Client[]; pagination?: unknown } }>('/clients');
+      setClients(res.data?.data || []);
+    } catch {
+      // silencieux au chargement initial : retenté à l'ouverture du picker
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.get<{ data: { data: Client[]; pagination?: unknown } }>('/clients');
-        setClients(res.data?.data || []);
-      } catch {
-        /* ignore */
-      }
-    })();
+    loadClients();
   }, []);
 
   // Mode édition : charger le devis existant
@@ -346,7 +348,10 @@ export default function NouveauDevisScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Client</Text>
             <Pressable
-              onPress={() => setClientPickerOpen(true)}
+              onPress={() => {
+                if (clients.length === 0) loadClients();
+                setClientPickerOpen(true);
+              }}
               style={styles.selectorRow}
             >
               <Ionicons
