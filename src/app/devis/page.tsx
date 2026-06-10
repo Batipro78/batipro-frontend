@@ -99,7 +99,9 @@ export default function DevisPage() {
     if (r.statut === 'genere') {
       api.put(`/devis/${r.id}`, { statut: 'envoye' })
         .then(() => loadDevis())
-        .catch(() => {});
+        .catch(() => {
+          toast.error('Message ouvert mais le statut du devis n\'a pas pu passer à "Envoyé"');
+        });
     }
   }
 
@@ -120,7 +122,9 @@ export default function DevisPage() {
     if (r.statut === 'genere') {
       api.put(`/devis/${r.id}`, { statut: 'envoye' })
         .then(() => loadDevis())
-        .catch(() => {});
+        .catch(() => {
+          toast.error('Email ouvert mais le statut du devis n\'a pas pu passer à "Envoyé"');
+        });
     }
   }
 

@@ -1,4 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://batipro-backend.onrender.com/api';
+// Source UNIQUE de l'URL backend. Le fallback ne sert que si NEXT_PUBLIC_API_URL
+// n'est pas definie (elle l'est sur Vercel). Ne pas dupliquer dans les pages :
+// importer API_BASE depuis ce module.
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://batipro-backend.onrender.com/api';
 
 interface ApiOptions {
   method?: string;

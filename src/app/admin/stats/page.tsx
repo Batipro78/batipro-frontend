@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { API_BASE } from '@/lib/api';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://batipro-backend.onrender.com/api';
 const TOKEN_KEY = 'mdm_admin_token';
 const RENDER_DASHBOARD = 'https://dashboard.render.com';
 

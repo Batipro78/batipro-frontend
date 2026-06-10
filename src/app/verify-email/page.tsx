@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import BrandPicto from '@/components/branding/BrandPicto';
 import Link from 'next/link';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://batipro-backend.onrender.com/api';
+import { API_BASE } from '@/lib/api';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();

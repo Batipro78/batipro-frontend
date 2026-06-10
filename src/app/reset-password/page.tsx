@@ -8,8 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KeyRound, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://batipro-backend.onrender.com/api';
+import { API_BASE } from '@/lib/api';
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();

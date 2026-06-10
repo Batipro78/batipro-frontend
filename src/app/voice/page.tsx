@@ -19,7 +19,6 @@ import { toast } from 'sonner';
 interface Client {
   id: number;
   nom: string;
-  prenom?: string;
 }
 
 interface FournisseurGroup {
@@ -92,7 +91,9 @@ function VoicePageContent() {
       .then((res) => {
         setClients(res.data?.data || []);
       })
-      .catch(() => {});
+      .catch(() => {
+        toast.error('Impossible de charger vos clients — vous pourrez quand même dicter, un client temporaire sera créé');
+      });
   }, []);
 
   const isAvenantMode = avenantDevisId !== null;
@@ -428,7 +429,7 @@ function VoicePageContent() {
                   <SelectItem value="new">+ Nouveau client</SelectItem>
                   {clients.map((c) => (
                     <SelectItem key={c.id} value={String(c.id)}>
-                      {c.nom} {c.prenom || ''}
+                      {c.nom}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -16,7 +16,6 @@ import { toast } from 'sonner';
 interface Client {
   id: number;
   nom: string;
-  prenom: string;
   email: string;
   telephone: string;
   adresse: string;
@@ -24,7 +23,7 @@ interface Client {
   codepostal: string;
 }
 
-const emptyClient = { nom: '', prenom: '', email: '', telephone: '', adresse: '', ville: '', codepostal: '' };
+const emptyClient = { nom: '', email: '', telephone: '', adresse: '', ville: '', codepostal: '' };
 
 export default function ClientsPage() {
   const { t } = useI18n();
@@ -87,7 +86,7 @@ export default function ClientsPage() {
   };
 
   const columns = [
-    { key: 'nom', header: t('name'), render: (r: Client) => `${r.nom} ${r.prenom || ''}`.trim() },
+    { key: 'nom', header: t('name'), render: (r: Client) => r.nom },
     { key: 'email', header: t('email') },
     { key: 'telephone', header: t('phone') },
     { key: 'ville', header: t('city') },
@@ -123,15 +122,9 @@ export default function ClientsPage() {
                 <DialogTitle>{isEditing ? t('editClient') : t('addClient')}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>{t('name')}</Label>
-                    <Input value={editingClient.nom || ''} onChange={(e) => setEditingClient({ ...editingClient, nom: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t('firstName')}</Label>
-                    <Input value={editingClient.prenom || ''} onChange={(e) => setEditingClient({ ...editingClient, prenom: e.target.value })} />
-                  </div>
+                <div className="space-y-2">
+                  <Label>{t('name')}</Label>
+                  <Input value={editingClient.nom || ''} onChange={(e) => setEditingClient({ ...editingClient, nom: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
