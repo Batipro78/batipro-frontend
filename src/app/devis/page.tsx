@@ -83,17 +83,38 @@ export default function DevisPage() {
     loadProfile();
   }, []);
 
-  function handleWhatsApp(r: Devis) {
+  // Les pdf_url stockes en base sont des liens signes Supabase qui expirent :
+  // on redemande un lien frais au backend avant tout partage/telechargement,
+  // sinon le client recoit "Invalid Jwt / exp claim timestamp check failed".
+  async function getFreshPdfUrl(r: Devis): Promise<string | null> {
+    try {
+      const res = await api.get<{ data: { pdf_url: string } }>(`/devis/${r.id}/pdf-url`);
+      return res.data?.pdf_url ?? r.pdf_url;
+    } catch {
+      return r.pdf_url;
+    }
+  }
+
+  async function handleWhatsApp(r: Devis) {
     const clientNom = r.clients?.nom || 'Client';
     const phone = r.clients?.telephone;
     if (!phone) {
       toast.error('Aucun numéro de téléphone pour ce client');
       return;
     }
+    // Onglet ouvert AVANT l'await : un window.open hors du geste utilisateur
+    // serait bloque par l'anti-popup.
+    const win = window.open('', '_blank');
     const entreprise = artisan?.nom || 'Notre entreprise';
-    const message = `Bonjour ${clientNom}, c'est ${entreprise}. Ravi d'avoir échangé avec vous. Voici votre devis n°${r.numero} pour vos travaux. Montant : ${r.total_ttc.toFixed(2)} € TTC.${r.pdf_url ? ` Vous pouvez le consulter ici : ${r.pdf_url}` : ''} Je reste à votre disposition !`;
+    const pdfUrl = await getFreshPdfUrl(r);
+    const message = `Bonjour ${clientNom}, c'est ${entreprise}. Ravi d'avoir échangé avec vous. Voici votre devis n°${r.numero} pour vos travaux. Montant : ${r.total_ttc.toFixed(2)} € TTC.${pdfUrl ? ` Vous pouvez le consulter ici : ${pdfUrl}` : ''} Je reste à votre disposition !`;
 
-    window.open(`https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(message)}`, '_blank');
+    const waUrl = `https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(message)}`;
+    if (win) {
+      win.location.href = waUrl;
+    } else {
+      window.open(waUrl, '_blank');
+    }
 
     // Mettre à jour le statut en 'envoye' si le devis est 'genere'
     if (r.statut === 'genere') {
@@ -105,7 +126,7 @@ export default function DevisPage() {
     }
   }
 
-  function handleEmail(r: Devis) {
+  async function handleEmail(r: Devis) {
     const clientNom = r.clients?.nom || 'Client';
     const clientEmail = r.clients?.email;
     if (!clientEmail) {
@@ -114,7 +135,8 @@ export default function DevisPage() {
     }
     const entreprise = artisan?.nom || 'Notre entreprise';
     const subject = `Devis n°${r.numero} - ${entreprise}`;
-    const body = `Bonjour ${clientNom},\n\nSuite à notre visite de chantier, veuillez trouver ci-joint votre devis détaillé d'un montant de ${r.total_ttc.toFixed(2)} € TTC.\n\n${r.pdf_url ? `Vous pouvez y accéder via ce lien sécurisé : ${r.pdf_url}\n\n` : ''}N'hésitez pas à me contacter pour toute précision.\n\nBien cordialement,\n${entreprise}`;
+    const pdfUrl = await getFreshPdfUrl(r);
+    const body = `Bonjour ${clientNom},\n\nSuite à notre visite de chantier, veuillez trouver ci-joint votre devis détaillé d'un montant de ${r.total_ttc.toFixed(2)} € TTC.\n\n${pdfUrl ? `Vous pouvez y accéder via ce lien sécurisé : ${pdfUrl}\n\n` : ''}N'hésitez pas à me contacter pour toute précision.\n\nBien cordialement,\n${entreprise}`;
 
     window.open(`mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_self');
 
@@ -222,8 +244,10 @@ export default function DevisPage() {
               variant="ghost"
               size="sm"
               onClick={async () => {
+                const pdfUrl = (await getFreshPdfUrl(r)) || r.pdf_url!;
                 try {
-                  const res = await fetch(r.pdf_url!);
+                  const res = await fetch(pdfUrl);
+                  if (!res.ok) throw new Error('fetch pdf failed');
                   const blob = await res.blob();
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
@@ -232,7 +256,7 @@ export default function DevisPage() {
                   a.click();
                   URL.revokeObjectURL(url);
                 } catch {
-                  window.open(r.pdf_url!, '_blank');
+                  window.open(pdfUrl, '_blank');
                 }
               }}
               title="Télécharger le PDF"

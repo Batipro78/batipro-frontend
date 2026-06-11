@@ -125,16 +125,25 @@ export default function DevisDetailScreen() {
 
   const lignes = devis?.lignes ?? devis?.lignes_devis ?? [];
 
+  // Les pdf_url stockes en base sont des liens signes Supabase qui expirent :
+  // on redemande systematiquement un lien frais au backend (qui le re-signe),
+  // sinon "Invalid Jwt / exp claim timestamp check failed" a l'ouverture.
+  const getFreshPdfUrl = async (): Promise<string | null> => {
+    if (!devis) return null;
+    try {
+      const res = await api.get<{ data: { pdf_url: string } }>(
+        `/devis/${devis.id}/pdf-url`
+      );
+      return res.data?.pdf_url ?? devis.pdf_url;
+    } catch {
+      return devis.pdf_url;
+    }
+  };
+
   const openPdf = async () => {
     if (!devis) return;
     try {
-      let url = devis.pdf_url;
-      if (!url) {
-        const res = await api.get<{ data: { pdf_url: string } }>(
-          `/devis/${devis.id}/pdf-url`
-        );
-        url = res.data?.pdf_url;
-      }
+      const url = await getFreshPdfUrl();
       if (url) {
         await WebBrowser.openBrowserAsync(url, {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
@@ -150,22 +159,24 @@ export default function DevisDetailScreen() {
     }
   };
 
-  const onShareWhatsapp = () => {
+  const onShareWhatsapp = async () => {
     if (!devis) return;
     const tel = devis.clients?.telephone?.replace(/\D/g, '') ?? '';
     const cleanTel = tel.startsWith('0') ? `33${tel.slice(1)}` : tel;
-    const message = `Bonjour, voici votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € TTC.${devis.pdf_url ? `\n\n${devis.pdf_url}` : ''}`;
+    const pdfUrl = await getFreshPdfUrl();
+    const message = `Bonjour, voici votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € TTC.${pdfUrl ? `\n\n${pdfUrl}` : ''}`;
     const url = `https://wa.me/${cleanTel}?text=${encodeURIComponent(message)}`;
     Linking.openURL(url).catch(() => {
       Alert.alert('WhatsApp indisponible', 'Vérifiez que WhatsApp est installé.');
     });
   };
 
-  const onShareEmail = () => {
+  const onShareEmail = async () => {
     if (!devis) return;
     const email = devis.clients?.email ?? '';
     const subject = `Votre devis ${devis.numero}`;
-    const body = `Bonjour,\n\nVeuillez trouver votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € TTC.${devis.pdf_url ? `\n\nLien : ${devis.pdf_url}` : ''}\n\nCordialement.`;
+    const pdfUrl = await getFreshPdfUrl();
+    const body = `Bonjour,\n\nVeuillez trouver votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € TTC.${pdfUrl ? `\n\nLien : ${pdfUrl}` : ''}\n\nCordialement.`;
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     Linking.openURL(url).catch(() => {
       Alert.alert('Email', 'Aucune application email configurée.');
@@ -173,14 +184,16 @@ export default function DevisDetailScreen() {
   };
 
   const onShareSystem = async () => {
-    if (!devis?.pdf_url) {
+    if (!devis) return;
+    const pdfUrl = await getFreshPdfUrl();
+    if (!pdfUrl) {
       Alert.alert('PDF indisponible', 'Générez d\'abord le PDF.');
       return;
     }
     try {
       await Share.share({
-        message: `Devis ${devis.numero} — ${devis.total_ttc?.toFixed(2)} € TTC\n${devis.pdf_url}`,
-        url: devis.pdf_url,
+        message: `Devis ${devis.numero} — ${devis.total_ttc?.toFixed(2)} € TTC\n${pdfUrl}`,
+        url: pdfUrl,
       });
     } catch {
       /* user cancelled */

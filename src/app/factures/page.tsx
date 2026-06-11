@@ -165,8 +165,16 @@ export default function FacturesPage() {
                 variant="ghost"
                 size="sm"
                 onClick={async () => {
+                  // pdf_url stocke = lien signe Supabase qui expire : on
+                  // redemande un lien frais au backend avant le telechargement.
+                  let pdfUrl = r.pdf_url!;
                   try {
-                    const res = await fetch(r.pdf_url!);
+                    const fresh = await api.get<{ data: { pdf_url: string } }>(`/factures/${r.id}/pdf-url`);
+                    if (fresh.data?.pdf_url) pdfUrl = fresh.data.pdf_url;
+                  } catch { /* fallback sur le lien stocke */ }
+                  try {
+                    const res = await fetch(pdfUrl);
+                    if (!res.ok) throw new Error('fetch pdf failed');
                     const blob = await res.blob();
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -175,7 +183,7 @@ export default function FacturesPage() {
                     a.click();
                     URL.revokeObjectURL(url);
                   } catch {
-                    window.open(r.pdf_url!, '_blank');
+                    window.open(pdfUrl, '_blank');
                   }
                 }}
                 title="Télécharger le PDF"

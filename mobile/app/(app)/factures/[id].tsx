@@ -156,9 +156,10 @@ export default function FactureDetailScreen() {
   const totalPaye = paiements.reduce((s, p) => s + (p.montant || 0), 0);
   const restant = facture ? Math.max(0, facture.total_ttc - totalPaye) : 0;
 
+  // Les pdf_url stockes en base sont des liens signes Supabase qui expirent :
+  // on redemande systematiquement un lien frais au backend (qui le re-signe).
   const ensurePdfUrl = async (): Promise<string | null> => {
     if (!facture) return null;
-    if (facture.pdf_url) return facture.pdf_url;
     try {
       const res = await api.get<{ data: { pdf_url: string } }>(
         `/factures/${facture.id}/pdf-url`
@@ -168,8 +169,9 @@ export default function FactureDetailScreen() {
         setFacture({ ...facture, pdf_url: url });
         return url;
       }
-      return null;
+      return facture.pdf_url;
     } catch (e) {
+      if (facture.pdf_url) return facture.pdf_url;
       Alert.alert(
         'PDF indisponible',
         e instanceof Error ? e.message : 'Impossible de générer le PDF de la facture.'
