@@ -18,6 +18,9 @@ type Stats = {
   devis: { total: number; crees_7j: number };
   factures: { total: number; creees_7j: number };
   conversion: {
+    visites: number;
+    visites_7j: number;
+    taux_inscription_pct: number;
     inscrits: number;
     email_verifies: number;
     en_essai: number;
@@ -47,6 +50,7 @@ type Artisan = {
   trial_start: string | null;
   created_at: string;
   account_deleted_at: string | null;
+  current_period_end: string | null;
   devis_total: number;
   devis_7j: number;
   devis_30j: number;
@@ -196,7 +200,8 @@ export default function AdminStatsPage() {
           <>
             <section>
               <h2 className="text-lg font-semibold text-slate-700 mb-3">Conversion — qui s&apos;inscrit, paye, part</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                <Stat label="Visiteurs (total)" value={stats.conversion.visites} />
                 <div className="rounded-xl shadow p-5 bg-green-600 text-white">
                   <div className="text-sm font-medium text-green-100">Taux de conversion</div>
                   <div className="text-4xl font-bold mt-1">{stats.conversion.taux_conversion_pct}%</div>
@@ -207,12 +212,18 @@ export default function AdminStatsPage() {
                 <Stat label="Payants" value={stats.conversion.payants} highlight />
                 <Stat label="En essai (actif)" value={stats.conversion.en_essai} />
               </div>
+              <p className="text-sm text-slate-500 mb-4">
+                Taux d&apos;inscription (visite → compte) :{' '}
+                <span className="font-semibold text-slate-700">{stats.conversion.taux_inscription_pct}%</span>
+                {' · '}{stats.conversion.visites_7j} visites sur 7j
+              </p>
 
               <div className="bg-white rounded-xl shadow p-5 space-y-3">
-                <FunnelBar label="Inscrits" value={stats.conversion.inscrits} max={stats.conversion.inscrits} color="bg-slate-400" />
-                <FunnelBar label="Email vérifié" value={stats.conversion.email_verifies} max={stats.conversion.inscrits} color="bg-blue-400" />
-                <FunnelBar label="En essai (actif)" value={stats.conversion.en_essai} max={stats.conversion.inscrits} color="bg-indigo-400" />
-                <FunnelBar label="Payants" value={stats.conversion.payants} max={stats.conversion.inscrits} color="bg-green-500" />
+                <FunnelBar label="Visiteurs" value={stats.conversion.visites} max={Math.max(stats.conversion.visites, stats.conversion.inscrits, 1)} color="#22d3ee" />
+                <FunnelBar label="Inscrits" value={stats.conversion.inscrits} max={Math.max(stats.conversion.visites, stats.conversion.inscrits, 1)} color="#94a3b8" />
+                <FunnelBar label="Email vérifié" value={stats.conversion.email_verifies} max={Math.max(stats.conversion.visites, stats.conversion.inscrits, 1)} color="#60a5fa" />
+                <FunnelBar label="En essai (actif)" value={stats.conversion.en_essai} max={Math.max(stats.conversion.visites, stats.conversion.inscrits, 1)} color="#818cf8" />
+                <FunnelBar label="Payants" value={stats.conversion.payants} max={Math.max(stats.conversion.visites, stats.conversion.inscrits, 1)} color="#22c55e" />
               </div>
 
               <h3 className="text-sm font-semibold text-slate-600 mt-5 mb-2">Pertes (ceux qui partent)</h3>
@@ -269,6 +280,45 @@ export default function AdminStatsPage() {
                 </div>
                 <div className="text-blue-600 mt-2 font-medium">Ouvrir Render Metrics →</div>
               </a>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold text-slate-700 mb-3">
+                Abonnés payants ({artisans.filter((a) => !a.account_deleted_at && (a.subscription_status === 'active' || a.is_premium)).length})
+              </h2>
+              <div className="bg-white rounded-xl shadow overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-green-50 text-slate-700">
+                    <tr>
+                      <th className="text-left px-3 py-3">Email</th>
+                      <th className="text-left px-3 py-3">Nom</th>
+                      <th className="text-left px-3 py-3">Renouvellement</th>
+                      <th className="text-right px-3 py-3">Devis (total)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {artisans.filter((a) => !a.account_deleted_at && (a.subscription_status === 'active' || a.is_premium)).length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
+                          Aucun abonné payant pour le moment
+                        </td>
+                      </tr>
+                    )}
+                    {artisans
+                      .filter((a) => !a.account_deleted_at && (a.subscription_status === 'active' || a.is_premium))
+                      .map((a) => (
+                        <tr key={a.id} className="border-t border-slate-100">
+                          <td className="px-3 py-2 text-slate-900">{a.email}</td>
+                          <td className="px-3 py-2 text-slate-700">{a.nom || '-'}</td>
+                          <td className="px-3 py-2 text-slate-600">
+                            {a.current_period_end ? new Date(a.current_period_end).toLocaleDateString('fr-FR') : '-'}
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium text-slate-800">{a.devis_total}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
 
             <section>
@@ -395,7 +445,7 @@ function FunnelBar({ label, value, max, color }: { label: string; value: number;
         <span className="text-slate-500">{value} ({pct}%)</span>
       </div>
       <div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
-        <div className={`${color} h-4 rounded-full`} style={{ width: `${pct}%` }} />
+        <div className="h-4 rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
     </div>
   );

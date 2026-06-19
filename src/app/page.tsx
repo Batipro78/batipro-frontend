@@ -12,10 +12,12 @@ import LandingFAQ from '@/components/landing/LandingFAQ';
 import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
 import DeferredLandingExtras from '@/components/landing/DeferredLandingExtras';
+import { VisitBeacon } from '@/components/VisitBeacon';
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-background">
+      <VisitBeacon />
       <AuthRedirect />
       <LandingNav />
       <LandingHero />
