@@ -23,14 +23,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function decodeToken(token: string): User | null {
+function decodeToken(token: string, opts?: { ignoreExpiry?: boolean }): User | null {
   try {
     const base64 = token.split('.')[1];
     const normalized = base64.replace(/-/g, '+').replace(/_/g, '/');
     const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
     const json = atob(padded);
     const payload = JSON.parse(json);
-    if (payload.exp * 1000 <= Date.now()) return null;
+    if (!opts?.ignoreExpiry && payload.exp * 1000 <= Date.now()) return null;
     return {
       artisan_id: payload.artisan_id,
       email: payload.email,
@@ -69,11 +69,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Access token expire (15 min) mais le refreshToken vaut 30 jours :
           // on tente le refresh avant de jeter la session, sinon l'artisan
           // devait se reconnecter a CHAQUE ouverture de l'app.
-          const newToken = await refreshAccessToken();
-          const refreshed = newToken ? decodeToken(newToken) : null;
-          if (refreshed) {
-            setUser(refreshed);
+          const r = await refreshAccessToken();
+          if (r.ok) {
+            const refreshed = decodeToken(r.token);
+            if (refreshed) setUser(refreshed);
+            else {
+              await storage.remove('token');
+              await storage.remove('refreshToken');
+            }
+          } else if (r.reason === 'transient') {
+            // Serveur injoignable au demarrage (cold start, reseau) : on NE
+            // deconnecte PAS. On garde l'artisan connecte avec le token expire
+            // (la prochaine requete API retentera le refresh) plutot que de le
+            // renvoyer au login pour rien.
+            const stale = decodeToken(token, { ignoreExpiry: true });
+            if (stale) setUser(stale);
           } else {
+            // reason === 'invalid' : refresh token vraiment expire/rejete -> logout propre.
             await storage.remove('token');
             await storage.remove('refreshToken');
           }

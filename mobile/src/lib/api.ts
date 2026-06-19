@@ -28,33 +28,78 @@ export function setTrialExpiredHandler(handler: () => void) {
 }
 
 // Le JWT backend expire en 15 min. Sans refresh automatique, chaque 401
-// renvoyait l'artisan au login toutes les 15 minutes. Sur 401 on tente UNE
-// fois /auth/refresh avec le refreshToken (valide 30 j) puis on rejoue la
-// requete. Single-flight : si plusieurs requetes prennent un 401 en meme
-// temps, un seul appel refresh part, les autres attendent son resultat.
-let refreshPromise: Promise<string | null> | null = null;
+// renvoyait l'artisan au login toutes les 15 minutes. Sur 401 on tente
+// /auth/refresh avec le refreshToken (valide 30 j) puis on rejoue la requete.
+//
+// IMPORTANT : on distingue un refresh token REELLEMENT invalide (401/403 du
+// backend -> vraie deconnexion) d'un echec TRANSITOIRE (reseau coupe, timeout,
+// 5xx, cold start Render qui peut prendre 30-60s). Avant, le moindre echec
+// reseau renvoyait null -> effacement des tokens -> l'artisan etait deconnecte
+// alors que sa session etait parfaitement valide (cas typique : on rouvre
+// l'app, le serveur dort, le refresh echoue, on doit retaper ses identifiants).
+type RefreshResult =
+  | { ok: true; token: string }
+  | { ok: false; reason: 'invalid' | 'transient' };
 
-export async function refreshAccessToken(): Promise<string | null> {
+const REFRESH_TIMEOUT_MS = 20000;
+
+async function fetchWithTimeout(
+  url: string,
+  opts: RequestInit,
+  ms: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { ...opts, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+// Single-flight : si plusieurs requetes prennent un 401 en meme temps, un seul
+// appel refresh part, les autres attendent son resultat.
+let refreshPromise: Promise<RefreshResult> | null = null;
+
+export async function refreshAccessToken(): Promise<RefreshResult> {
   if (!refreshPromise) {
-    refreshPromise = (async () => {
+    refreshPromise = (async (): Promise<RefreshResult> => {
       try {
         const refreshToken = await storage.get('refreshToken');
-        if (!refreshToken) return null;
-        const res = await fetch(`${API_BASE}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        });
-        if (!res.ok) return null;
-        const json = await res.json();
-        const token = json?.data?.token as string | undefined;
-        const newRefresh = json?.data?.refreshToken as string | undefined;
-        if (!token) return null;
-        await storage.set('token', token);
-        if (newRefresh) await storage.set('refreshToken', newRefresh);
-        return token;
-      } catch {
-        return null;
+        if (!refreshToken) return { ok: false, reason: 'invalid' };
+
+        // 2 tentatives : couvre un cold start Render (1ere requete reveille le
+        // serveur et timeout, la 2e passe).
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const res = await fetchWithTimeout(
+              `${API_BASE}/auth/refresh`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refreshToken }),
+              },
+              REFRESH_TIMEOUT_MS
+            );
+            // Le backend a explicitement rejete le refresh token -> session morte.
+            if (res.status === 401 || res.status === 403) {
+              return { ok: false, reason: 'invalid' };
+            }
+            // 5xx / cold start -> on retente.
+            if (!res.ok) continue;
+            const json = await res.json();
+            const token = json?.data?.token as string | undefined;
+            const newRefresh = json?.data?.refreshToken as string | undefined;
+            if (!token) continue;
+            await storage.set('token', token);
+            if (newRefresh) await storage.set('refreshToken', newRefresh);
+            return { ok: true, token };
+          } catch {
+            // timeout / reseau coupe -> on retente.
+          }
+        }
+        // Serveur injoignable : on NE deconnecte PAS, on signale le transitoire.
+        return { ok: false, reason: 'transient' };
       } finally {
         refreshPromise = null;
       }
@@ -89,8 +134,13 @@ async function apiFetch<T>(
 
   if (res.status === 401) {
     if (!isRetry) {
-      const newToken = await refreshAccessToken();
-      if (newToken) return apiFetch<T>(endpoint, options, true);
+      const r = await refreshAccessToken();
+      if (r.ok) return apiFetch<T>(endpoint, options, true);
+      if (r.reason === 'transient') {
+        // Serveur injoignable : on garde la session, on remonte une erreur
+        // normale (l'artisan reste connecte et peut reessayer).
+        throw new Error('Connexion au serveur impossible. Vérifie ta connexion et réessaie.');
+      }
     }
     return handleUnauthorized();
   }
@@ -126,8 +176,11 @@ async function apiUpload<T>(
 
   if (res.status === 401) {
     if (!isRetry) {
-      const newToken = await refreshAccessToken();
-      if (newToken) return apiUpload<T>(endpoint, formData, method, true);
+      const r = await refreshAccessToken();
+      if (r.ok) return apiUpload<T>(endpoint, formData, method, true);
+      if (r.reason === 'transient') {
+        throw new Error('Connexion au serveur impossible. Vérifie ta connexion et réessaie.');
+      }
     }
     return handleUnauthorized();
   }
