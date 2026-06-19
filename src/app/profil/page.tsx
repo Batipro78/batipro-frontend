@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -718,9 +719,8 @@ export default function ProfilPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="delete-password">Votre mot de passe</Label>
-              <Input
+              <PasswordInput
                 id="delete-password"
-                type="password"
                 value={deletePassword}
                 onChange={(e) => setDeletePassword(e.target.value)}
                 autoComplete="current-password"
