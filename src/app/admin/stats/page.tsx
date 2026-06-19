@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { API_BASE } from '@/lib/api';
 
 const TOKEN_KEY = 'mdm_admin_token';
@@ -36,10 +36,26 @@ type Stats = {
   generated_at: string;
 };
 
+type Artisan = {
+  id: number;
+  email: string;
+  nom: string | null;
+  metier: string | null;
+  is_premium: boolean;
+  subscription_status: string | null;
+  trial_start: string | null;
+  created_at: string;
+  account_deleted_at: string | null;
+  devis_total: number;
+  devis_7j: number;
+  devis_30j: number;
+};
+
 export default function AdminStatsPage() {
   const [token, setToken] = useState<string | null>(null);
   const [tokenInput, setTokenInput] = useState('');
   const [stats, setStats] = useState<Stats | null>(null);
+  const [artisans, setArtisans] = useState<Artisan[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +85,52 @@ export default function AdminStatsPage() {
       .finally(() => setLoading(false));
   }, [token]);
 
+  const reloadArtisans = useCallback(() => {
+    if (!token) return;
+    fetch(`${API_BASE}/admin/artisans`, { headers: { 'x-admin-token': token } })
+      .then((r) => r.json())
+      .then((j) => setArtisans(j?.data?.artisans || []))
+      .catch(() => {});
+  }, [token]);
+
+  useEffect(() => {
+    reloadArtisans();
+  }, [reloadArtisans]);
+
+  async function sendMail(a: Artisan) {
+    const subject = window.prompt(`Objet du mail à ${a.email} :`);
+    if (!subject) return;
+    const message = window.prompt('Message :');
+    if (!message) return;
+    try {
+      const r = await fetch(`${API_BASE}/admin/artisans/${a.id}/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': token! },
+        body: JSON.stringify({ subject, message }),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j?.error?.message || 'Échec');
+      alert(`Email envoyé à ${a.email}`);
+    } catch (e) {
+      alert('Erreur : ' + (e as Error).message);
+    }
+  }
+
+  async function deleteAccount(a: Artisan) {
+    if (!window.confirm(`Supprimer le compte ${a.email} ?\nAnonymisation RGPD, irréversible.`)) return;
+    try {
+      const r = await fetch(`${API_BASE}/admin/artisans/${a.id}/delete`, {
+        method: 'POST',
+        headers: { 'x-admin-token': token! },
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j?.error?.message || 'Échec');
+      reloadArtisans();
+    } catch (e) {
+      alert('Erreur : ' + (e as Error).message);
+    }
+  }
+
   function login(e: React.FormEvent) {
     e.preventDefault();
     if (!tokenInput.trim()) return;
@@ -80,6 +142,7 @@ export default function AdminStatsPage() {
     sessionStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setStats(null);
+    setArtisans([]);
   }
 
   if (!token) {
@@ -196,6 +259,63 @@ export default function AdminStatsPage() {
             </section>
 
             <section>
+              <h2 className="text-lg font-semibold text-slate-700 mb-3">
+                Gestion des comptes ({artisans.length})
+              </h2>
+              <div className="bg-white rounded-xl shadow overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100 text-slate-700">
+                    <tr>
+                      <th className="text-left px-3 py-3">Email</th>
+                      <th className="text-left px-3 py-3">Nom</th>
+                      <th className="text-left px-3 py-3">Statut</th>
+                      <th className="text-right px-3 py-3">Devis</th>
+                      <th className="text-right px-3 py-3">7j</th>
+                      <th className="text-left px-3 py-3">Inscrit</th>
+                      <th className="text-right px-3 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {artisans.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-6 text-center text-slate-500">
+                          Aucun compte
+                        </td>
+                      </tr>
+                    )}
+                    {artisans.map((a) => (
+                      <tr
+                        key={a.id}
+                        className={`border-t border-slate-100 ${a.account_deleted_at ? 'opacity-40' : ''}`}
+                      >
+                        <td className="px-3 py-2 text-slate-900">{a.email}</td>
+                        <td className="px-3 py-2 text-slate-700">{a.nom || '-'}</td>
+                        <td className="px-3 py-2"><StatutBadge a={a} /></td>
+                        <td className="px-3 py-2 text-right font-medium text-slate-800">{a.devis_total}</td>
+                        <td className="px-3 py-2 text-right text-slate-500">{a.devis_7j}</td>
+                        <td className="px-3 py-2 text-slate-600">
+                          {new Date(a.created_at).toLocaleDateString('fr-FR')}
+                        </td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap">
+                          {!a.account_deleted_at && (
+                            <>
+                              <button onClick={() => sendMail(a)} className="text-blue-600 hover:underline mr-3">
+                                Mail
+                              </button>
+                              <button onClick={() => deleteAccount(a)} className="text-red-600 hover:underline">
+                                Suppr.
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section>
               <h2 className="text-lg font-semibold text-slate-700 mb-3">10 derniers inscrits</h2>
               <div className="bg-white rounded-xl shadow overflow-hidden">
                 <table className="w-full text-sm">
@@ -274,5 +394,21 @@ function ChurnStat({ label, value }: { label: string; value: number }) {
       <div className="text-sm font-medium text-slate-500">{label}</div>
       <div className="text-3xl font-bold mt-1 text-red-600">{value}</div>
     </div>
+  );
+}
+
+function StatutBadge({ a }: { a: Artisan }) {
+  if (a.account_deleted_at) return <span className="text-slate-400 text-xs">Supprimé</span>;
+  if (a.subscription_status === 'active' || a.is_premium)
+    return <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-medium">Payant</span>;
+  if (a.subscription_status && ['canceled', 'past_due', 'unpaid', 'incomplete_expired'].includes(a.subscription_status))
+    return <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs">Annulé</span>;
+  const expired = a.trial_start
+    ? Date.now() > new Date(a.trial_start).getTime() + 14 * 24 * 60 * 60 * 1000
+    : false;
+  return expired ? (
+    <span className="bg-red-50 text-red-700 px-2 py-0.5 rounded text-xs">Essai expiré</span>
+  ) : (
+    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs">En essai</span>
   );
 }
