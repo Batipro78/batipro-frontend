@@ -118,6 +118,7 @@ export default function FactureDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [facture, setFacture] = useState<Facture | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [acting, setActing] = useState(false);
 
@@ -130,8 +131,13 @@ export default function FactureDetailScreen() {
   const load = useCallback(async () => {
     if (!id) return;
     try {
+      setLoadError(null);
       const res = await api.get<{ data: Facture }>(`/factures/${id}`);
       setFacture(res.data);
+    } catch (e) {
+      setLoadError(
+        e instanceof Error ? e.message : 'Impossible de charger la facture. Vérifiez votre connexion.'
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -319,7 +325,7 @@ export default function FactureDetailScreen() {
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.fullCenter}>
-          <Text style={styles.emptyText}>Facture introuvable</Text>
+          <Text style={styles.emptyText}>{loadError ?? 'Facture introuvable'}</Text>
         </View>
       </SafeAreaView>
     );

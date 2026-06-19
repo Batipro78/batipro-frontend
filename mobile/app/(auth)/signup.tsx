@@ -26,6 +26,7 @@ export default function SignupScreen() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async () => {
+    if (loading) return;
     setError('');
     setLoading(true);
     try {

@@ -92,6 +92,7 @@ export default function DevisDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [devis, setDevis] = useState<Devis | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [acting, setActing] = useState(false);
   const [signOpen, setSignOpen] = useState(false);
@@ -104,8 +105,13 @@ export default function DevisDetailScreen() {
   const load = useCallback(async () => {
     if (!id) return;
     try {
+      setLoadError(null);
       const res = await api.get<{ data: Devis }>(`/devis/${id}`);
       setDevis(res.data);
+    } catch (e) {
+      setLoadError(
+        e instanceof Error ? e.message : 'Impossible de charger le devis. Vérifiez votre connexion.'
+      );
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -349,7 +355,7 @@ export default function DevisDetailScreen() {
             size={48}
             color={colors.mutedForeground}
           />
-          <Text style={styles.emptyText}>Devis introuvable</Text>
+          <Text style={styles.emptyText}>{loadError ?? 'Devis introuvable'}</Text>
         </View>
       </SafeAreaView>
     );

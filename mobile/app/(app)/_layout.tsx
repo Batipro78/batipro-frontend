@@ -1,19 +1,47 @@
 import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Tabs, router } from 'expo-router';
+import { Tabs, router, useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/lib/auth';
 import { colors } from '@/lib/theme';
 import { CGUModal } from '@/components/CGUModal';
 
+const TRIAL_DAYS = 14;
+
+// Trial expire = pas premium ET plus de 14 j depuis trial_start. On "fail open"
+// (acces autorise) si trial_start est absent/illisible, pour ne JAMAIS verrouiller
+// un artisan legitime a cause d'une date manquante. Le backend ne bloque rien :
+// c'est une barriere douce cote app pour pousser a l'abonnement.
+function isTrialExpired(user: { is_premium: boolean; trial_start: string } | null): boolean {
+  if (!user || user.is_premium || !user.trial_start) return false;
+  const start = new Date(user.trial_start).getTime();
+  if (Number.isNaN(start)) return false;
+  return Date.now() > start + TRIAL_DAYS * 24 * 60 * 60 * 1000;
+}
+
+// Ecrans encore accessibles trial expire : abonnement (pour s'abonner) et profil
+// (pour se deconnecter / gerer son compte). Tout le reste est bloque.
+const ALLOWED_WHEN_EXPIRED = ['abonnement', 'profil'];
+
 export default function AppLayout() {
   const { user, loading } = useAuth();
   const insets = useSafeAreaInsets();
+  const segments = useSegments();
 
   useEffect(() => {
-    if (!loading && !user) router.replace('/login');
-  }, [user, loading]);
+    if (loading) return;
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
+    if (isTrialExpired(user)) {
+      const current = segments[segments.length - 1];
+      if (!ALLOWED_WHEN_EXPIRED.includes(current)) {
+        router.replace('/abonnement');
+      }
+    }
+  }, [user, loading, segments]);
 
   if (loading || !user) {
     return (

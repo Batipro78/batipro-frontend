@@ -108,6 +108,8 @@ export default function NouveauDevisScreen() {
           prix_unitaire_ht: number;
           tva: number;
           unite?: string;
+          articles?: { nom?: string } | null;
+          metadata?: { nom?: string; unite?: string } | null;
         };
         type DevisDetail = {
           id: number;
@@ -123,10 +125,17 @@ export default function NouveauDevisScreen() {
           existingLignes.map((l) => ({
             uid: newUid(),
             article_id: l.article_id ?? null,
-            nom: l.description ?? `Article #${l.article_id ?? '?'}`,
+            // Le nom d'une ligne vit dans articles.nom ou metadata.nom (pas
+            // description, qui n'existe pas en BDD). Sans ce fallback les lignes
+            // s'affichaient toutes "Article #X" en mode edition.
+            nom:
+              l.articles?.nom ??
+              l.metadata?.nom ??
+              l.description ??
+              `Article #${l.article_id ?? '?'}`,
             prix_unitaire_ht: l.prix_unitaire_ht,
             tva: l.tva ?? 20,
-            unite: l.unite,
+            unite: l.unite ?? l.metadata?.unite,
             quantite: String(l.quantite ?? 1),
             isMo: !l.article_id,
           }))
@@ -267,6 +276,7 @@ export default function NouveauDevisScreen() {
   });
 
   const onSubmit = async () => {
+    if (submitting) return;
     setError(null);
     if (!clientId) {
       setError('Sélectionnez un client.');

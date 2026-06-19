@@ -25,6 +25,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async () => {
+    if (loading) return;
     setError('');
     setLoading(true);
     try {

@@ -50,7 +50,7 @@ Tarif
 Essai gratuit de 14 jours, sans carte bancaire requise. Ensuite, abonnement à 29€ par mois, sans engagement.
 
 Support
-Une question, un bug ? Écrivez à contact@mondevisminute.com — réponse sous 24h ouvrées.
+Une question, un bug ? Écrivez à mondevisminute@zohomail.eu — réponse sous 24h ouvrées.
 
 Réglementation française
 Application développée en France pour les artisans français. Le PDF inclut automatiquement les mentions obligatoires pour les devis BTP : durée de validité, conditions de paiement, assurance décennale, registre du commerce ou des métiers, adresse du chantier.
@@ -65,7 +65,7 @@ Téléchargez MonDevisMinute et créez votre premier devis vocal en moins d'une 
 
 ## Coordonnées développeur
 
-- **Email contact public** : contact@mondevisminute.com
+- **Email contact public** : mondevisminute@zohomail.eu
 - **Site web** : https://mondevisminute.com
 - **Politique de confidentialité** : https://mondevisminute.com/confidentialite
 

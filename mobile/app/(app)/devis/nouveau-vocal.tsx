@@ -75,6 +75,10 @@ export default function NouveauVocalScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Miroir du recording courant pour le cleanup : le useEffect de demontage a
+  // des deps [] et capturerait sinon recording=null (valeur initiale), laissant
+  // le micro actif si l'artisan quitte l'ecran pendant l'enregistrement.
+  const recordingRef = useRef<Audio.Recording | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   const loadClients = async () => {
@@ -91,8 +95,9 @@ export default function NouveauVocalScreen() {
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      if (recording) {
-        recording.stopAndUnloadAsync().catch(() => {});
+      if (recordingRef.current) {
+        recordingRef.current.stopAndUnloadAsync().catch(() => {});
+        recordingRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,6 +151,7 @@ export default function NouveauVocalScreen() {
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
       setRecording(rec);
+      recordingRef.current = rec;
       setRecordingDuration(0);
       setStep('recording');
 
@@ -170,6 +176,7 @@ export default function NouveauVocalScreen() {
       const uri = recording.getURI();
       setAudioUri(uri);
       setRecording(null);
+      recordingRef.current = null;
 
       if (!uri) {
         setError('Enregistrement vide');
@@ -217,12 +224,14 @@ export default function NouveauVocalScreen() {
       }
     }
     setRecording(null);
+    recordingRef.current = null;
     setRecordingDuration(0);
     setAudioUri(null);
     setStep('config');
   };
 
   const generate = async () => {
+    if (step === 'generating') return;
     if (!transcript.trim()) {
       setError('Le texte du devis est vide.');
       return;

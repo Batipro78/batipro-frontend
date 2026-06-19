@@ -11,7 +11,9 @@ export type MetierKey =
   | 'menuisier'
   | 'charpentier'
   | 'serrurier'
-  | 'paysagiste';
+  | 'paysagiste'
+  | 'solier'
+  | 'terrassier';
 
 export interface Metier {
   key: MetierKey;
@@ -32,6 +34,8 @@ export const METIERS: Metier[] = [
   { key: 'charpentier', label: 'Charpentier', icon: 'construct-outline', hasGammes: false },
   { key: 'serrurier', label: 'Serrurier', icon: 'lock-closed-outline', hasGammes: false },
   { key: 'paysagiste', label: 'Paysagiste', icon: 'leaf-outline', hasGammes: false },
+  { key: 'solier', label: 'Solier', icon: 'layers-outline', hasGammes: false },
+  { key: 'terrassier', label: 'Terrassier', icon: 'trail-sign-outline', hasGammes: false },
 ];
 
 export const METIER_BY_KEY: Record<MetierKey, Metier> = METIERS.reduce(

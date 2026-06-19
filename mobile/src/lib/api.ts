@@ -17,6 +17,16 @@ export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler;
 }
 
+// Le backend renvoie 403 { error.code: 'TRIAL_EXPIRED' } sur les écritures quand
+// l'essai gratuit est fini. Filet de sécurité : si le gate côté app n'a pas
+// intercepté (JWT pas encore rafraîchi, deep link…), on redirige vers /abonnement
+// et le message lisible du backend remonte quand même dans l'erreur.
+let onTrialExpired: (() => void) | null = null;
+
+export function setTrialExpiredHandler(handler: () => void) {
+  onTrialExpired = handler;
+}
+
 // Le JWT backend expire en 15 min. Sans refresh automatique, chaque 401
 // renvoyait l'artisan au login toutes les 15 minutes. Sur 401 on tente UNE
 // fois /auth/refresh avec le refreshToken (valide 30 j) puis on rejoue la
@@ -87,6 +97,10 @@ async function apiFetch<T>(
 
   const json = await res.json();
 
+  if (res.status === 403 && json?.error?.code === 'TRIAL_EXPIRED') {
+    onTrialExpired?.();
+  }
+
   if (!res.ok) {
     throw new Error(json.error?.message || json.message || 'Erreur API');
   }
@@ -119,6 +133,10 @@ async function apiUpload<T>(
   }
 
   const json = await res.json();
+
+  if (res.status === 403 && json?.error?.code === 'TRIAL_EXPIRED') {
+    onTrialExpired?.();
+  }
 
   if (!res.ok) {
     throw new Error(json.error?.message || json.message || 'Erreur API');

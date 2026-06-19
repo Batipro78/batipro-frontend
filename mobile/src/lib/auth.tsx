@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { router } from 'expo-router';
-import { api, refreshAccessToken, setUnauthorizedHandler } from './api';
+import { api, refreshAccessToken, setUnauthorizedHandler, setTrialExpiredHandler } from './api';
 import { storage } from './storage';
 
 interface User {
@@ -51,6 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUnauthorizedHandler(() => {
       setUser(null);
       router.replace('/login');
+    });
+
+    // Backstop essai expiré : si le backend renvoie 403 TRIAL_EXPIRED, on amène
+    // l'artisan sur l'écran abonnement (le message lisible remonte côté écran).
+    setTrialExpiredHandler(() => {
+      router.replace('/abonnement');
     });
 
     (async () => {

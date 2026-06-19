@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -35,6 +34,7 @@ const FEATURES = [
 ];
 
 const VIOLET = '#7C3AED';
+const SITE_URL = 'https://mondevisminute.com';
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '—';
@@ -50,11 +50,9 @@ function formatDate(dateStr: string | null): string {
 }
 
 export default function AbonnementScreen() {
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, user } = useAuth();
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
-  const [loadingPlan, setLoadingPlan] = useState<'monthly' | 'annual' | null>(null);
-  const [loadingPortal, setLoadingPortal] = useState(false);
 
   async function fetchStatus() {
     try {
@@ -71,53 +69,32 @@ export default function AbonnementScreen() {
     fetchStatus();
   }, []);
 
-  async function openStripeUrl(url: string) {
-    const result = await WebBrowser.openBrowserAsync(url, {
-      presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
-    });
-    if (result.type === 'cancel' || result.type === 'dismiss') {
-      // Refresh auth + status after user closes browser
-      try {
-        await refreshAuth();
-      } catch {
-        // ignore
-      }
-      await fetchStatus();
-    }
-  }
-
-  async function handleCheckout(plan: 'monthly' | 'annual') {
-    setLoadingPlan(plan);
+  // Google Play interdit d'encaisser un abonnement numerique dans l'app hors
+  // Play Billing. On ne propose donc AUCUN paiement Stripe ici : la souscription
+  // et la gestion (changement de formule, annulation) se font sur le site web.
+  // L'app se contente d'afficher le statut et d'ouvrir le site.
+  const openSite = async () => {
+    await WebBrowser.openBrowserAsync(SITE_URL);
     try {
-      const res = await api.post<{ data: { url: string } }>('/stripe/checkout', { plan });
-      await openStripeUrl(res.data.url);
-    } catch (err: unknown) {
-      Alert.alert(
-        'Erreur',
-        err instanceof Error ? err.message : 'Création du paiement impossible.'
-      );
-    } finally {
-      setLoadingPlan(null);
+      await refreshAuth();
+    } catch {
+      // ignore
     }
-  }
-
-  async function handlePortal() {
-    setLoadingPortal(true);
-    try {
-      const res = await api.post<{ data: { url: string } }>('/stripe/portal', {});
-      await openStripeUrl(res.data.url);
-    } catch (err: unknown) {
-      Alert.alert(
-        'Erreur',
-        err instanceof Error ? err.message : 'Accès au portail impossible.'
-      );
-    } finally {
-      setLoadingPortal(false);
-    }
-  }
+    await fetchStatus();
+  };
 
   const isSubscribed =
     status?.subscription_status === 'active' || status?.subscription_status === 'past_due';
+
+  // Memes bornes que le gate de (app)/_layout.tsx (JWT uniquement, pas le statut
+  // Stripe) pour que blocage et bandeau soient TOUJOURS coherents : un artisan
+  // redirige ici par le gate verra forcement l'explication.
+  const trialStartMs = user?.trial_start ? new Date(user.trial_start).getTime() : NaN;
+  const trialOver =
+    !!user &&
+    !user.is_premium &&
+    !Number.isNaN(trialStartMs) &&
+    Date.now() > trialStartMs + 14 * 24 * 60 * 60 * 1000;
 
   if (loadingStatus) {
     return (
@@ -139,6 +116,15 @@ export default function AbonnementScreen() {
       />
       <SafeAreaView style={styles.safe} edges={['bottom']}>
         <ScrollView contentContainerStyle={styles.scroll}>
+          {trialOver ? (
+            <View style={styles.trialBanner}>
+              <Ionicons name="lock-closed" size={20} color="#9A3412" />
+              <Text style={styles.trialBannerText}>
+                Votre essai gratuit de 14 jours est terminé. Abonnez-vous pour
+                continuer à créer des devis et factures.
+              </Text>
+            </View>
+          ) : null}
           <View style={styles.header}>
             <View style={styles.headerIcon}>
               <Ionicons name="card" size={32} color={VIOLET} />
@@ -203,116 +189,61 @@ export default function AbonnementScreen() {
               </View>
 
               <Pressable
-                onPress={handlePortal}
-                disabled={loadingPortal}
+                onPress={openSite}
                 style={({ pressed }) => [
                   styles.cta,
                   { backgroundColor: VIOLET },
                   pressed && { opacity: 0.85 },
-                  loadingPortal && { opacity: 0.6 },
                 ]}
               >
-                {loadingPortal ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Ionicons name="open-outline" size={18} color="#fff" />
-                    <Text style={styles.ctaText}>Gérer mon abonnement</Text>
-                  </>
-                )}
+                <Ionicons name="open-outline" size={18} color="#fff" />
+                <Text style={styles.ctaText}>Gérer sur le site web</Text>
               </Pressable>
               <Text style={styles.helper}>
-                Modifier le moyen de paiement, changer de formule ou annuler.
+                La gestion de l'abonnement (formule, moyen de paiement, annulation)
+                se fait sur mondevisminute.com.
               </Text>
             </Card>
           ) : (
-            <View style={{ gap: spacing.lg }}>
-              {/* Mensuel */}
-              <Card style={styles.planCard}>
-                <View style={styles.planHeaderCenter}>
-                  <Text style={styles.planTitle}>Mensuel</Text>
-                  <Text style={styles.planHint}>Sans engagement</Text>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.price}>29€</Text>
-                    <Text style={styles.priceUnit}>/mois</Text>
+            <Card style={styles.planCard}>
+              <View style={styles.planHeaderCenter}>
+                <Text style={styles.planTitle}>MonDevisMinute Pro</Text>
+                <Text style={styles.planHint}>
+                  À partir de 29€/mois — ou 290€/an (2 mois offerts)
+                </Text>
+              </View>
+
+              <View style={styles.features}>
+                {FEATURES.map((f) => (
+                  <View key={f} style={styles.feature}>
+                    <Ionicons name="checkmark" size={18} color={VIOLET} />
+                    <Text style={styles.featureText}>{f}</Text>
                   </View>
-                </View>
+                ))}
+              </View>
 
-                <View style={styles.features}>
-                  {FEATURES.map((f) => (
-                    <View key={f} style={styles.feature}>
-                      <Ionicons name="checkmark" size={18} color={VIOLET} />
-                      <Text style={styles.featureText}>{f}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <Pressable
-                  onPress={() => handleCheckout('monthly')}
-                  disabled={loadingPlan !== null}
-                  style={({ pressed }) => [
-                    styles.cta,
-                    { backgroundColor: VIOLET },
-                    pressed && { opacity: 0.85 },
-                    loadingPlan !== null && { opacity: 0.6 },
-                  ]}
-                >
-                  {loadingPlan === 'monthly' ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.ctaText}>S'abonner</Text>
-                  )}
-                </Pressable>
-              </Card>
-
-              {/* Annuel */}
-              <Card style={{ ...styles.planCard, borderColor: VIOLET, borderWidth: 2 }}>
-                <View style={styles.badgeFloat}>
-                  <Text style={styles.badgeFloatText}>2 mois offerts</Text>
-                </View>
-                <View style={styles.planHeaderCenter}>
-                  <Text style={styles.planTitle}>Annuel</Text>
-                  <Text style={styles.planHint}>Meilleur rapport qualité-prix</Text>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.price}>290€</Text>
-                    <Text style={styles.priceUnit}>/an</Text>
-                  </View>
-                  <Text style={styles.priceComp}>soit ~24€/mois au lieu de 29€</Text>
-                </View>
-
-                <View style={styles.features}>
-                  {FEATURES.map((f) => (
-                    <View key={f} style={styles.feature}>
-                      <Ionicons name="checkmark" size={18} color={VIOLET} />
-                      <Text style={styles.featureText}>{f}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <Pressable
-                  onPress={() => handleCheckout('annual')}
-                  disabled={loadingPlan !== null}
-                  style={({ pressed }) => [
-                    styles.cta,
-                    { backgroundColor: VIOLET },
-                    pressed && { opacity: 0.85 },
-                    loadingPlan !== null && { opacity: 0.6 },
-                  ]}
-                >
-                  {loadingPlan === 'annual' ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.ctaText}>S'abonner</Text>
-                  )}
-                </Pressable>
-              </Card>
-            </View>
+              <Pressable
+                onPress={openSite}
+                style={({ pressed }) => [
+                  styles.cta,
+                  { backgroundColor: VIOLET },
+                  pressed && { opacity: 0.85 },
+                ]}
+              >
+                <Ionicons name="open-outline" size={18} color="#fff" />
+                <Text style={styles.ctaText}>Voir les offres sur le site</Text>
+              </Pressable>
+              <Text style={styles.helper}>
+                L'abonnement se souscrit sur mondevisminute.com. Pendant votre
+                essai gratuit, l'app reste entièrement utilisable.
+              </Text>
+            </Card>
           )}
 
           <Button
             title="Retour au profil"
             variant="outline"
-            onPress={() => router.back()}
+            onPress={() => router.replace('/profil')}
             fullWidth
           />
         </ScrollView>
@@ -405,6 +336,20 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.mutedForeground,
     textAlign: 'center',
+  },
+  trialBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    backgroundColor: '#FED7AA',
+    borderRadius: radius.md,
+  },
+  trialBannerText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: '#9A3412',
+    fontWeight: '500',
   },
   badgeFloat: {
     position: 'absolute',
