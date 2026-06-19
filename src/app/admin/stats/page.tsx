@@ -26,6 +26,7 @@ type Stats = {
     en_essai: number;
     essai_expire_non_converti: number;
     payants: number;
+    premium_offerts: number;
     abonnements_annules: number;
     comptes_supprimes: number;
     taux_conversion_pct: number;
@@ -216,6 +217,8 @@ export default function AdminStatsPage() {
                 Taux d&apos;inscription (visite → compte) :{' '}
                 <span className="font-semibold text-slate-700">{stats.conversion.taux_inscription_pct}%</span>
                 {' · '}{stats.conversion.visites_7j} visites sur 7j
+                {' · '}
+                <span className="text-violet-700">{stats.conversion.premium_offerts} premium offerts (tests)</span>
               </p>
 
               <div className="bg-white rounded-xl shadow p-5 space-y-3">
@@ -284,7 +287,7 @@ export default function AdminStatsPage() {
 
             <section>
               <h2 className="text-lg font-semibold text-slate-700 mb-3">
-                Abonnés payants ({artisans.filter((a) => !a.account_deleted_at && (a.subscription_status === 'active' || a.is_premium)).length})
+                Abonnés payants ({artisans.filter((a) => !a.account_deleted_at && a.subscription_status === 'active').length})
               </h2>
               <div className="bg-white rounded-xl shadow overflow-x-auto">
                 <table className="w-full text-sm">
@@ -297,7 +300,7 @@ export default function AdminStatsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {artisans.filter((a) => !a.account_deleted_at && (a.subscription_status === 'active' || a.is_premium)).length === 0 && (
+                    {artisans.filter((a) => !a.account_deleted_at && a.subscription_status === 'active').length === 0 && (
                       <tr>
                         <td colSpan={4} className="px-4 py-6 text-center text-slate-500">
                           Aucun abonné payant pour le moment
@@ -305,7 +308,7 @@ export default function AdminStatsPage() {
                       </tr>
                     )}
                     {artisans
-                      .filter((a) => !a.account_deleted_at && (a.subscription_status === 'active' || a.is_premium))
+                      .filter((a) => !a.account_deleted_at && a.subscription_status === 'active')
                       .map((a) => (
                         <tr key={a.id} className="border-t border-slate-100">
                           <td className="px-3 py-2 text-slate-900">{a.email}</td>
@@ -462,10 +465,12 @@ function ChurnStat({ label, value }: { label: string; value: number }) {
 
 function StatutBadge({ a }: { a: Artisan }) {
   if (a.account_deleted_at) return <span className="text-slate-400 text-xs">Supprimé</span>;
-  if (a.subscription_status === 'active' || a.is_premium)
-    return <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-medium">Payant</span>;
   if (a.subscription_status && ['canceled', 'past_due', 'unpaid', 'incomplete_expired'].includes(a.subscription_status))
     return <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs">Annulé</span>;
+  if (a.subscription_status === 'active')
+    return <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-medium">Payant</span>;
+  if (a.is_premium)
+    return <span className="bg-violet-100 text-violet-800 px-2 py-0.5 rounded text-xs">Premium offert</span>;
   const expired = a.trial_start
     ? Date.now() > new Date(a.trial_start).getTime() + 14 * 24 * 60 * 60 * 1000
     : false;
