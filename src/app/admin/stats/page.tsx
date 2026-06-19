@@ -16,6 +16,16 @@ type Stats = {
   };
   devis: { total: number; crees_7j: number };
   factures: { total: number; creees_7j: number };
+  conversion: {
+    inscrits: number;
+    email_verifies: number;
+    en_essai: number;
+    essai_expire_non_converti: number;
+    payants: number;
+    abonnements_annules: number;
+    comptes_supprimes: number;
+    taux_conversion_pct: number;
+  };
   derniers_inscrits: Array<{
     email: string;
     nom: string | null;
@@ -121,6 +131,35 @@ export default function AdminStatsPage() {
         {stats && (
           <>
             <section>
+              <h2 className="text-lg font-semibold text-slate-700 mb-3">Conversion — qui s&apos;inscrit, paye, part</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="rounded-xl shadow p-5 bg-green-600 text-white">
+                  <div className="text-sm font-medium text-green-100">Taux de conversion</div>
+                  <div className="text-4xl font-bold mt-1">{stats.conversion.taux_conversion_pct}%</div>
+                  <div className="text-xs text-green-100 mt-1">
+                    {stats.conversion.payants} payants / {stats.conversion.inscrits} inscrits
+                  </div>
+                </div>
+                <Stat label="Payants" value={stats.conversion.payants} highlight />
+                <Stat label="En essai (actif)" value={stats.conversion.en_essai} />
+              </div>
+
+              <div className="bg-white rounded-xl shadow p-5 space-y-3">
+                <FunnelBar label="Inscrits" value={stats.conversion.inscrits} max={stats.conversion.inscrits} color="bg-slate-400" />
+                <FunnelBar label="Email vérifié" value={stats.conversion.email_verifies} max={stats.conversion.inscrits} color="bg-blue-400" />
+                <FunnelBar label="En essai (actif)" value={stats.conversion.en_essai} max={stats.conversion.inscrits} color="bg-indigo-400" />
+                <FunnelBar label="Payants" value={stats.conversion.payants} max={stats.conversion.inscrits} color="bg-green-500" />
+              </div>
+
+              <h3 className="text-sm font-semibold text-slate-600 mt-5 mb-2">Pertes (ceux qui partent)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ChurnStat label="Essai expiré, non converti" value={stats.conversion.essai_expire_non_converti} />
+                <ChurnStat label="Abonnements annulés" value={stats.conversion.abonnements_annules} />
+                <ChurnStat label="Comptes supprimés" value={stats.conversion.comptes_supprimes} />
+              </div>
+            </section>
+
+            <section>
               <h2 className="text-lg font-semibold text-slate-700 mb-3">Artisans inscrits</h2>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <Stat label="Total" value={stats.artisans.total} />
@@ -210,6 +249,30 @@ function Stat({ label, value, highlight = false }: { label: string; value: numbe
     <div className={`rounded-xl shadow p-5 ${highlight ? 'bg-blue-600 text-white' : 'bg-white'}`}>
       <div className={`text-sm font-medium ${highlight ? 'text-blue-100' : 'text-slate-500'}`}>{label}</div>
       <div className="text-3xl font-bold mt-1">{value}</div>
+    </div>
+  );
+}
+
+function FunnelBar({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  return (
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span className="text-slate-700 font-medium">{label}</span>
+        <span className="text-slate-500">{value} ({pct}%)</span>
+      </div>
+      <div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+        <div className={`${color} h-4 rounded-full`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function ChurnStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl shadow p-5 bg-white border-l-4 border-red-400">
+      <div className="text-sm font-medium text-slate-500">{label}</div>
+      <div className="text-3xl font-bold mt-1 text-red-600">{value}</div>
     </div>
   );
 }
