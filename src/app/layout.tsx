@@ -4,6 +4,7 @@ import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from '@/components/ui/sonner';
 import { AnalyticsScripts } from '@/components/AnalyticsScripts';
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({ weight: '400', variable: '--font-inter', subsets: ['latin'] });
 const interTight = Inter_Tight({ weight: '600', variable: '--font-inter-tight', subsets: ['latin'] });
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>{children}</Providers>
         <Toaster />
         <AnalyticsScripts />
+        <Analytics />
       </body>
     </html>
   );

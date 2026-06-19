@@ -5,6 +5,7 @@ import { API_BASE } from '@/lib/api';
 
 const TOKEN_KEY = 'mdm_admin_token';
 const RENDER_DASHBOARD = 'https://dashboard.render.com';
+const VERCEL_ANALYTICS = 'https://vercel.com/dashboard';
 
 type Stats = {
   artisans: {
@@ -220,6 +221,18 @@ export default function AdminStatsPage() {
                 <ChurnStat label="Abonnements annulés" value={stats.conversion.abonnements_annules} />
                 <ChurnStat label="Comptes supprimés" value={stats.conversion.comptes_supprimes} />
               </div>
+
+              <a
+                href={VERCEL_ANALYTICS}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block mt-4 bg-white rounded-xl shadow p-4 hover:shadow-md transition"
+              >
+                <div className="text-slate-600 text-sm">
+                  Visiteurs du site (venus, inscrits ou non) — top de l&apos;entonnoir
+                </div>
+                <div className="text-blue-600 mt-1 font-medium">Voir sur Vercel Analytics →</div>
+              </a>
             </section>
 
             <section>
