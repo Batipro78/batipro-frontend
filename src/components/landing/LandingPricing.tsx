@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Check, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import SectionHeading from '@/components/landing/SectionHeading';
 
 const FEATURES = [
   'Devis et factures illimités',
@@ -27,18 +28,13 @@ export default function LandingPricing() {
   return (
     <section id="tarifs" className="py-24 lg:py-32 bg-gradient-to-b from-white via-slate-50/30 to-white">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto text-center mb-12">
-          <p className="text-xs uppercase tracking-[0.2em] font-medium text-violet-600 mb-4">
-            Tarifs transparents
-          </p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Un seul prix.<br />
-            <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">Toutes les fonctionnalités.</span>
-          </h2>
-          <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-            Pas de plan compliqué, pas de fonction bloquée. 29 € par mois et vous avez tout MonDevisMinute.
-          </p>
-        </div>
+        <SectionHeading
+          className="mb-12"
+          eyebrow="Tarifs transparents"
+          title="Un seul prix."
+          gradient="Toutes les fonctionnalités."
+          subtitle="Pas de plan compliqué, pas de fonction bloquée. 29 € par mois et vous avez tout MonDevisMinute."
+        />
 
         {/* Toggle */}
         <div className="flex justify-center mb-10">
@@ -48,7 +44,7 @@ export default function LandingPricing() {
               onClick={() => setYearly(false)}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
                 !yearly
-                  ? 'bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-md shadow-violet-500/25'
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -59,7 +55,7 @@ export default function LandingPricing() {
               onClick={() => setYearly(true)}
               className={`px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${
                 yearly
-                  ? 'bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-md shadow-violet-500/25'
+                  ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -75,7 +71,7 @@ export default function LandingPricing() {
 
         {/* Card */}
         <div className="max-w-2xl mx-auto">
-          <div className="relative rounded-3xl bg-white ring-2 ring-violet-500/20 p-8 lg:p-12 shadow-[0_20px_60px_rgb(124,58,237,0.15),_0_4px_12px_rgb(0,0,0,0.03)]">
+          <div className="relative rounded-3xl bg-white ring-2 ring-primary/20 p-8 lg:p-12 shadow-[0_20px_60px_rgb(75,57,239,0.15),_0_4px_12px_rgb(0,0,0,0.03)]">
             {/* Free trial banner */}
             <div className="flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 rounded-full px-4 py-2 mb-8 border border-emerald-100">
               <Sparkles className="w-4 h-4" />
@@ -116,7 +112,7 @@ export default function LandingPricing() {
             <Button
               asChild
               size="lg"
-              className="w-full mt-8 rounded-2xl h-14 text-base font-semibold bg-gradient-to-b from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 text-white shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-violet-500/30 transition-all duration-300 hover:scale-[1.01]"
+              className="w-full mt-8 rounded-2xl h-14 text-base font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.01]"
             >
               <Link href="/signup">
                 14 jours gratuits — sans CB

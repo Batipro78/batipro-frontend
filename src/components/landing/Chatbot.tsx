@@ -333,7 +333,7 @@ export default function Chatbot() {
         type="button"
         onClick={toggleOpen}
         aria-label={open ? 'Fermer le chat' : 'Ouvrir le chat'}
-        className="fixed z-50 right-5 bottom-5 lg:bottom-6 h-14 w-14 rounded-full bg-gradient-to-b from-violet-600 to-violet-700 text-white shadow-xl shadow-violet-500/40 flex items-center justify-center hover:scale-105 transition-transform"
+        className="fixed z-50 right-5 bottom-5 lg:bottom-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-xl shadow-primary/40 flex items-center justify-center hover:scale-105 transition-transform"
         style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
@@ -346,7 +346,7 @@ export default function Chatbot() {
           style={{ maxHeight: 'min(70vh, 600px)' }}
         >
           {/* Header */}
-          <div className="bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 px-5 py-4 text-white">
+          <div className="bg-gradient-to-br from-primary to-secondary px-5 py-4 text-white">
             <div className="flex items-center gap-2.5">
               <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center">
                 <Sparkles className="h-4 w-4" />
@@ -366,7 +366,7 @@ export default function Chatbot() {
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                       m.role === 'user'
-                        ? 'bg-gradient-to-b from-violet-600 to-violet-700 text-white'
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-white border border-slate-200/60 text-slate-700 shadow-sm'
                     }`}
                   >
@@ -378,7 +378,7 @@ export default function Chatbot() {
                     <a
                       href={m.cta.href}
                       onClick={() => onCtaClick(`msg_${i}`, m.cta!.href)}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-b from-violet-600 to-violet-700 text-white text-xs font-medium px-3.5 py-2 shadow-sm hover:opacity-90 transition"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium px-3.5 py-2 shadow-sm hover:opacity-90 transition"
                     >
                       {m.cta.label}
                       <ArrowRight className="h-3.5 w-3.5" />
@@ -398,7 +398,7 @@ export default function Chatbot() {
                       key={s}
                       type="button"
                       onClick={() => send(s)}
-                      className="text-xs rounded-full border border-violet-200 bg-violet-50 text-violet-700 px-3 py-1.5 hover:bg-violet-100 transition-colors"
+                      className="text-xs rounded-full border border-primary/20 bg-accent text-primary px-3 py-1.5 hover:bg-accent/70 transition-colors"
                     >
                       {s}
                     </button>
@@ -421,13 +421,13 @@ export default function Chatbot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Tapez votre question…"
-              className="flex-1 rounded-full bg-slate-100 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+              className="flex-1 rounded-full bg-slate-100 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
             <button
               type="submit"
               disabled={!input.trim()}
               aria-label="Envoyer"
-              className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-b from-violet-600 to-violet-700 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-transform"
+              className="h-10 w-10 flex-shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 transition-transform"
             >
               <Send className="h-4 w-4" />
             </button>

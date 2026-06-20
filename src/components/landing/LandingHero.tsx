@@ -14,12 +14,12 @@ export default function LandingHero() {
         className="absolute inset-0 -z-10 pointer-events-none"
         style={{
           background: [
-            'radial-gradient(60rem 40rem at 18% 22%, rgba(75, 57, 239, 0.32), transparent 60%)',
-            'radial-gradient(55rem 38rem at 82% 18%, rgba(57, 210, 192, 0.28), transparent 60%)',
-            'radial-gradient(50rem 36rem at 50% 56%, rgba(249, 207, 88, 0.22), transparent 60%)',
-            'radial-gradient(45rem 32rem at 75% 75%, rgba(255, 138, 166, 0.20), transparent 60%)',
-            'radial-gradient(50rem 36rem at 26% 80%, rgba(103, 83, 255, 0.24), transparent 60%)',
-            'linear-gradient(to bottom, rgba(255,255,255,0.55), rgba(255,255,255,0.20) 35%, rgba(241,244,248,0.65))',
+            'radial-gradient(60rem 40rem at 16% 18%, rgba(75, 57, 239, 0.45), transparent 60%)',
+            'radial-gradient(55rem 38rem at 84% 14%, rgba(57, 210, 192, 0.40), transparent 60%)',
+            'radial-gradient(50rem 36rem at 50% 58%, rgba(249, 207, 88, 0.24), transparent 60%)',
+            'radial-gradient(45rem 32rem at 78% 78%, rgba(255, 138, 166, 0.26), transparent 60%)',
+            'radial-gradient(50rem 36rem at 22% 82%, rgba(103, 83, 255, 0.32), transparent 60%)',
+            'linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0) 30%, rgba(241,244,248,0.45))',
           ].join(', '),
         }}
         aria-hidden="true"
@@ -29,6 +29,18 @@ export default function LandingHero() {
         style={{
           background:
             'radial-gradient(ellipse 70% 40% at 50% 100%, rgba(20,24,27,0.06), transparent 60%)',
+        }}
+        aria-hidden="true"
+      />
+      {/* Texture de grille fine, estompée en radial — donne de la profondeur sans bruit */}
+      <div
+        className="absolute inset-0 -z-10 pointer-events-none opacity-[0.12]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(75,57,239,0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(75,57,239,0.7) 1px, transparent 1px)',
+          backgroundSize: '44px 44px',
+          WebkitMaskImage: 'radial-gradient(72% 65% at 50% 34%, #000 0%, transparent 80%)',
+          maskImage: 'radial-gradient(72% 65% at 50% 34%, #000 0%, transparent 80%)',
         }}
         aria-hidden="true"
       />
@@ -44,7 +56,7 @@ export default function LandingHero() {
           <h1 className="animate-fade-up delay-100 font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-foreground leading-[1.02]">
             Vos devis dictés
             <br />
-            <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+            <span className="animate-shimmer bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
               à la voix.
             </span>
             <br />

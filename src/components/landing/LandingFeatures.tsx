@@ -1,4 +1,5 @@
 import { Mic, BookOpen, PenLine, Smartphone, Zap, Shield } from 'lucide-react';
+import SectionHeading from '@/components/landing/SectionHeading';
 
 const FEATURES = [
   {
@@ -37,18 +38,12 @@ export default function LandingFeatures() {
   return (
     <section id="fonctionnalites" className="py-24 lg:py-32 bg-white">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto text-center mb-16">
-          <p className="text-xs uppercase tracking-[0.2em] font-medium text-violet-600 mb-4">
-            Fonctionnalités
-          </p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Tout ce qu&apos;il vous faut.<br />
-            <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">Rien de superflu.</span>
-          </h2>
-          <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-            Des outils pensés par et pour les artisans du bâtiment.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Fonctionnalités"
+          title="Tout ce qu'il vous faut."
+          gradient="Rien de superflu."
+          subtitle="Des outils pensés par et pour les artisans du bâtiment."
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {FEATURES.map((f) => {
@@ -56,11 +51,11 @@ export default function LandingFeatures() {
             return (
               <div
                 key={f.title}
-                className="rounded-3xl bg-white border border-slate-200/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04),_0_2px_8px_rgb(0,0,0,0.02)] hover:translate-y-[-2px] hover:shadow-lg transition-all duration-300"
+                className="group rounded-3xl bg-white border border-slate-200/60 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04),_0_2px_8px_rgb(0,0,0,0.02)] hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl transition-all duration-300"
               >
                 <div className="mb-6">
-                  <div className="inline-flex rounded-xl bg-violet-50 border border-violet-100/50 p-2.5">
-                    <Icon className="h-6 w-6 text-violet-600" />
+                  <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg shadow-primary/25 transition-transform duration-300 group-hover:scale-110">
+                    <Icon className="h-7 w-7" />
                   </div>
                 </div>
                 <h3 className="font-display text-lg font-semibold text-slate-900 mb-3 tracking-tight">

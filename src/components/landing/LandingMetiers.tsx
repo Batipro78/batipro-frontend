@@ -14,6 +14,7 @@ import {
   Construction,
   Trees,
 } from 'lucide-react';
+import SectionHeading from '@/components/landing/SectionHeading';
 
 const METIERS = [
   { name: 'Électricien', icon: Zap, count: 135 },
@@ -36,19 +37,12 @@ export default function LandingMetiers() {
   return (
     <section id="metiers" className="py-24 lg:py-32 bg-white">
       <div className="max-w-6xl mx-auto px-6 lg:px-8">
-        <div className="max-w-2xl mx-auto text-center mb-16">
-          <p className="text-xs uppercase tracking-[0.2em] font-medium text-violet-600 mb-4">
-            Métiers
-          </p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-slate-900 leading-tight">
-            14 métiers du BTP<br />
-            <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent">parlent déjà notre langue.</span>
-          </h2>
-          <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-            MonDevisMinute reconnaît le vocabulaire technique de chaque corps d&apos;état.
-            La dictée vocale s&apos;adapte au métier sélectionné.
-          </p>
-        </div>
+        <SectionHeading
+          eyebrow="Métiers"
+          title="14 métiers du BTP"
+          gradient="parlent déjà notre langue."
+          subtitle="MonDevisMinute reconnaît le vocabulaire technique de chaque corps d'état. La dictée vocale s'adapte au métier sélectionné."
+        />
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {METIERS.map((m) => {
@@ -56,10 +50,10 @@ export default function LandingMetiers() {
             return (
               <div
                 key={m.name}
-                className="group rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 p-5 text-center hover:border-violet-200 hover:from-violet-50 hover:to-violet-50/50 transition-all duration-300 cursor-default"
+                className="group rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/60 p-5 text-center hover:border-primary/20 hover:from-accent hover:to-accent/50 transition-all duration-300 cursor-default"
               >
                 <div className="mb-3 flex justify-center">
-                  <Icon className="h-7 w-7 text-slate-400 group-hover:text-violet-600 transition-colors duration-300" />
+                  <Icon className="h-7 w-7 text-slate-400 group-hover:text-primary transition-colors duration-300" />
                 </div>
                 <p className="text-sm font-semibold text-slate-700">{m.name}</p>
                 {m.count > 0 ? (
@@ -67,7 +61,7 @@ export default function LandingMetiers() {
                     {m.count} articles
                   </p>
                 ) : (
-                  <p className="mt-1 text-xs text-violet-600 font-medium">Bientôt</p>
+                  <p className="mt-1 text-xs text-primary font-medium">Bientôt</p>
                 )}
               </div>
             );

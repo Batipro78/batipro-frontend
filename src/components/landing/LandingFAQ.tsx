@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import SectionHeading from '@/components/landing/SectionHeading';
 
 const FAQS = [
   {
@@ -36,17 +37,12 @@ export default function LandingFAQ() {
   return (
     <section id="faq" className="py-24 lg:py-32 bg-gradient-to-b from-white via-slate-50/30 to-white">
       <div className="max-w-3xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <p className="text-xs uppercase tracking-[0.2em] font-medium text-violet-600 mb-4">
-            FAQ
-          </p>
-          <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight text-slate-900 leading-tight">
-            Questions fréquentes
-          </h2>
-          <p className="mt-6 text-lg text-slate-600 leading-relaxed">
-            Tout ce que les artisans nous demandent avant de tester.
-          </p>
-        </div>
+        <SectionHeading
+          className="max-w-3xl"
+          eyebrow="FAQ"
+          title="Questions fréquentes"
+          subtitle="Tout ce que les artisans nous demandent avant de tester."
+        />
 
         <div className="divide-y divide-slate-200/60 rounded-3xl bg-white border border-slate-200/60 px-6 sm:px-8 shadow-[0_8px_30px_rgb(0,0,0,0.04),_0_2px_8px_rgb(0,0,0,0.02)]">
           {FAQS.map((faq, index) => {
@@ -64,7 +60,7 @@ export default function LandingFAQ() {
                   </span>
                   <ChevronDown
                     className={`h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-300 ${
-                      isOpen ? 'rotate-180 text-violet-600' : ''
+                      isOpen ? 'rotate-180 text-primary' : ''
                     }`}
                   />
                 </button>
