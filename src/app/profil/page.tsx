@@ -64,7 +64,7 @@ interface Profile {
 }
 
 function RequiredStar() {
-  return <span className="text-red-500 ml-0.5">*</span>;
+  return <span className="text-destructive ml-0.5">*</span>;
 }
 
 const DELETE_CONFIRM_PHRASE = 'SUPPRIMER';
@@ -307,14 +307,14 @@ export default function ProfilPage() {
       {/* Progress banner */}
       <div className={`mb-6 rounded-lg border p-4 ${
         completenessPercent === 100
-          ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
-          : 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950'
+          ? 'border-success/30 bg-success/10'
+          : 'border-primary/20 bg-accent'
       }`}>
         <div className="flex items-start gap-3">
           {completenessPercent === 100 ? (
-            <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+            <CheckCircle className="h-5 w-5 text-success mt-0.5" />
           ) : (
-            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <Info className="h-5 w-5 text-primary mt-0.5" />
           )}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
@@ -332,7 +332,7 @@ export default function ProfilPage() {
             <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  completenessPercent === 100 ? 'bg-green-500' : 'bg-blue-500'
+                  completenessPercent === 100 ? 'bg-success' : 'bg-primary'
                 }`}
                 style={{ width: `${completenessPercent}%` }}
               />
@@ -340,7 +340,7 @@ export default function ProfilPage() {
             {/* Checklist */}
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
               {completenessItems.map((item) => (
-                <span key={item.label} className={`text-xs flex items-center gap-1 ${item.done ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
+                <span key={item.label} className={`text-xs flex items-center gap-1 ${item.done ? 'text-success' : 'text-muted-foreground'}`}>
                   {item.done ? <CheckCircle className="h-3 w-3" /> : <span className="h-3 w-3 rounded-full border border-muted-foreground/40 inline-block" />}
                   {item.label}
                 </span>
@@ -404,14 +404,14 @@ export default function ProfilPage() {
           {/* ============================================= */}
           {/* SECTION OBLIGATOIRE */}
           {/* ============================================= */}
-          <Card className="border-blue-200 dark:border-blue-800">
+          <Card className="border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-blue-600" />
+                <Building2 className="h-5 w-5 text-primary" />
                 {t('requiredFields')}
               </CardTitle>
               <CardDescription className="flex items-center gap-1">
-                <AlertTriangle className="h-3.5 w-3.5 text-orange-500" />
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                 Necessaires pour generer des devis conformes
               </CardDescription>
             </CardHeader>
@@ -427,9 +427,9 @@ export default function ProfilPage() {
                     value={form.nom_entreprise}
                     onChange={(e) => updateField('nom_entreprise', e.target.value)}
                     placeholder="Ex: Elec Pro Services"
-                    className={errors.nom_entreprise ? 'border-red-500' : ''}
+                    className={errors.nom_entreprise ? 'border-destructive' : ''}
                   />
-                  {errors.nom_entreprise && <p className="text-xs text-red-500">{errors.nom_entreprise}</p>}
+                  {errors.nom_entreprise && <p className="text-xs text-destructive">{errors.nom_entreprise}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="nom">
@@ -440,9 +440,9 @@ export default function ProfilPage() {
                     value={form.nom}
                     onChange={(e) => updateField('nom', e.target.value)}
                     placeholder="Ex: Jean Dupont"
-                    className={errors.nom ? 'border-red-500' : ''}
+                    className={errors.nom ? 'border-destructive' : ''}
                   />
-                  {errors.nom && <p className="text-xs text-red-500">{errors.nom}</p>}
+                  {errors.nom && <p className="text-xs text-destructive">{errors.nom}</p>}
                 </div>
               </div>
 
@@ -457,10 +457,10 @@ export default function ProfilPage() {
                   onChange={(e) => updateField('siret', e.target.value.replace(/\D/g, ''))}
                   placeholder="12345678901234"
                   maxLength={14}
-                  className={errors.siret ? 'border-red-500' : ''}
+                  className={errors.siret ? 'border-destructive' : ''}
                 />
                 {errors.siret ? (
-                  <p className="text-xs text-red-500">{errors.siret}</p>
+                  <p className="text-xs text-destructive">{errors.siret}</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">14 chiffres, sans espaces</p>
                 )}
@@ -480,9 +480,9 @@ export default function ProfilPage() {
                     value={form.telephone}
                     onChange={(e) => updateField('telephone', e.target.value)}
                     placeholder="06 12 34 56 78"
-                    className={errors.telephone ? 'border-red-500' : ''}
+                    className={errors.telephone ? 'border-destructive' : ''}
                   />
-                  {errors.telephone && <p className="text-xs text-red-500">{errors.telephone}</p>}
+                  {errors.telephone && <p className="text-xs text-destructive">{errors.telephone}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email_pro">
@@ -512,9 +512,9 @@ export default function ProfilPage() {
                   value={form.adresse}
                   onChange={(e) => updateField('adresse', e.target.value)}
                   placeholder="123 rue de la Paix"
-                  className={errors.adresse ? 'border-red-500' : ''}
+                  className={errors.adresse ? 'border-destructive' : ''}
                 />
-                {errors.adresse && <p className="text-xs text-red-500">{errors.adresse}</p>}
+                {errors.adresse && <p className="text-xs text-destructive">{errors.adresse}</p>}
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -525,9 +525,9 @@ export default function ProfilPage() {
                     onChange={(e) => updateField('codepostal', e.target.value.replace(/\D/g, ''))}
                     placeholder="75001"
                     maxLength={5}
-                    className={errors.codepostal ? 'border-red-500' : ''}
+                    className={errors.codepostal ? 'border-destructive' : ''}
                   />
-                  {errors.codepostal && <p className="text-xs text-red-500">{errors.codepostal}</p>}
+                  {errors.codepostal && <p className="text-xs text-destructive">{errors.codepostal}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="ville">{t('city')}<RequiredStar /></Label>
@@ -536,9 +536,9 @@ export default function ProfilPage() {
                     value={form.ville}
                     onChange={(e) => updateField('ville', e.target.value)}
                     placeholder="Paris"
-                    className={errors.ville ? 'border-red-500' : ''}
+                    className={errors.ville ? 'border-destructive' : ''}
                   />
-                  {errors.ville && <p className="text-xs text-red-500">{errors.ville}</p>}
+                  {errors.ville && <p className="text-xs text-destructive">{errors.ville}</p>}
                 </div>
               </div>
             </CardContent>
@@ -587,7 +587,7 @@ export default function ProfilPage() {
               {/* Assurance decennale */}
               <div>
                 <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-orange-500" />
+                  <Shield className="h-4 w-4 text-amber-500" />
                   {t('insuranceSection')}
                 </h4>
                 <p className="text-xs text-muted-foreground mb-4">

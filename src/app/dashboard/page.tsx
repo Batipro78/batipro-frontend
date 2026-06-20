@@ -77,10 +77,10 @@ export default function DashboardPage() {
   }, []);
 
   const statCards = [
-    { label: t('totalDevis'), value: stats.totalDevis, icon: FileText, color: 'text-blue-500' },
-    { label: t('totalFactures'), value: stats.totalFactures, icon: Receipt, color: 'text-green-500' },
-    { label: t('caMonth'), value: `${stats.caMonth.toFixed(2)} \u20ac`, icon: TrendingUp, color: 'text-emerald-500' },
-    { label: t('pendingDevis'), value: stats.pendingDevis, icon: Clock, color: 'text-orange-500' },
+    { label: t('totalDevis'), value: stats.totalDevis, icon: FileText, color: 'text-chart-1' },
+    { label: t('totalFactures'), value: stats.totalFactures, icon: Receipt, color: 'text-chart-2' },
+    { label: t('caMonth'), value: `${stats.caMonth.toFixed(2)} \u20ac`, icon: TrendingUp, color: 'text-success' },
+    { label: t('pendingDevis'), value: stats.pendingDevis, icon: Clock, color: 'text-chart-5' },
   ];
 
   return (
@@ -89,9 +89,9 @@ export default function DashboardPage() {
 
       {/* Profile incomplete banner */}
       {profileStatus && (!profileStatus.profil_complet || !profileStatus.logo_url || !profileStatus.assurance_decennale_nom) && (
-        <div className="mb-6 flex items-center gap-3 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950 p-4">
-          <AlertTriangle className="h-5 w-5 text-orange-500 shrink-0" />
-          <p className="text-sm text-orange-800 dark:text-orange-200 flex-1">
+        <div className="mb-6 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950 p-4">
+          <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0" />
+          <p className="text-sm text-amber-800 dark:text-amber-200 flex-1">
             {t('dashboardProfileBanner')}
           </p>
           <Link href="/profil">
