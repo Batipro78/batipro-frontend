@@ -87,11 +87,31 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Panneau formulaire */}
-      <main className="flex min-h-screen flex-col items-center justify-center bg-card px-4 py-10 sm:px-8">
-        <Link href="/" className="mb-8 flex items-center gap-2 lg:hidden">
-          <BrandPicto size={36} />
-          <span className="font-display text-lg font-semibold tracking-tight">MonDevisMinute</span>
-        </Link>
+      <main className="flex min-h-screen flex-col items-center justify-start bg-card px-4 py-10 sm:px-8 lg:justify-center">
+        {/* En-tête de marque compact — mobile / tablette uniquement (le grand panneau le remplace en lg) */}
+        <div className="mb-8 w-full max-w-[400px] lg:hidden">
+          <div className="relative overflow-hidden rounded-2xl bg-[#0F172A] px-5 py-6 text-white">
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-[#4b39ef]/40 blur-2xl" />
+              <div className="absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-[#39d2c0]/30 blur-2xl" />
+            </div>
+            <Link href="/" className="relative inline-flex items-center gap-2.5">
+              <BrandPicto size={34} />
+              <span className="font-display text-lg font-semibold tracking-tight">MonDevisMinute</span>
+            </Link>
+            <p className="relative mt-3 text-sm leading-snug text-white/85">
+              Le devis qui s’écrit{' '}
+              <span className="font-semibold text-[#39d2c0]">à la voix</span>, signé en 5 minutes.
+            </p>
+            <div className="relative mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-white/55">
+              <span>Sans carte bancaire</span>
+              <span className="h-0.5 w-0.5 rounded-full bg-white/40" />
+              <span>RGPD · France</span>
+              <span className="h-0.5 w-0.5 rounded-full bg-white/40" />
+              <span>Sans engagement</span>
+            </div>
+          </div>
+        </div>
         <div className="w-full max-w-[400px]">{children}</div>
       </main>
     </div>
