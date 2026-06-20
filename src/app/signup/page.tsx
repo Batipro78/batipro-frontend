@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail } from 'lucide-react';
-import BrandPicto from '@/components/branding/BrandPicto';
+import AuthShell from '@/components/auth/AuthShell';
+import { AuthHeader, FormError } from '@/components/auth/AuthBits';
 import Link from 'next/link';
 
 export default function SignupPage() {
@@ -38,90 +38,86 @@ export default function SignupPage() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary">
-              <Mail className="h-7 w-7 text-primary-foreground" />
-            </div>
-            <CardTitle className="text-2xl">Vérifiez votre email</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-muted-foreground">
-              Un email de vérification a été envoyé à <strong>{email}</strong>.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Cliquez sur le lien dans l&apos;email pour activer votre compte et profiter de vos 14 jours d&apos;essai gratuit.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Vous ne trouvez pas l&apos;email ? Vérifiez vos spams.
-            </p>
-            <Button asChild variant="outline" className="w-full mt-4">
-              <Link href="/login">Retour à la connexion</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <AuthShell>
+        <AuthHeader
+          icon={Mail}
+          title="Vérifiez votre email"
+          subtitle={`Un email de vérification a été envoyé à ${email}.`}
+        />
+        <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Cliquez sur le lien dans l&apos;email pour activer votre compte et profiter de vos 14 jours
+            d&apos;essai gratuit.
+          </p>
+          <p className="rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+            Vous ne trouvez pas l&apos;email ? Pensez à vérifier vos spams.
+          </p>
+          <Button asChild variant="outline" size="lg" className="h-11 w-full">
+            <Link href="/login">Retour à la connexion</Link>
+          </Button>
+        </div>
+      </AuthShell>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <BrandPicto size={56} className="mx-auto mb-4" />
-          <CardTitle className="text-2xl">Créer un compte</CardTitle>
-          <CardDescription>Essai gratuit de 14 jours, sans carte bancaire</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="nomEntreprise">Nom de l&apos;entreprise</Label>
-              <Input
-                id="nomEntreprise"
-                type="text"
-                value={nomEntreprise}
-                onChange={(e) => setNomEntreprise(e.target.value)}
-                placeholder="Mon entreprise"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="artisan@example.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <PasswordInput
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimum 8 caractères"
-                required
-              />
-            </div>
-            {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Création en cours...' : 'Démarrer mon essai gratuit'}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Déjà un compte ?{' '}
-            <Link href="/login" className="text-primary hover:underline">
-              Se connecter
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthShell>
+      <AuthHeader
+        title="Créer un compte"
+        subtitle="Essai gratuit de 14 jours, sans carte bancaire."
+      />
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="nomEntreprise">Nom de l&apos;entreprise</Label>
+          <Input
+            id="nomEntreprise"
+            type="text"
+            value={nomEntreprise}
+            onChange={(e) => setNomEntreprise(e.target.value)}
+            placeholder="Mon entreprise"
+            className="h-11"
+            autoComplete="organization"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="artisan@example.com"
+            className="h-11"
+            autoComplete="email"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Mot de passe</Label>
+          <PasswordInput
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Minimum 8 caractères"
+            className="h-11"
+            autoComplete="new-password"
+            required
+          />
+        </div>
+        {error && <FormError message={error} />}
+        <Button type="submit" size="lg" className="h-11 w-full text-base" disabled={loading}>
+          {loading ? 'Création en cours...' : 'Démarrer mon essai gratuit'}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Déjà un compte ?{' '}
+        <Link href="/login" className="font-medium text-primary hover:underline">
+          Se connecter
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

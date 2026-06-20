@@ -5,10 +5,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KeyRound, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { API_BASE } from '@/lib/api';
+import AuthShell from '@/components/auth/AuthShell';
+import { AuthHeader, FormError } from '@/components/auth/AuthBits';
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
@@ -23,22 +24,17 @@ function ResetPasswordContent() {
 
   if (!token) {
     return (
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
-            <AlertCircle className="h-7 w-7 text-destructive" />
-          </div>
-          <CardTitle className="text-2xl">Lien invalide</CardTitle>
-          <CardDescription>
-            Ce lien de réinitialisation est incomplet. Demandez-en un nouveau.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link href="/forgot-password">
-            <Button className="w-full">Demander un nouveau lien</Button>
-          </Link>
-        </CardContent>
-      </Card>
+      <>
+        <AuthHeader
+          icon={AlertCircle}
+          iconTone="destructive"
+          title="Lien invalide"
+          subtitle="Ce lien de réinitialisation est incomplet. Demandez-en un nouveau."
+        />
+        <Button asChild size="lg" className="h-11 w-full">
+          <Link href="/forgot-password">Demander un nouveau lien</Link>
+        </Button>
+      </>
     );
   }
 
@@ -75,75 +71,68 @@ function ResetPasswordContent() {
 
   if (success) {
     return (
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 className="h-7 w-7 text-green-600" />
-          </div>
-          <CardTitle className="text-2xl">Mot de passe modifié</CardTitle>
-          <CardDescription>
-            Votre nouveau mot de passe est actif. Redirection vers la connexion...
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link href="/login">
-            <Button className="w-full">Se connecter maintenant</Button>
-          </Link>
-        </CardContent>
-      </Card>
+      <>
+        <AuthHeader
+          icon={CheckCircle2}
+          iconTone="success"
+          title="Mot de passe modifié"
+          subtitle="Votre nouveau mot de passe est actif. Redirection vers la connexion..."
+        />
+        <Button asChild size="lg" className="h-11 w-full">
+          <Link href="/login">Se connecter maintenant</Link>
+        </Button>
+      </>
     );
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary">
-          <KeyRound className="h-7 w-7 text-primary-foreground" />
+    <>
+      <AuthHeader
+        icon={KeyRound}
+        title="Nouveau mot de passe"
+        subtitle="Choisissez un mot de passe d’au moins 8 caractères."
+      />
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="password">Nouveau mot de passe</Label>
+          <PasswordInput
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="h-11"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            autoFocus
+          />
         </div>
-        <CardTitle className="text-2xl">Nouveau mot de passe</CardTitle>
-        <CardDescription>Choisissez un mot de passe d&apos;au moins 8 caractères.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">Nouveau mot de passe</Label>
-            <PasswordInput
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-              autoFocus
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-            <PasswordInput
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
-          {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
-          )}
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Validation...' : 'Réinitialiser le mot de passe'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+          <PasswordInput
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="h-11"
+            autoComplete="new-password"
+            required
+            minLength={8}
+          />
+        </div>
+        {error && <FormError message={error} />}
+        <Button type="submit" size="lg" className="h-11 w-full text-base" disabled={loading}>
+          {loading ? 'Validation...' : 'Réinitialiser le mot de passe'}
+        </Button>
+      </form>
+    </>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Suspense fallback={<Card className="w-full max-w-md p-8 text-center text-muted-foreground">Chargement...</Card>}>
+    <AuthShell>
+      <Suspense fallback={<p className="text-center text-sm text-muted-foreground">Chargement...</p>}>
         <ResetPasswordContent />
       </Suspense>
-    </div>
+    </AuthShell>
   );
 }

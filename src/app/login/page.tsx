@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import BrandPicto from '@/components/branding/BrandPicto';
+import AuthShell from '@/components/auth/AuthShell';
+import { AuthHeader, FormError } from '@/components/auth/AuthBits';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -36,55 +36,51 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <BrandPicto size={56} className="mx-auto mb-4" />
-          <CardTitle className="text-2xl">{t('loginTitle')}</CardTitle>
-          <CardDescription>{t('loginSubtitle')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="artisan@example.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t('password')}</Label>
-                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                  Mot de passe oublié ?
-                </Link>
-              </div>
-              <PasswordInput
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('loading') : t('loginButton')}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Pas encore de compte ?{' '}
-            <Link href="/signup" className="text-primary hover:underline">
-              Essai gratuit 14 jours
+    <AuthShell>
+      <AuthHeader title={t('loginTitle')} subtitle={t('loginSubtitle')} />
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="email">{t('email')}</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="artisan@example.com"
+            className="h-11"
+            autoComplete="email"
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">{t('password')}</Label>
+            <Link href="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+              Mot de passe oublié ?
             </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+          <PasswordInput
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="h-11"
+            autoComplete="current-password"
+            required
+          />
+        </div>
+        {error && <FormError message={error} />}
+        <Button type="submit" size="lg" className="h-11 w-full text-base" disabled={loading}>
+          {loading ? t('loading') : t('loginButton')}
+        </Button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Pas encore de compte ?{' '}
+        <Link href="/signup" className="font-medium text-primary hover:underline">
+          Essai gratuit 14 jours
+        </Link>
+      </p>
+    </AuthShell>
   );
 }

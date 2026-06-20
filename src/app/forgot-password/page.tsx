@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { KeyRound, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { API_BASE } from '@/lib/api';
+import AuthShell from '@/components/auth/AuthShell';
+import { AuthHeader, FormError } from '@/components/auth/AuthBits';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -36,69 +37,63 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary">
-            {submitted ? (
-              <CheckCircle2 className="h-7 w-7 text-primary-foreground" />
-            ) : (
-              <KeyRound className="h-7 w-7 text-primary-foreground" />
-            )}
+    <AuthShell>
+      {submitted ? (
+        <>
+          <AuthHeader
+            icon={CheckCircle2}
+            iconTone="success"
+            title="Email envoyé"
+            subtitle="Si un compte existe avec cet email, vous recevrez un lien de réinitialisation dans quelques instants."
+          />
+          <div className="space-y-4">
+            <p className="rounded-md bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
+              Pensez à vérifier votre dossier <strong>spam</strong>. Le lien est valable{' '}
+              <strong>1 heure</strong>.
+            </p>
+            <Button asChild variant="outline" size="lg" className="h-11 w-full">
+              <Link href="/login">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour à la connexion
+              </Link>
+            </Button>
           </div>
-          <CardTitle className="text-2xl">
-            {submitted ? 'Email envoyé' : 'Mot de passe oublié ?'}
-          </CardTitle>
-          <CardDescription>
-            {submitted
-              ? 'Si un compte existe avec cet email, vous recevrez un lien de réinitialisation dans quelques instants.'
-              : 'Entrez votre email pour recevoir un lien de réinitialisation.'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {submitted ? (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground text-center">
-                Pensez à vérifier votre dossier <strong>spam</strong> si vous ne voyez pas l&apos;email.
-                Le lien est valable <strong>1 heure</strong>.
-              </p>
-              <Link href="/login" className="block">
-                <Button variant="outline" className="w-full">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Retour à la connexion
-                </Button>
-              </Link>
+        </>
+      ) : (
+        <>
+          <AuthHeader
+            icon={KeyRound}
+            title="Mot de passe oublié ?"
+            subtitle="Entrez votre email pour recevoir un lien de réinitialisation."
+          />
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="artisan@example.com"
+                className="h-11"
+                autoComplete="email"
+                required
+                autoFocus
+              />
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="artisan@example.com"
-                  required
-                  autoFocus
-                />
-              </div>
-              {error && (
-                <p className="text-sm text-destructive text-center">{error}</p>
-              )}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Envoi...' : 'Envoyer le lien'}
-              </Button>
-              <Link href="/login" className="block">
-                <Button type="button" variant="ghost" className="w-full">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Retour à la connexion
-                </Button>
+            {error && <FormError message={error} />}
+            <Button type="submit" size="lg" className="h-11 w-full text-base" disabled={loading}>
+              {loading ? 'Envoi...' : 'Envoyer le lien'}
+            </Button>
+            <Button asChild type="button" variant="ghost" size="lg" className="h-11 w-full">
+              <Link href="/login">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour à la connexion
               </Link>
-            </form>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            </Button>
+          </form>
+        </>
+      )}
+    </AuthShell>
   );
 }
