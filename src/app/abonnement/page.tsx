@@ -17,7 +17,7 @@ interface SubscriptionStatus {
 }
 
 export default function AbonnementPage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<'monthly' | 'annual' | null>(null);
   const [loadingPortal, setLoadingPortal] = useState(false);
   const [error, setError] = useState('');
@@ -86,7 +86,7 @@ export default function AbonnementPage() {
     return (
       <ProtectedLayout>
         <div className="min-h-[80vh] flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </ProtectedLayout>
     );
@@ -94,13 +94,15 @@ export default function AbonnementPage() {
 
   return (
     <ProtectedLayout>
-      <div className="min-h-[80vh] flex flex-col items-center justify-center px-4">
+      <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-10">
         <div className="text-center mb-8">
-          <CreditCard className="mx-auto h-12 w-12 text-violet-600 mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900">
+          <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-primary">
+            <CreditCard className="h-7 w-7" />
+          </span>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
             {isSubscribed ? 'Votre abonnement' : 'Activez MonDevisMinute'}
           </h1>
-          <p className="mt-2 text-gray-500 max-w-md mx-auto">
+          <p className="mt-2 max-w-md mx-auto text-muted-foreground">
             {isSubscribed
               ? 'Gérez votre abonnement MonDevisMinute Pro ci-dessous.'
               : 'Votre période d\'essai est terminée. Choisissez votre formule pour continuer.'}
@@ -108,52 +110,52 @@ export default function AbonnementPage() {
         </div>
 
         {error && (
-          <div className="mb-6 w-full max-w-2xl rounded-lg bg-red-50 border border-red-200 p-4 text-red-700 text-sm text-center">
+          <div className="mb-6 w-full max-w-2xl rounded-lg border border-destructive/20 bg-destructive/10 p-4 text-center text-sm text-destructive">
             {error}
           </div>
         )}
 
         {isSubscribed ? (
           /* === VUE ABONNÉ === */
-          <Card className="w-full max-w-md border-2 border-violet-600">
+          <Card className="w-full max-w-md border-2 border-primary/30 shadow-lg shadow-primary/5">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <Shield className="h-6 w-6 text-green-600" />
+              <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+                <Shield className="h-6 w-6 text-success" />
               </div>
               <CardTitle className="text-xl">MonDevisMinute Pro</CardTitle>
               <CardDescription>
                 {subStatus?.subscription_status === 'active' && (
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 mt-1">
+                  <Badge className="mt-1 bg-success/10 text-success hover:bg-success/10">
                     Actif
                   </Badge>
                 )}
                 {subStatus?.subscription_status === 'past_due' && (
-                  <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 mt-1">
+                  <Badge className="mt-1 bg-amber-100 text-amber-800 hover:bg-amber-100">
                     Paiement en attente
                   </Badge>
                 )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
-                <CalendarClock className="h-5 w-5 text-gray-500 shrink-0" />
+              <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
+                <CalendarClock className="h-5 w-5 shrink-0 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium text-gray-700">Prochain renouvellement</p>
-                  <p className="text-sm text-gray-500">{formatDate(subStatus?.current_period_end ?? null)}</p>
+                  <p className="text-sm font-medium text-foreground">Prochain renouvellement</p>
+                  <p className="text-sm text-muted-foreground">{formatDate(subStatus?.current_period_end ?? null)}</p>
                 </div>
               </div>
 
               <ul className="space-y-2">
                 {features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-                    <Check className="h-4 w-4 text-violet-600 mt-0.5 shrink-0" />
+                  <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                     {f}
                   </li>
                 ))}
               </ul>
 
               <Button
-                className="w-full bg-violet-600 hover:bg-violet-700"
+                className="w-full"
                 size="lg"
                 onClick={handlePortal}
                 disabled={loadingPortal}
@@ -164,7 +166,7 @@ export default function AbonnementPage() {
                   <><ExternalLink className="mr-2 h-4 w-4" />Gérer mon abonnement</>
                 )}
               </Button>
-              <p className="text-xs text-center text-gray-400">
+              <p className="text-center text-xs text-muted-foreground">
                 Modifier le moyen de paiement, changer de formule ou annuler
               </p>
             </CardContent>
@@ -173,26 +175,26 @@ export default function AbonnementPage() {
           /* === VUE NON-ABONNÉ === */
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
             {/* Mensuel */}
-            <Card className="relative border-2 border-gray-200 hover:border-violet-300 transition-colors">
+            <Card className="relative border-2 border-border transition-colors hover:border-primary/40">
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-lg">Mensuel</CardTitle>
                 <CardDescription>Sans engagement</CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold text-gray-900">29€</span>
-                  <span className="text-gray-500">/mois</span>
+                  <span className="text-4xl font-bold text-foreground">29€</span>
+                  <span className="text-muted-foreground">/mois</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
                   {features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-                      <Check className="h-4 w-4 text-violet-600 mt-0.5 shrink-0" />
+                    <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       {f}
                     </li>
                   ))}
                 </ul>
                 <Button
-                  className="w-full bg-violet-600 hover:bg-violet-700"
+                  className="w-full"
                   size="lg"
                   onClick={() => handleCheckout('monthly')}
                   disabled={loadingPlan !== null}
@@ -207,9 +209,9 @@ export default function AbonnementPage() {
             </Card>
 
             {/* Annuel */}
-            <Card className="relative border-2 border-violet-600 shadow-lg">
+            <Card className="relative border-2 border-primary shadow-lg shadow-primary/10 ring-1 ring-primary/10">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-violet-600 text-white hover:bg-violet-600 px-3 py-1">
+                <Badge className="bg-primary px-3 py-1 text-primary-foreground hover:bg-primary">
                   2 mois offerts
                 </Badge>
               </div>
@@ -217,24 +219,24 @@ export default function AbonnementPage() {
                 <CardTitle className="text-lg">Annuel</CardTitle>
                 <CardDescription>Le meilleur rapport qualité-prix</CardDescription>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold text-gray-900">290€</span>
-                  <span className="text-gray-500">/an</span>
+                  <span className="text-4xl font-bold text-foreground">290€</span>
+                  <span className="text-muted-foreground">/an</span>
                 </div>
-                <p className="text-sm text-violet-600 font-medium mt-1">
+                <p className="mt-1 text-sm font-medium text-primary">
                   soit ~24€/mois au lieu de 29€
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-2">
                   {features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-                      <Check className="h-4 w-4 text-violet-600 mt-0.5 shrink-0" />
+                    <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       {f}
                     </li>
                   ))}
                 </ul>
                 <Button
-                  className="w-full bg-violet-600 hover:bg-violet-700"
+                  className="w-full"
                   size="lg"
                   onClick={() => handleCheckout('annual')}
                   disabled={loadingPlan !== null}
