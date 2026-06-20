@@ -278,8 +278,8 @@ function VoicePageContent() {
     && phase === 'idle';
 
   const gammeOptions: { value: Gamme; icon: string; color: string }[] = [
-    { value: 'eco', icon: '\ud83d\udcb0', color: 'border-green-500 bg-green-50 dark:bg-green-950' },
-    { value: 'standard', icon: '\u2696\ufe0f', color: 'border-blue-500 bg-blue-50 dark:bg-blue-950' },
+    { value: 'eco', icon: '\ud83d\udcb0', color: 'border-success bg-success/10' },
+    { value: 'standard', icon: '\u2696\ufe0f', color: 'border-primary bg-accent' },
     { value: 'premium', icon: '\u2728', color: 'border-amber-500 bg-amber-50 dark:bg-amber-950' },
   ];
 
@@ -319,12 +319,12 @@ function VoicePageContent() {
 
         {/* Avenant Mode Banner */}
         {isAvenantMode && (
-          <Card className="border-2 border-purple-500 bg-purple-50 dark:bg-purple-950">
+          <Card className="border-2 border-primary bg-accent">
             <CardContent className="flex items-center gap-3 py-4">
-              <Plus className="h-5 w-5 text-purple-600" />
+              <Plus className="h-5 w-5 text-primary" />
               <div>
-                <p className="font-semibold text-purple-700 dark:text-purple-300">Mode Avenant</p>
-                <p className="text-sm text-purple-600 dark:text-purple-400">Les lignes seront ajoutees au devis #{avenantDevisId}. Les totaux seront recalcules automatiquement.</p>
+                <p className="font-semibold text-primary">Mode Avenant</p>
+                <p className="text-sm text-primary/80">Les lignes seront ajoutees au devis #{avenantDevisId}. Les totaux seront recalcules automatiquement.</p>
               </div>
             </CardContent>
           </Card>
@@ -401,7 +401,7 @@ function VoicePageContent() {
                   onClick={() => setSelectedGamme('comparatif')}
                   className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                     selectedGamme === 'comparatif'
-                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-950 shadow-md'
+                      ? 'border-primary bg-accent shadow-md'
                       : 'border-muted hover:border-primary/50'
                   }`}
                 >
@@ -493,7 +493,7 @@ function VoicePageContent() {
                   >
                     <MicOff className="h-8 w-8" />
                   </Button>
-                  <span className="text-sm font-mono text-red-500 font-semibold">
+                  <span className="text-sm font-mono text-destructive font-semibold">
                     {recordingSeconds}s {recordingSeconds < 2 && '(min 2s)'}
                   </span>
                 </div>
@@ -568,11 +568,11 @@ function VoicePageContent() {
 
         {/* Completed: Avenant result */}
         {phase === 'completed' && avenantResult && (
-          <Card className="border-2 border-green-500">
+          <Card className="border-2 border-success">
             <CardContent className="flex flex-col items-center gap-4 py-6">
-              <CheckCircle className="h-12 w-12 text-green-500" />
+              <CheckCircle className="h-12 w-12 text-success" />
               <div className="text-center">
-                <p className="font-medium text-green-600 text-lg">{avenantResult.linesAdded} ligne(s) ajoutee(s) au devis</p>
+                <p className="font-medium text-success text-lg">{avenantResult.linesAdded} ligne(s) ajoutee(s) au devis</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Nouveau total : {formatPrice(avenantResult.totalHT)} HT / {formatPrice(avenantResult.totalTTC)} TTC
                 </p>
@@ -589,8 +589,8 @@ function VoicePageContent() {
         {phase === 'completed' && !comparatifData && !avenantResult && (
           <Card>
             <CardContent className="flex flex-col items-center gap-4 py-6">
-              <CheckCircle className="h-12 w-12 text-green-500" />
-              <p className="font-medium text-green-600 text-lg">Devis cree avec succes !</p>
+              <CheckCircle className="h-12 w-12 text-success" />
+              <p className="font-medium text-success text-lg">Devis cree avec succes !</p>
               <div className="flex gap-3">
                 <Link href="/devis">
                   <Button>{createdDevisId ? 'Voir le devis' : 'Voir mes devis'}</Button>
@@ -614,8 +614,8 @@ function VoicePageContent() {
                     <tr className="border-b">
                       <th className="text-left py-2 pr-4">{t('designation')}</th>
                       <th className="text-center py-2 px-2">{t('quantity')}</th>
-                      <th className="text-right py-2 px-2 text-green-600">{t('eco')}</th>
-                      <th className="text-right py-2 px-2 text-blue-600">{t('standard')}</th>
+                      <th className="text-right py-2 px-2 text-success">{t('eco')}</th>
+                      <th className="text-right py-2 px-2 text-primary">{t('standard')}</th>
                       <th className="text-right py-2 px-2 text-amber-600">{t('premiumLabel')}</th>
                     </tr>
                   </thead>
@@ -627,11 +627,11 @@ function VoicePageContent() {
                         </td>
                         <td className="text-center py-2 px-2">{ligne.quantite}</td>
                         <td className="text-right py-2 px-2">
-                          <div className="text-green-600">{formatPrice(ligne.eco.prix_ht * ligne.quantite)}</div>
+                          <div className="text-success">{formatPrice(ligne.eco.prix_ht * ligne.quantite)}</div>
                           <div className="text-xs text-muted-foreground">{ligne.eco.marque}</div>
                         </td>
                         <td className="text-right py-2 px-2">
-                          <div className="text-blue-600">{formatPrice(ligne.standard.prix_ht * ligne.quantite)}</div>
+                          <div className="text-primary">{formatPrice(ligne.standard.prix_ht * ligne.quantite)}</div>
                           <div className="text-xs text-muted-foreground">{ligne.standard.marque}</div>
                         </td>
                         <td className="text-right py-2 px-2">
@@ -645,15 +645,15 @@ function VoicePageContent() {
                     <tr className="border-t-2 font-semibold">
                       <td className="py-2 pr-4">{t('totalHT')}</td>
                       <td></td>
-                      <td className="text-right py-2 px-2 text-green-600">{formatPrice(comparatifData.totaux.eco.total_ht)}</td>
-                      <td className="text-right py-2 px-2 text-blue-600">{formatPrice(comparatifData.totaux.standard.total_ht)}</td>
+                      <td className="text-right py-2 px-2 text-success">{formatPrice(comparatifData.totaux.eco.total_ht)}</td>
+                      <td className="text-right py-2 px-2 text-primary">{formatPrice(comparatifData.totaux.standard.total_ht)}</td>
                       <td className="text-right py-2 px-2 text-amber-600">{formatPrice(comparatifData.totaux.premium.total_ht)}</td>
                     </tr>
                     <tr className="font-semibold">
                       <td className="py-2 pr-4">{t('totalTTC')}</td>
                       <td></td>
-                      <td className="text-right py-2 px-2 text-green-600">{formatPrice(comparatifData.totaux.eco.total_ttc)}</td>
-                      <td className="text-right py-2 px-2 text-blue-600">{formatPrice(comparatifData.totaux.standard.total_ttc)}</td>
+                      <td className="text-right py-2 px-2 text-success">{formatPrice(comparatifData.totaux.eco.total_ttc)}</td>
+                      <td className="text-right py-2 px-2 text-primary">{formatPrice(comparatifData.totaux.standard.total_ttc)}</td>
                       <td className="text-right py-2 px-2 text-amber-600">{formatPrice(comparatifData.totaux.premium.total_ttc)}</td>
                     </tr>
                   </tfoot>
@@ -694,12 +694,12 @@ function VoicePageContent() {
                   <button
                     type="button"
                     onClick={() => handleFinalizeGamme('eco')}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-950 hover:shadow-md transition-all"
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-success bg-success/10 hover:shadow-md transition-all"
                   >
                     <span className="text-2xl">{'\ud83d\udcb0'}</span>
                     <span className="font-semibold text-sm">{t('eco')}</span>
                     {comparatifData && (
-                      <span className="text-xs font-medium text-green-600">
+                      <span className="text-xs font-medium text-success">
                         {formatPrice(comparatifData.totaux.eco.total_ttc)}
                       </span>
                     )}
@@ -707,12 +707,12 @@ function VoicePageContent() {
                   <button
                     type="button"
                     onClick={() => handleFinalizeGamme('standard')}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 hover:shadow-md transition-all"
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-primary bg-accent hover:shadow-md transition-all"
                   >
                     <span className="text-2xl">{'\u2696\ufe0f'}</span>
                     <span className="font-semibold text-sm">{t('standard')}</span>
                     {comparatifData && (
-                      <span className="text-xs font-medium text-blue-600">
+                      <span className="text-xs font-medium text-primary">
                         {formatPrice(comparatifData.totaux.standard.total_ttc)}
                       </span>
                     )}
