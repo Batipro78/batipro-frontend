@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,12 +14,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
+import { Coachmark, type CoachStep } from '@/components/Coachmark';
 import { api } from '@/lib/api';
 import { colors, fontSize, radius, spacing } from '@/lib/theme';
 
@@ -67,11 +68,14 @@ const CATEGORIE_VARIANT: Record<Categorie, 'default' | 'secondary' | 'success'> 
 };
 
 export default function ClientsScreen() {
+  const params = useLocalSearchParams<{ coach?: string }>();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [showCoach, setShowCoach] = useState(false);
+  const fabRef = useRef<View>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
@@ -97,6 +101,12 @@ export default function ClientsScreen() {
       load();
     }, [load])
   );
+
+  // Coach-mark "Ajoutez un client" déclenché depuis la checklist des premiers pas.
+  // params.coach = nonce unique → se redéclenche à chaque appui depuis la checklist.
+  useEffect(() => {
+    if (params.coach && !loading) setShowCoach(true);
+  }, [params.coach, loading]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clients;
@@ -205,6 +215,16 @@ export default function ClientsScreen() {
     load();
   };
 
+  const coachSteps: CoachStep[] = [
+    {
+      key: 'add-client',
+      title: 'Ajoutez votre 1er client',
+      text: 'Appuyez sur ce bouton pour créer un client (nom, adresse, téléphone). Il sera ensuite sélectionnable dans vos devis.',
+      getTarget: () => fabRef.current,
+      ctaLabel: 'Créer un client',
+    },
+  ];
+
   const renderItem = ({ item }: { item: Client }) => (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.85 }]}
@@ -307,12 +327,24 @@ export default function ClientsScreen() {
       )}
 
       <Pressable
+        ref={fabRef}
+        collapsable={false}
         onPress={openCreate}
         style={({ pressed }) => [styles.fab, pressed && { opacity: 0.85 }]}
         accessibilityLabel="Ajouter un client"
       >
         <Text style={styles.fabPlus}>+</Text>
       </Pressable>
+
+      <Coachmark
+        visible={showCoach}
+        steps={coachSteps}
+        onFinish={() => {
+          setShowCoach(false);
+          openCreate();
+        }}
+        onSkip={() => setShowCoach(false)}
+      />
 
       <ClientFormModal
         visible={modalOpen}

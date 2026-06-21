@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,13 +12,14 @@ import {
   Text,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
 import { Card } from '@/components/Card';
+import { Coachmark, type CoachStep } from '@/components/Coachmark';
 import { DeleteAccountModal } from '@/components/DeleteAccountModal';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -79,6 +80,7 @@ const EMPTY_FORM: FormState = {
 
 export default function ProfilScreen() {
   const { user, logout } = useAuth();
+  const params = useLocalSearchParams<{ coach?: string }>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -87,10 +89,35 @@ export default function ProfilScreen() {
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const obligRef = useRef<View>(null);
+  const obligY = useRef(0);
 
   useEffect(() => {
     loadProfile();
   }, []);
+
+  // Coach-mark "champs obligatoires" déclenché depuis la checklist des premiers pas.
+  // params.coach = nonce unique → se redéclenche à chaque appui depuis la checklist.
+  useEffect(() => {
+    if (params.coach && !loading) setShowCoach(true);
+  }, [params.coach, loading]);
+
+  const coachSteps: CoachStep[] = [
+    {
+      key: 'oblig',
+      title: 'Complétez ces champs',
+      text: 'Renseignez l’entreprise, le SIRET, l’adresse et le téléphone : ils figurent sur tous vos devis. Puis appuyez sur « Enregistrer le profil » en bas.',
+      getTarget: () => obligRef.current,
+      beforeShow: () =>
+        scrollRef.current?.scrollTo({
+          y: Math.max(0, obligY.current - 90),
+          animated: false,
+        }),
+      ctaLabel: 'Compris',
+    },
+  ];
 
   async function loadProfile() {
     try {
@@ -294,6 +321,7 @@ export default function ProfilScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
@@ -427,6 +455,13 @@ export default function ProfilScreen() {
           </Card>
 
           {/* Section obligatoire */}
+          <View
+            ref={obligRef}
+            collapsable={false}
+            onLayout={(e) => {
+              obligY.current = e.nativeEvent.layout.y;
+            }}
+          >
           <Card style={{ gap: spacing.md }}>
             <View style={styles.sectionHeader}>
               <Ionicons name="business" size={20} color={colors.info} />
@@ -497,6 +532,7 @@ export default function ProfilScreen() {
               error={errors.ville}
             />
           </Card>
+          </View>
 
           {/* Section optionnelle */}
           <Card style={{ gap: spacing.md }}>
@@ -597,6 +633,13 @@ export default function ProfilScreen() {
         visible={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         onDeleted={handleAccountDeleted}
+      />
+
+      <Coachmark
+        visible={showCoach}
+        steps={coachSteps}
+        onFinish={() => setShowCoach(false)}
+        onSkip={() => setShowCoach(false)}
       />
     </SafeAreaView>
   );

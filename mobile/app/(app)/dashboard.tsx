@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
+import {
+  fetchOnboardingState,
+  onboarding,
+  type OnboardingState,
+} from '@/lib/onboarding';
+import { PremiersPas, type OnboardingStep } from '@/components/PremiersPas';
 import { colors, spacing, fontSize, radius } from '@/lib/theme';
 
 interface Devis {
@@ -123,6 +129,8 @@ export default function DashboardScreen() {
   const [period, setPeriod] = useState<Period>('month');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [onb, setOnb] = useState<OnboardingState | null>(null);
+  const [onbHidden, setOnbHidden] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -141,6 +149,28 @@ export default function DashboardScreen() {
       setLoading(false);
       setRefreshing(false);
     }
+    // Onboarding (non bloquant) : rafraîchi à chaque focus pour cocher les étapes.
+    void fetchOnboardingState()
+      .then(setOnb)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    void onboarding.isDismissed().then(setOnbHidden);
+  }, []);
+
+  const goToStep = useCallback((s: OnboardingStep) => {
+    // Nonce unique : garantit que le param change à chaque appui, donc que le
+    // coach-mark se redéclenche même en revenant une 2e fois sur l'écran.
+    const n = Date.now();
+    if (s === 'profile') router.push(`/profil?coach=${n}`);
+    else if (s === 'client') router.push(`/clients?coach=${n}`);
+    else router.push(`/devis/nouveau-vocal?coach=${n}`);
+  }, []);
+
+  const dismissOnb = useCallback(() => {
+    setOnbHidden(true);
+    void onboarding.dismiss();
   }, []);
 
   const periodStats = useMemo(() => {
@@ -243,6 +273,15 @@ export default function DashboardScreen() {
             </Text>
             <Text style={styles.greetingSub}>Voici votre activité du moment</Text>
           </View>
+
+          {/* Premiers pas (onboarding) — tant que profil/client/devis pas faits */}
+          {onb && !onb.allDone && !onbHidden ? (
+            <PremiersPas
+              state={onb}
+              onPressStep={goToStep}
+              onDismiss={dismissOnb}
+            />
+          ) : null}
 
           {/* Toggle Mois / Trimestre / Année */}
           <View style={styles.periodToggle}>
