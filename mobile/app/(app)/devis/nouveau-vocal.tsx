@@ -15,12 +15,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
+import { Coachmark, type CoachStep } from '@/components/Coachmark';
 import { api } from '@/lib/api';
 import { GAMMES, Gamme, METIERS, MetierKey } from '@/lib/metiers';
 import { colors, fontSize, radius, spacing } from '@/lib/theme';
@@ -53,7 +54,13 @@ const formatTime = (ms: number) => {
 };
 
 export default function NouveauVocalScreen() {
+  const params = useLocalSearchParams<{ coach?: string }>();
   const [step, setStep] = useState<Step>('config');
+  const [showCoach, setShowCoach] = useState(false);
+  const [profilComplet, setProfilComplet] = useState<boolean | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const metierRef = useRef<View>(null);
+  const micRef = useRef<View>(null);
 
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState<number | null>(null);
@@ -66,6 +73,8 @@ export default function NouveauVocalScreen() {
 
   const [metier, setMetier] = useState<MetierKey>('electricien');
   const [gamme, setGamme] = useState<Gamme>('standard');
+  // Marge appliquee sur le prix MATERIEL (catalogue = prix magasin). 0 par defaut.
+  const [marge, setMarge] = useState<0 | 5 | 10 | 20>(0);
 
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -127,9 +136,51 @@ export default function NouveauVocalScreen() {
     }
   }, [step, pulseAnim]);
 
+  // Coach-mark déclenché depuis la checklist des premiers pas.
+  // params.coach = nonce unique → se redéclenche à chaque appui depuis la checklist.
+  useEffect(() => {
+    if (params.coach) setShowCoach(true);
+  }, [params.coach]);
+
+  // État de complétude du profil pour la bannière douce (prérequis manquant).
+  useEffect(() => {
+    api
+      .get<{ data: { profile: { profil_complet?: boolean } } }>('/profile')
+      .then((r) => setProfilComplet(!!r.data?.profile?.profil_complet))
+      .catch(() => setProfilComplet(null));
+  }, []);
+
   const selectedClient = clients.find((c) => c.id === clientId) ?? null;
   const selectedMetier = METIERS.find((m) => m.key === metier);
   const showGammes = selectedMetier?.hasGammes ?? false;
+
+  const coachSteps: CoachStep[] = [
+    {
+      key: 'metier',
+      title: '1. Votre métier',
+      text: 'Choisissez votre métier : l’IA adapte les prix et le catalogue à votre activité.',
+      getTarget: () => metierRef.current,
+      beforeShow: () => scrollRef.current?.scrollTo({ y: 0, animated: false }),
+    },
+    {
+      key: 'mic',
+      title: '2. Dictez vos travaux',
+      text: 'Touchez ce bouton et parlez normalement. Exemple : « Remplacer 3 prises et poser 2 spots dans la cuisine ». L’IA rédige le devis chiffré.',
+      getTarget: () => micRef.current,
+      beforeShow: () => scrollRef.current?.scrollToEnd({ animated: false }),
+      ctaLabel: 'J’ai compris',
+    },
+  ];
+
+  const needProfile = profilComplet === false;
+  const needClient = clients.length === 0;
+  const prereqMissing = needProfile || needClient;
+  const prereqMsg =
+    needProfile && needClient
+      ? 'Pour un devis valide, complétez votre profil et ajoutez un client.'
+      : needProfile
+        ? 'Pour un devis valide, complétez votre profil.'
+        : 'Pour un devis valide, ajoutez d’abord un client.';
 
   const startRecording = async () => {
     setError(null);
@@ -242,6 +293,7 @@ export default function NouveauVocalScreen() {
       const payload: Record<string, unknown> = {
         text: transcript.trim(),
         metier,
+        marge_materiel: marge,
       };
       if (showGammes) {
         payload.gamme = gamme;
@@ -387,9 +439,41 @@ export default function NouveauVocalScreen() {
 
       {step === 'config' ? (
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
+          {prereqMissing ? (
+            <View style={styles.prereqBox}>
+              <Ionicons
+                name="information-circle"
+                size={18}
+                color={colors.info}
+              />
+              <View style={{ flex: 1, gap: 6 }}>
+                <Text style={styles.prereqText}>{prereqMsg}</Text>
+                <View style={styles.prereqActions}>
+                  {needProfile ? (
+                    <Pressable
+                      onPress={() => router.push(`/profil?coach=${Date.now()}`)}
+                      hitSlop={6}
+                    >
+                      <Text style={styles.prereqLink}>Compléter mon profil</Text>
+                    </Pressable>
+                  ) : null}
+                  {needClient ? (
+                    <Pressable
+                      onPress={() => router.push(`/clients?coach=${Date.now()}`)}
+                      hitSlop={6}
+                    >
+                      <Text style={styles.prereqLink}>Ajouter un client</Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              </View>
+            </View>
+          ) : null}
+
           <Section title="Client" icon="person-outline">
             <Pressable
               onPress={() => {
@@ -436,7 +520,7 @@ export default function NouveauVocalScreen() {
           </Section>
 
           <Section title="Métier" icon="briefcase-outline">
-            <View style={styles.metierGrid}>
+            <View ref={metierRef} collapsable={false} style={styles.metierGrid}>
               {METIERS.map((m) => {
                 const active = m.key === metier;
                 return (
@@ -529,6 +613,46 @@ export default function NouveauVocalScreen() {
             </Section>
           ) : null}
 
+          <Section title="Marge sur le matériel" icon="pricetag-outline">
+            <Text style={styles.margeHint}>
+              Les prix du catalogue sont des prix d’achat (magasin). Ajoutez votre
+              marge sur le matériel.
+            </Text>
+            <View style={styles.margeRow}>
+              {([0, 5, 10, 20] as const).map((m) => {
+                const active = m === marge;
+                return (
+                  <Pressable
+                    key={m}
+                    onPress={() => setMarge(m)}
+                    style={({ pressed }) => [
+                      styles.margeChip,
+                      active && styles.margeChipActive,
+                      pressed && !active && styles.pressedCard,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.margeChipText,
+                        active && styles.margeChipTextActive,
+                      ]}
+                    >
+                      {m === 0 ? 'Aucune' : `+${m}%`}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Section>
+
+          <View style={styles.moReminder}>
+            <Ionicons name="bulb-outline" size={18} color="#92400E" />
+            <Text style={styles.moReminderText}>
+              Pensez à dicter votre main d’œuvre à voix haute. Exemple : « …avec
+              300 € de main d’œuvre ». Sinon le devis ne comptera que le matériel.
+            </Text>
+          </View>
+
           {error ? (
             <View style={styles.errorBox}>
               <Ionicons name="alert-circle" size={16} color={colors.destructive} />
@@ -536,7 +660,7 @@ export default function NouveauVocalScreen() {
             </View>
           ) : null}
 
-          <View style={styles.recordCta}>
+          <View ref={micRef} collapsable={false} style={styles.recordCta}>
             <Pressable
               onPress={startRecording}
               style={({ pressed }) => [
@@ -723,6 +847,13 @@ export default function NouveauVocalScreen() {
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
+
+      <Coachmark
+        visible={showCoach && step === 'config'}
+        steps={coachSteps}
+        onFinish={() => setShowCoach(false)}
+        onSkip={() => setShowCoach(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -1026,6 +1157,50 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
+  margeHint: {
+    fontSize: fontSize.xs,
+    color: colors.mutedForeground,
+    lineHeight: 17,
+    marginBottom: 2,
+  },
+  margeRow: { flexDirection: 'row', gap: spacing.sm },
+  margeChip: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: '#EEF2F7',
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  margeChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: '#F5F3FF',
+  },
+  margeChipText: {
+    fontSize: fontSize.sm,
+    fontWeight: '700',
+    color: colors.foreground,
+  },
+  margeChipTextActive: { color: colors.primary },
+
+  moReminder: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+  },
+  moReminderText: {
+    flex: 1,
+    fontSize: fontSize.sm,
+    color: '#92400E',
+    lineHeight: 19,
+  },
+
   pressedCard: {
     opacity: 0.8,
   },
@@ -1039,6 +1214,24 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   errorText: { color: colors.destructive, fontSize: fontSize.sm, flex: 1 },
+
+  prereqBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+  },
+  prereqText: { color: colors.foreground, fontSize: fontSize.sm, lineHeight: 19 },
+  prereqActions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  prereqLink: {
+    color: colors.primary,
+    fontSize: fontSize.sm,
+    fontWeight: '700',
+  },
 
   recordCta: {
     alignItems: 'center',

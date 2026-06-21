@@ -53,9 +53,9 @@ export const Input = forwardRef<TextInput, Props>(function Input(
             }
           >
             <Ionicons
-              name={visible ? 'eye-off-outline' : 'eye-outline'}
+              name={visible ? 'eye-off' : 'eye'}
               size={22}
-              color={colors.mutedForeground}
+              color={colors.foreground}
             />
           </Pressable>
         )}
