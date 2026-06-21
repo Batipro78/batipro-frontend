@@ -7,9 +7,14 @@ import { AuthProvider } from '@/lib/auth';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function RootLayout() {
-  // Charge la font Ionicons en tache de fond mais ne bloque PAS le rendu de l'app.
-  // Les icones peuvent apparaitre apres un court delai, c'est OK.
-  useFonts(Ionicons.font);
+  // On BLOQUE le rendu tant que la police d'icones (Ionicons) n'est pas chargee.
+  // Sinon, les ecrans montes avant la fin du chargement dessinent des icones VIDES
+  // et ne se re-rendent jamais -> icones blanches partout en build de prod (bug 21/06).
+  // En cas d'erreur de chargement, on affiche quand meme l'app (pas d'ecran blanc).
+  const [fontsLoaded, fontError] = useFonts(Ionicons.font);
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
     <ErrorBoundary>
