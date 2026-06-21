@@ -7,7 +7,6 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing, fontSize } from '@/lib/theme';
 
 interface Props extends TextInputProps {
@@ -52,11 +51,9 @@ export const Input = forwardRef<TextInput, Props>(function Input(
               visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
             }
           >
-            <Ionicons
-              name={visible ? 'eye-off' : 'eye'}
-              size={22}
-              color={colors.foreground}
-            />
+            <Text style={styles.toggleText}>
+              {visible ? 'Masquer' : 'Afficher'}
+            </Text>
           </Pressable>
         )}
       </View>
@@ -83,15 +80,20 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     fontSize: fontSize.base,
   },
-  inputWithIcon: { paddingRight: 48 },
+  inputWithIcon: { paddingRight: 86 },
   inputError: { borderColor: colors.destructive },
   toggle: {
     position: 'absolute',
-    right: spacing.sm,
+    right: spacing.xs,
     height: 48,
-    width: 36,
+    paddingHorizontal: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  toggleText: {
+    color: colors.primary,
+    fontSize: fontSize.sm,
+    fontWeight: '700',
   },
   error: { color: colors.destructive, fontSize: fontSize.xs },
 });
