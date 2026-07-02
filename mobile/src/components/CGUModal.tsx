@@ -153,6 +153,11 @@ const styles = StyleSheet.create({
     color: colors.mutedForeground,
   },
   body: {
+    // flex:1 (+ minHeight:0) = le ScrollView se limite a l'espace dispo dans la carte
+    // et devient scrollable ; sans ca il s'etale sur tout le contenu, deborde la carte
+    // (maxHeight 90%) et pousse le bouton "J'accepte" hors ecran => impossible a valider.
+    flex: 1,
+    minHeight: 0,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
