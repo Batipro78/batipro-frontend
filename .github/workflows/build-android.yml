@@ -7,6 +7,12 @@ name: Build Android AAB (gratuit, hors quota EAS)
 
 on:
   workflow_dispatch: {}
+  # Se declenche aussi automatiquement quand on pousse un tag "build-*"
+  # (ex: git tag build-16 && git push origin build-16) => permet de lancer
+  # le build sans le bouton "Run workflow", sans manipuler de jeton.
+  push:
+    tags:
+      - 'build-*'
 
 jobs:
   build:
