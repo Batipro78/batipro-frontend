@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 // on passe par ce layout pour déclarer le canonical de la page d'inscription,
 // qui figure dans le sitemap et reçoit du trafic publicitaire (paramètres UTM).
 export const metadata: Metadata = {
-  alternates: { canonical: 'https://mondevisminute.com/signup' },
+  alternates: { canonical: 'https://www.mondevisminute.com/signup' },
 };
 
 export default function SignupLayout({ children }: { children: React.ReactNode }) {

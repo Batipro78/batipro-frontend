@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Contactez l'équipe MonDevisMinute. Réponse sous 24h ouvrées. Support, démo, partenariats, presse.",
   robots: { index: true, follow: true },
-  alternates: { canonical: 'https://mondevisminute.com/contact' },
+  alternates: { canonical: 'https://www.mondevisminute.com/contact' },
 };
 
 export default function ContactPage() {

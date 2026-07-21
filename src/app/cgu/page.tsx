@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Conditions Générales d'Utilisation de MonDevisMinute : objet, acceptation, abonnement, RGPD, propriété intellectuelle.",
   robots: { index: true, follow: true },
-  alternates: { canonical: 'https://mondevisminute.com/cgu' },
+  alternates: { canonical: 'https://www.mondevisminute.com/cgu' },
 };
 
 const SECTIONS = [

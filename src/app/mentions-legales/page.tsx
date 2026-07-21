@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Mentions légales de MonDevisMinute : éditeur du site, hébergeur, propriété intellectuelle, contact.',
   robots: { index: true, follow: true },
-  alternates: { canonical: 'https://mondevisminute.com/mentions-legales' },
+  alternates: { canonical: 'https://www.mondevisminute.com/mentions-legales' },
 };
 
 export default function MentionsLegalesPage() {
@@ -31,8 +31,8 @@ export default function MentionsLegalesPage() {
             <h2 className="text-xl font-semibold">1. Éditeur du site</h2>
             <p className="mt-2 text-muted-foreground">
               Le site MonDevisMinute, accessible à l&apos;adresse{' '}
-              <a href="https://mondevisminute.com" className="underline">
-                https://mondevisminute.com
+              <a href="https://www.mondevisminute.com" className="underline">
+                https://www.mondevisminute.com
               </a>
               , est édité par :
             </p>

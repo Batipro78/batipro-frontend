@@ -4,7 +4,7 @@ import GuideShell from '@/components/guides/GuideShell';
 import { guides } from '@/content/guides';
 import { readingMinutes } from '@/lib/guides';
 
-const BASE = 'https://mondevisminute.com';
+const BASE = 'https://www.mondevisminute.com';
 
 export const metadata: Metadata = {
   title: { absolute: 'Guides pour artisans : devis, factures, TVA et obligations' },

@@ -20,6 +20,6 @@ export default function robots(): MetadataRoute.Robots {
         '/admin',
       ],
     },
-    sitemap: 'https://mondevisminute.com/sitemap.xml',
+    sitemap: 'https://www.mondevisminute.com/sitemap.xml',
   };
 }

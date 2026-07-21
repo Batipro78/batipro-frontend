@@ -18,7 +18,7 @@ import type { Metadata } from 'next';
 // Le titre et la description viennent du layout racine ; on ne redéfinit ici
 // que le canonical, qui n'est plus déclaré globalement.
 export const metadata: Metadata = {
-  alternates: { canonical: 'https://mondevisminute.com' },
+  alternates: { canonical: 'https://www.mondevisminute.com' },
 };
 
 export default function Home() {

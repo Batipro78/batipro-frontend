@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     'Politique de confidentialité de MonDevisMinute. Comment nous protégeons vos données personnelles conformément au RGPD.',
   robots: { index: true, follow: true },
-  alternates: { canonical: 'https://mondevisminute.com/confidentialite' },
+  alternates: { canonical: 'https://www.mondevisminute.com/confidentialite' },
 };
 
 export default function ConfidentialitePage() {

@@ -6,7 +6,7 @@ import GuideBody from '@/components/guides/GuideBody';
 import { guides, getGuide, getRelated } from '@/content/guides';
 import { readingMinutes, tableOfContents } from '@/lib/guides';
 
-const BASE = 'https://mondevisminute.com';
+const BASE = 'https://www.mondevisminute.com';
 
 export const dynamicParams = false;
 

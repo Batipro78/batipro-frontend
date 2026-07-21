@@ -10,7 +10,7 @@ const inter = Inter({ weight: '400', variable: '--font-inter', subsets: ['latin'
 const interTight = Inter_Tight({ weight: '600', variable: '--font-inter-tight', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://mondevisminute.com'),
+  metadataBase: new URL('https://www.mondevisminute.com'),
   title: {
     default: 'MonDevisMinute — Devis BTP en 30 secondes par dictée vocale',
     template: '%s | MonDevisMinute',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://mondevisminute.com',
+    url: 'https://www.mondevisminute.com',
     title: 'MonDevisMinute — Devis BTP en 30 secondes',
     description:
       "Devis et factures pour artisans en moins de 30 secondes par dictée vocale. 14 métiers BTP. Essai 14 jours gratuit sans CB.",
