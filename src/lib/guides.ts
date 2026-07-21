@@ -32,7 +32,14 @@ export interface Guide {
   metaDescription: string;
   /** Chapô affiché sous le H1 et repris comme résumé dans la liste. */
   excerpt: string;
-  category: 'Obligations légales' | 'Fiscalité' | 'Chiffrage' | 'Se faire payer' | 'Vendre plus';
+  category:
+    | 'Obligations légales'
+    | 'Fiscalité'
+    | 'Chiffrage'
+    | 'Se faire payer'
+    | 'Vendre plus'
+    | 'Statut & assurances'
+    | 'Aides & subventions';
   /** Date de dernière mise à jour, format ISO (AAAA-MM-JJ). */
   updated: string;
   blocks: GuideBlock[];

@@ -96,7 +96,7 @@ export const guide: Guide = {
     },
     {
       type: 'p',
-      text: "Le taux de 5,5 % s’étend aussi aux travaux induits, c’est-à-dire aux travaux indissociablement liés à l’opération d’amélioration énergétique. Si vous isolez par l’intérieur, la reprise des cloisons, des plinthes, de l’électricité déplacée et des finitions de peinture sur les surfaces concernées suit le même taux. C’est une règle favorable et largement sous-exploitée : beaucoup d’artisans facturent l’isolation à 5,5 % et toutes les reprises à 10 % par excès de prudence, ce qui pénalise leur devis face à un concurrent mieux informé.",
+      text: "Ces mêmes chantiers ouvrent souvent droit à des aides, dont le dossier impose ses propres exigences de rédaction : voyez [Devis MaPrimeRénov et CEE](/guides/devis-maprimerenov-cee). Le taux de 5,5 % s’étend aussi aux travaux induits, c’est-à-dire aux travaux indissociablement liés à l’opération d’amélioration énergétique. Si vous isolez par l’intérieur, la reprise des cloisons, des plinthes, de l’électricité déplacée et des finitions de peinture sur les surfaces concernées suit le même taux. C’est une règle favorable et largement sous-exploitée : beaucoup d’artisans facturent l’isolation à 5,5 % et toutes les reprises à 10 % par excès de prudence, ce qui pénalise leur devis face à un concurrent mieux informé.",
     },
     {
       type: 'p',

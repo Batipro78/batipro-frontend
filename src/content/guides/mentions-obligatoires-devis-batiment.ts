@@ -64,7 +64,7 @@ export const guide: Guide = {
     { type: 'h3', text: 'Les travaux couverts par une aide publique' },
     {
       type: 'p',
-      text: "Rénovation énergétique aidée, dispositifs type MaPrimeRénov' ou certificats d’économies d’énergie : l’organisme financeur exige systématiquement un devis conforme et détaillé, souvent avec des mentions techniques précises (marque, référence et performance des matériaux posés). Un devis trop vague fait rejeter le dossier de votre client, et c’est vous qu’il appellera.",
+      text: "Rénovation énergétique aidée, dispositifs type MaPrimeRénov' ou certificats d’économies d’énergie : l’organisme financeur exige systématiquement un devis conforme et détaillé, souvent avec des mentions techniques précises (marque, référence et performance des matériaux posés). Un devis trop vague fait rejeter le dossier de votre client, et c’est vous qu’il appellera. Nous détaillons ce que ces devis doivent contenir dans notre guide [Devis MaPrimeRénov et CEE](/guides/devis-maprimerenov-cee).",
     },
     {
       type: 'p',
