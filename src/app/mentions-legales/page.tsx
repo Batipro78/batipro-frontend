@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description:
     'Mentions légales de MonDevisMinute : éditeur du site, hébergeur, propriété intellectuelle, contact.',
   robots: { index: true, follow: true },
+  alternates: { canonical: 'https://mondevisminute.com/mentions-legales' },
 };
 
 export default function MentionsLegalesPage() {

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description:
     'Comment supprimer votre compte MonDevisMinute et vos données personnelles, directement dans l’application ou sur simple demande par email.',
   robots: { index: true, follow: true },
+  alternates: { canonical: 'https://mondevisminute.com/suppression-compte' },
 };
 
 export default function SuppressionComptePage() {

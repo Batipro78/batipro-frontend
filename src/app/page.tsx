@@ -13,6 +13,13 @@ import LandingCTA from '@/components/landing/LandingCTA';
 import LandingFooter from '@/components/landing/LandingFooter';
 import DeferredLandingExtras from '@/components/landing/DeferredLandingExtras';
 import { VisitBeacon } from '@/components/VisitBeacon';
+import type { Metadata } from 'next';
+
+// Le titre et la description viennent du layout racine ; on ne redéfinit ici
+// que le canonical, qui n'est plus déclaré globalement.
+export const metadata: Metadata = {
+  alternates: { canonical: 'https://mondevisminute.com' },
+};
 
 export default function Home() {
   return (

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description:
     "Comment envoyer vos factures BTP au format Factur-X (facture électronique obligatoire en France) en quelques minutes. Pas besoin de modifier vos PDF existants.",
   robots: { index: true, follow: true },
+  alternates: { canonical: 'https://mondevisminute.com/facture-electronique' },
 };
 
 interface Pdp {

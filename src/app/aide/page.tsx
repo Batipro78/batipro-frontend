@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   description:
     'Centre d\'aide MonDevisMinute : questions fréquentes, contact support, guide de prise en main pour les artisans du bâtiment.',
   robots: { index: true, follow: true },
+  alternates: { canonical: 'https://mondevisminute.com/aide' },
 };
 
 const FAQ: { q: string; a: string }[] = [

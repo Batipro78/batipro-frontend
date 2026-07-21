@@ -58,9 +58,10 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: 'https://mondevisminute.com',
-  },
+  // Pas de `alternates.canonical` ici : une valeur définie dans le layout racine
+  // est héritée par TOUTES les pages qui n'en déclarent pas, ce qui revient à
+  // déclarer chaque page comme un doublon de l'accueil. Chaque page publique
+  // définit donc son propre canonical.
   verification: {
     google: 'QxU3v4fcs4iHa9a9uYOFkAJAL25l4bp0C8Jq0hkJ_bA',
   },

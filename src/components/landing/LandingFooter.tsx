@@ -5,7 +5,7 @@ export default function LandingFooter() {
   return (
     <footer className="border-t border-border bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-8">
           <div className="col-span-2">
             <div className="flex items-center gap-2">
               <BrandPicto size={36} className="rounded-xl" />
@@ -26,6 +26,17 @@ export default function LandingFooter() {
               <li><a href="#fonctionnalites" className="hover:text-foreground transition">Fonctionnalités</a></li>
               <li><a href="#metiers" className="hover:text-foreground transition">Métiers couverts</a></li>
               <li><a href="#tarifs" className="hover:text-foreground transition">Tarifs</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-foreground mb-3">Guides</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/guides" className="hover:text-foreground transition">Tous les guides</Link></li>
+              <li><Link href="/guides/mentions-obligatoires-devis-batiment" className="hover:text-foreground transition">Mentions obligatoires du devis</Link></li>
+              <li><Link href="/guides/taux-tva-travaux-renovation" className="hover:text-foreground transition">Quel taux de TVA appliquer</Link></li>
+              <li><Link href="/guides/facturation-electronique-artisan-2026" className="hover:text-foreground transition">Facturation électronique</Link></li>
+              <li><Link href="/guides/chiffrer-un-devis-btp" className="hover:text-foreground transition">Chiffrer un devis</Link></li>
             </ul>
           </div>
 
