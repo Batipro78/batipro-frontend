@@ -36,6 +36,9 @@ export default function LandingNav() {
           <a href="#fonctionnalites" className="hover:text-foreground transition">Fonctionnalités</a>
           <a href="#metiers" className="hover:text-foreground transition">Métiers</a>
           <a href="#tarifs" className="hover:text-foreground transition">Tarifs</a>
+          <Link href="/generateur-devis" className="font-semibold text-violet-700 hover:text-violet-900 transition">
+            Outils gratuits
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">

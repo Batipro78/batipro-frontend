@@ -92,6 +92,17 @@ export default function LandingHero() {
             </Button>
           </div>
 
+          {/* Accès direct aux outils gratuits (générateur + modèles), visible mobile ET desktop */}
+          <div className="animate-fade-up delay-300 mt-5 flex justify-center">
+            <Link
+              href="/generateur-devis"
+              className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-5 py-2.5 text-sm font-semibold text-violet-700 transition hover:bg-violet-100 hover:shadow-sm"
+            >
+              Pas encore prêt ? Faites un devis gratuit en ligne, sans inscription
+              <ArrowRight className="hidden w-4 h-4 sm:inline" />
+            </Link>
+          </div>
+
           <div className="animate-fade-up delay-400 mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <Check className="w-4 h-4 text-success" />
