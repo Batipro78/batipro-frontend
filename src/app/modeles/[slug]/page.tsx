@@ -5,7 +5,7 @@ import GuideShell from '@/components/guides/GuideShell';
 import { allModeleSlugs, getModelePage, modeles } from '@/content/modeles';
 import { docxFileName, formatEuros, totalHT } from '@/lib/modeles';
 import { getGuide } from '@/content/guides';
-import { METIER_LABEL } from '@/lib/metiers';
+import { METIER_LABEL, METIER_ICON, metierBadgeClass } from '@/lib/metiers';
 
 const BASE = 'https://www.mondevisminute.com';
 
@@ -54,6 +54,7 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
   const { type, modele } = page;
   const url = `${BASE}/modeles/${slug}`;
   const estDevis = type === 'devis';
+  const IconeMetier = METIER_ICON[modele.metier];
 
   const titre = estDevis ? modele.titreDevis : modele.titreFacture;
   const h1 = estDevis ? modele.h1Devis : modele.h1Facture;
@@ -119,26 +120,39 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
           <span className="text-foreground">{titre}</span>
         </nav>
 
-        <p className="mt-8 text-sm font-semibold uppercase tracking-wide text-violet-600">
-          {METIER_LABEL[modele.metier]} · Modèle gratuit
-        </p>
-        <h1 className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
-          {h1}
-        </h1>
-        <p className="mt-5 text-lg leading-8 text-muted-foreground">{excerpt}</p>
+        {/* Bandeau coloré : dégradé violet→bleu + icône du métier en tuile pleine */}
+        <header className="mt-8 rounded-3xl border border-violet-100 bg-gradient-to-br from-violet-50 via-white to-sky-50 p-6 sm:p-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-500 text-white shadow-md">
+              <IconeMetier className="h-6 w-6" />
+            </span>
+            <span
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${metierBadgeClass(modele.metier)}`}
+            >
+              {METIER_LABEL[modele.metier]}
+            </span>
+            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+              100 % gratuit
+            </span>
+          </div>
+          <h1 className="mt-5 font-display text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+            {h1}
+          </h1>
+          <p className="mt-4 text-lg leading-8 text-muted-foreground">{excerpt}</p>
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <a
-            href={fichier}
-            download
-            className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-6 py-3 font-semibold text-white transition hover:bg-violet-700"
-          >
-            Télécharger le modèle Word (gratuit)
-          </a>
-          <span className="text-sm text-muted-foreground">
-            Format .docx — s&apos;ouvre avec Word, LibreOffice ou Google&nbsp;Docs
-          </span>
-        </div>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <a
+              href={fichier}
+              download
+              className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-200 transition hover:from-violet-700 hover:to-indigo-700"
+            >
+              Télécharger le modèle Word (gratuit)
+            </a>
+            <span className="text-sm text-muted-foreground">
+              Format .docx — s&apos;ouvre avec Word, LibreOffice ou Google&nbsp;Docs
+            </span>
+          </div>
+        </header>
 
         <article className="mt-12">
           {intro.map((p) => (
@@ -147,7 +161,7 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
             </p>
           ))}
 
-          <h2 className="mt-12 font-display text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="mt-12 border-l-4 border-violet-500 pl-4 font-display text-2xl font-bold tracking-tight text-foreground">
             Un exemple de chiffrage inclus dans le modèle
           </h2>
           <p className="mt-4 leading-8 text-muted-foreground">
@@ -155,15 +169,15 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
             métier, avec unité, quantité et prix unitaire HT. Les prix sont indicatifs :
             remplacez-les par les vôtres.
           </p>
-          <div className="mt-6 overflow-x-auto rounded-xl border border-border">
+          <div className="mt-6 overflow-x-auto rounded-xl border border-violet-200">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/40 text-left">
-                  <th className="px-4 py-3 font-semibold text-foreground">Désignation</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Unité</th>
-                  <th className="px-4 py-3 text-right font-semibold text-foreground">Qté</th>
-                  <th className="px-4 py-3 text-right font-semibold text-foreground">PU HT</th>
-                  <th className="px-4 py-3 text-right font-semibold text-foreground">Total HT</th>
+                <tr className="border-b border-violet-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-left">
+                  <th className="px-4 py-3 font-semibold text-white">Désignation</th>
+                  <th className="px-4 py-3 font-semibold text-white">Unité</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white">Qté</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white">PU HT</th>
+                  <th className="px-4 py-3 text-right font-semibold text-white">Total HT</th>
                 </tr>
               </thead>
               <tbody>
@@ -182,11 +196,11 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
                     </td>
                   </tr>
                 ))}
-                <tr className="bg-muted/30">
-                  <td colSpan={4} className="px-4 py-3 text-right font-semibold text-foreground">
+                <tr className="bg-violet-50">
+                  <td colSpan={4} className="px-4 py-3 text-right font-semibold text-violet-900">
                     Total HT de l&apos;exemple
                   </td>
-                  <td className="px-4 py-3 text-right font-bold text-foreground">
+                  <td className="px-4 py-3 text-right font-bold text-violet-900">
                     {formatEuros(totalHT(modele.lignes))}
                   </td>
                 </tr>
@@ -207,7 +221,7 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
 
           {estDevis && (
             <>
-              <h2 className="mt-12 font-display text-2xl font-bold tracking-tight text-foreground">
+              <h2 className="mt-12 border-l-4 border-violet-500 pl-4 font-display text-2xl font-bold tracking-tight text-foreground">
                 {modele.specTitreDevis}
               </h2>
               {modele.specDevis.map((p) => (
@@ -218,7 +232,7 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
             </>
           )}
 
-          <h2 className="mt-12 font-display text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="mt-12 border-l-4 border-violet-500 pl-4 font-display text-2xl font-bold tracking-tight text-foreground">
             Les mentions déjà en place dans le modèle
           </h2>
           <p className="mt-4 leading-8 text-muted-foreground">
@@ -247,11 +261,11 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
             ces cas un par un.
           </p>
 
-          <div className="mt-12 rounded-2xl border border-violet-200 bg-violet-50/60 p-6">
-            <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
+          <div className="mt-12 rounded-2xl bg-gradient-to-br from-violet-600 via-violet-700 to-indigo-700 p-6 text-white shadow-xl shadow-violet-200 sm:p-8">
+            <h2 className="font-display text-xl font-bold tracking-tight">
               Le même document, rempli en 30 secondes à la voix
             </h2>
-            <p className="mt-3 leading-7 text-muted-foreground">
+            <p className="mt-3 leading-7 text-violet-100">
               Un modèle Word, c&apos;est bien pour démarrer. Mais chaque document reste à
               remplir à la main : lignes, prix, TVA, totaux, numérotation. MonDevisMinute
               génère le même document en le dictant depuis le chantier — mentions légales à
@@ -260,7 +274,7 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
             </p>
             <Link
               href="/signup"
-              className="mt-4 inline-flex items-center justify-center rounded-lg bg-violet-600 px-5 py-2.5 font-semibold text-white transition hover:bg-violet-700"
+              className="mt-5 inline-flex items-center justify-center rounded-xl bg-white px-5 py-2.5 font-semibold text-violet-700 shadow-md transition hover:bg-violet-50"
             >
               Essayer gratuitement
             </Link>
@@ -268,13 +282,16 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
         </article>
 
         <section className="mt-16">
-          <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="border-l-4 border-violet-500 pl-4 font-display text-2xl font-bold tracking-tight text-foreground">
             Questions fréquentes
           </h2>
           <dl className="mt-6 space-y-6">
             {faq.map((item) => (
-              <div key={item.q} className="rounded-xl border border-border p-5">
-                <dt className="font-display font-bold text-foreground">{item.q}</dt>
+              <div
+                key={item.q}
+                className="rounded-xl border border-border border-l-4 border-l-sky-400 bg-sky-50/40 p-5"
+              >
+                <dt className="font-display font-bold text-sky-950">{item.q}</dt>
                 <dd className="mt-2 leading-8 text-muted-foreground">{item.a}</dd>
               </div>
             ))}
@@ -282,7 +299,7 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
         </section>
 
         <section className="mt-16">
-          <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="border-l-4 border-violet-500 pl-4 font-display text-2xl font-bold tracking-tight text-foreground">
             À voir aussi
           </h2>
           <ul className="mt-6 space-y-3">
@@ -326,7 +343,7 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
                 <Link
                   key={m.metier}
                   href={`/modeles/${type}-${m.metier}`}
-                  className="rounded-full border border-border px-4 py-1.5 text-sm text-muted-foreground transition hover:border-violet-300 hover:text-violet-700"
+                  className={`rounded-full border px-4 py-1.5 text-sm font-medium transition hover:shadow-sm ${metierBadgeClass(m.metier)}`}
                 >
                   {METIER_LABEL[m.metier]}
                 </Link>

@@ -15,17 +15,25 @@ export default function GuideShell({ children }: { children: React.ReactNode }) 
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2">
             <BrandPicto size={32} className="rounded-lg shadow-sm" />
-            <span className="font-display text-lg font-bold tracking-tight text-foreground">
+            {/* Masqué sur mobile : avec 3 liens + CTA à droite, le wordmark faisait
+                déborder la barre sous ~400px (le picto suffit à identifier la marque). */}
+            <span className="hidden font-display text-lg font-bold tracking-tight text-foreground sm:inline">
               MonDevisMinute
             </span>
           </Link>
 
-          <div className="flex items-center gap-5 text-sm font-medium">
+          <div className="flex items-center gap-3 text-sm font-medium sm:gap-5">
             <Link href="/guides" className="text-muted-foreground transition hover:text-foreground">
               Guides
             </Link>
             <Link href="/modeles" className="text-muted-foreground transition hover:text-foreground">
               Modèles
+            </Link>
+            <Link
+              href="/generateur-devis"
+              className="hidden text-muted-foreground transition hover:text-foreground sm:inline"
+            >
+              Générateur
             </Link>
             <Link
               href="/signup"
@@ -64,6 +72,7 @@ export default function GuideShell({ children }: { children: React.ReactNode }) 
             <Link href="/" className="transition hover:text-foreground">Accueil</Link>
             <Link href="/guides" className="transition hover:text-foreground">Guides</Link>
             <Link href="/modeles" className="transition hover:text-foreground">Modèles</Link>
+            <Link href="/generateur-devis" className="transition hover:text-foreground">Générateur de devis</Link>
             <Link href="/aide" className="transition hover:text-foreground">Aide</Link>
             <Link href="/contact" className="transition hover:text-foreground">Contact</Link>
             <Link href="/mentions-legales" className="transition hover:text-foreground">Mentions légales</Link>

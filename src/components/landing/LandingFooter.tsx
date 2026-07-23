@@ -43,6 +43,7 @@ export default function LandingFooter() {
           <div>
             <h4 className="text-sm font-bold text-foreground mb-3">Modèles gratuits</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/generateur-devis" className="hover:text-foreground transition">Générateur de devis gratuit</Link></li>
               <li><Link href="/modeles" className="hover:text-foreground transition">Tous les modèles</Link></li>
               <li><Link href="/modeles/devis-electricien" className="hover:text-foreground transition">Modèle devis électricien</Link></li>
               <li><Link href="/modeles/devis-plombier" className="hover:text-foreground transition">Modèle devis plombier</Link></li>

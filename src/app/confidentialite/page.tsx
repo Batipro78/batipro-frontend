@@ -25,7 +25,7 @@ export default function ConfidentialitePage() {
           Politique de confidentialité
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Dernière mise à jour : 11 mai 2026
+          Dernière mise à jour : 23 juillet 2026
         </p>
 
         <div className="prose prose-slate mt-8 max-w-none">
@@ -65,6 +65,15 @@ export default function ConfidentialitePage() {
             <li>
               <strong>Données techniques</strong> : journaux de connexion, adresse IP,
               user-agent, identifiants de session.
+            </li>
+            <li>
+              <strong>Outils publics gratuits</strong> (générateur de devis en ligne) : ce que
+              vous saisissez dans le formulaire n&apos;est pas transmis à nos serveurs — le PDF
+              est créé dans votre navigateur. Nous enregistrons uniquement un compteur
+              d&apos;utilisations associé à votre adresse IP sous forme hachée (irréversible),
+              conservé 30 jours glissants, dans le seul but de limiter l&apos;usage abusif de
+              l&apos;outil gratuit. Un compteur local est également stocké dans votre navigateur
+              (stockage local, pas un cookie de suivi).
             </li>
             <li>
               <strong>Données vocales</strong> : enregistrements audio temporaires lorsque vous

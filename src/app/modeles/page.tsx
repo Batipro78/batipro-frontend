@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideShell from '@/components/guides/GuideShell';
 import { modeles } from '@/content/modeles';
-import { METIER_LABEL } from '@/lib/metiers';
+import { METIER_LABEL, METIER_ICON, metierBadgeClass } from '@/lib/metiers';
 
 const BASE = 'https://www.mondevisminute.com';
 
@@ -78,56 +78,90 @@ export default function ModelesPage() {
           <span className="text-foreground">Modèles</span>
         </nav>
 
-        <h1 className="mt-8 font-display text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
+        <div className="mt-8 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-semibold text-violet-700">
+            28 modèles Word
+          </span>
+          <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
+            100 % gratuit, sans inscription
+          </span>
+        </div>
+        <h1 className="mt-4 font-display text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
           Modèles de devis et de factures gratuits pour artisans
         </h1>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
           Un modèle Word par métier, prêt à remplir : tableau de chiffrage avec des lignes
           d&apos;exemple réalistes, mentions obligatoires déjà en place, totaux HT, TVA et TTC.
           Téléchargez le vôtre, remplacez les exemples par votre chantier, c&apos;est prêt.
-          Gratuit, sans inscription.
+          Gratuit, sans inscription. Pressé ? Notre{' '}
+          <Link
+            href="/generateur-devis"
+            className="font-medium text-violet-700 underline underline-offset-2 hover:text-violet-900"
+          >
+            générateur de devis en ligne
+          </Link>{' '}
+          fait le PDF à votre place, calculs de TVA compris.
         </p>
 
-        <div className="mt-12 space-y-10">
-          {modeles.map((m) => (
-            <section
-              key={m.metier}
-              className="rounded-2xl border border-border p-6 transition hover:border-violet-200"
-            >
-              <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
-                {METIER_LABEL[m.metier]}
-              </h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Link
-                  href={`/modeles/devis-${m.metier}`}
-                  className="group flex flex-col rounded-xl border border-border p-4 transition hover:border-violet-300 hover:shadow-sm"
-                >
-                  <span className="font-display font-bold text-foreground transition group-hover:text-violet-700">
-                    {m.titreDevis}
+        <div className="mt-12 space-y-8">
+          {modeles.map((m) => {
+            const Icone = METIER_ICON[m.metier];
+            return (
+              <section
+                key={m.metier}
+                className="rounded-2xl border border-violet-100 bg-gradient-to-br from-white via-white to-violet-50/60 p-6 shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-500 text-white shadow-md">
+                    <Icone className="h-5 w-5" />
                   </span>
-                  <span className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Modèle Word gratuit avec lignes d&apos;exemple chiffrées et mentions
-                    obligatoires.
+                  <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
+                    {METIER_LABEL[m.metier]}
+                  </h2>
+                  <span
+                    className={`ml-auto hidden items-center rounded-full border px-3 py-1 text-xs font-semibold sm:inline-flex ${metierBadgeClass(m.metier)}`}
+                  >
+                    2 modèles
                   </span>
-                </Link>
-                <Link
-                  href={`/modeles/facture-${m.metier}`}
-                  className="group flex flex-col rounded-xl border border-border p-4 transition hover:border-violet-300 hover:shadow-sm"
-                >
-                  <span className="font-display font-bold text-foreground transition group-hover:text-violet-700">
-                    {m.titreFacture}
-                  </span>
-                  <span className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Modèle Word gratuit : numérotation, TVA, conditions de règlement.
-                  </span>
-                </Link>
-              </div>
-            </section>
-          ))}
+                </div>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <Link
+                    href={`/modeles/devis-${m.metier}`}
+                    className="group flex flex-col rounded-xl border border-border border-l-4 border-l-violet-500 bg-white p-4 transition hover:border-violet-300 hover:shadow-md"
+                  >
+                    <span className="text-xs font-bold uppercase tracking-wide text-violet-600">
+                      Devis
+                    </span>
+                    <span className="mt-1 font-display font-bold text-foreground transition group-hover:text-violet-700">
+                      {m.titreDevis}
+                    </span>
+                    <span className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Modèle Word gratuit avec lignes d&apos;exemple chiffrées et mentions
+                      obligatoires.
+                    </span>
+                  </Link>
+                  <Link
+                    href={`/modeles/facture-${m.metier}`}
+                    className="group flex flex-col rounded-xl border border-border border-l-4 border-l-sky-500 bg-white p-4 transition hover:border-sky-300 hover:shadow-md"
+                  >
+                    <span className="text-xs font-bold uppercase tracking-wide text-sky-600">
+                      Facture
+                    </span>
+                    <span className="mt-1 font-display font-bold text-foreground transition group-hover:text-sky-700">
+                      {m.titreFacture}
+                    </span>
+                    <span className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Modèle Word gratuit : numérotation, TVA, conditions de règlement.
+                    </span>
+                  </Link>
+                </div>
+              </section>
+            );
+          })}
         </div>
 
         <section className="mt-16 max-w-3xl">
-          <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="border-l-4 border-violet-500 pl-4 font-display text-2xl font-bold tracking-tight text-foreground">
             Pourquoi un modèle par métier ?
           </h2>
           <p className="mt-4 leading-8 text-muted-foreground">
