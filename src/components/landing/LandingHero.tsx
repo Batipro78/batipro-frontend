@@ -50,7 +50,7 @@ export default function LandingHero() {
         <div className="text-center max-w-4xl mx-auto">
           <div className="animate-fade-up inline-flex items-center gap-2 rounded-full bg-white/90 backdrop-blur text-primary px-4 py-1.5 text-xs font-bold mb-8 border border-primary/20 shadow-sm">
             <Sparkles className="w-3.5 h-3.5" />
-            Programme bêta privée · Accès anticipé
+            Essai gratuit 14 jours · sans carte bancaire
           </div>
 
           <h1 className="animate-fade-up delay-100 font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight text-foreground leading-[1.02]">
