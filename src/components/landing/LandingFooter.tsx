@@ -5,7 +5,7 @@ export default function LandingFooter() {
   return (
     <footer className="border-t border-border bg-white">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-7 gap-8">
           <div className="col-span-2">
             <div className="flex items-center gap-2">
               <BrandPicto size={36} className="rounded-xl" />
@@ -37,6 +37,17 @@ export default function LandingFooter() {
               <li><Link href="/guides/taux-tva-travaux-renovation" className="hover:text-foreground transition">Quel taux de TVA appliquer</Link></li>
               <li><Link href="/guides/facturation-electronique-artisan-2026" className="hover:text-foreground transition">Facturation électronique</Link></li>
               <li><Link href="/guides/chiffrer-un-devis-btp" className="hover:text-foreground transition">Chiffrer un devis</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold text-foreground mb-3">Modèles gratuits</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/modeles" className="hover:text-foreground transition">Tous les modèles</Link></li>
+              <li><Link href="/modeles/devis-electricien" className="hover:text-foreground transition">Modèle devis électricien</Link></li>
+              <li><Link href="/modeles/devis-plombier" className="hover:text-foreground transition">Modèle devis plombier</Link></li>
+              <li><Link href="/modeles/devis-macon" className="hover:text-foreground transition">Modèle devis maçonnerie</Link></li>
+              <li><Link href="/modeles/facture-electricien" className="hover:text-foreground transition">Modèle facture artisan</Link></li>
             </ul>
           </div>
 

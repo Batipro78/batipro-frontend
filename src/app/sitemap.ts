@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { guides } from '@/content/guides';
+import { allModeleSlugs } from '@/content/modeles';
 
 const BASE = 'https://www.mondevisminute.com';
 
@@ -9,6 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const pages: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: now, changeFrequency: 'weekly', priority: 1.0 },
     { url: `${BASE}/guides`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/modeles`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/signup`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/facture-electronique`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/aide`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
@@ -29,5 +31,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...pages, ...guidePages];
+  // Les 28 pages de modèles téléchargeables (devis + facture par métier).
+  const modelePages: MetadataRoute.Sitemap = allModeleSlugs().map((slug) => ({
+    url: `${BASE}/modeles/${slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  }));
+
+  return [...pages, ...guidePages, ...modelePages];
 }

@@ -24,6 +24,9 @@ export default function GuideShell({ children }: { children: React.ReactNode }) 
             <Link href="/guides" className="text-muted-foreground transition hover:text-foreground">
               Guides
             </Link>
+            <Link href="/modeles" className="text-muted-foreground transition hover:text-foreground">
+              Modèles
+            </Link>
             <Link
               href="/signup"
               className="rounded-lg bg-violet-600 px-4 py-2 font-semibold text-white transition hover:bg-violet-700"
@@ -60,6 +63,7 @@ export default function GuideShell({ children }: { children: React.ReactNode }) 
           <nav className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href="/" className="transition hover:text-foreground">Accueil</Link>
             <Link href="/guides" className="transition hover:text-foreground">Guides</Link>
+            <Link href="/modeles" className="transition hover:text-foreground">Modèles</Link>
             <Link href="/aide" className="transition hover:text-foreground">Aide</Link>
             <Link href="/contact" className="transition hover:text-foreground">Contact</Link>
             <Link href="/mentions-legales" className="transition hover:text-foreground">Mentions légales</Link>

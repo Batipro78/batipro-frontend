@@ -1,0 +1,150 @@
+{
+  "_note": "Lignes d'exemple par métier. Prix HT indicatifs 2026, à adapter par l'artisan. TVA indicative : 10 % rénovation logement > 2 ans, 20 % sinon. Source partagée entre les pages /modeles et le script scripts/generate-modeles-docx.cjs.",
+  "electricien": {
+    "label": "Électricien",
+    "lignes": [
+      { "designation": "Remplacement tableau électrique 2 rangées (26 modules), raccordement et repérage des circuits", "unite": "forfait", "quantite": 1, "prixUnitaire": 1450, "tva": 10 },
+      { "designation": "Interrupteur différentiel 30 mA type A — fourniture et pose", "unite": "unité", "quantite": 2, "prixUnitaire": 160, "tva": 10 },
+      { "designation": "Point lumineux DCL — fourniture et pose", "unite": "unité", "quantite": 6, "prixUnitaire": 95, "tva": 10 },
+      { "designation": "Prise 2P+T 16 A encastrée — fourniture et pose", "unite": "unité", "quantite": 12, "prixUnitaire": 78, "tva": 10 },
+      { "designation": "Ligne spécialisée 32 A (plaque de cuisson)", "unite": "unité", "quantite": 1, "prixUnitaire": 210, "tva": 10 },
+      { "designation": "Mise à la terre : piquet, barrette et liaison équipotentielle", "unite": "forfait", "quantite": 1, "prixUnitaire": 480, "tva": 10 },
+      { "designation": "Main-d'œuvre complémentaire", "unite": "heure", "quantite": 4, "prixUnitaire": 55, "tva": 10 }
+    ]
+  },
+  "plombier": {
+    "label": "Plombier-Chauffagiste",
+    "lignes": [
+      { "designation": "Remplacement chauffe-eau électrique 200 L — dépose, fourniture et pose, groupe de sécurité neuf", "unite": "forfait", "quantite": 1, "prixUnitaire": 1350, "tva": 10 },
+      { "designation": "WC suspendu avec bâti-support — fourniture et pose", "unite": "forfait", "quantite": 1, "prixUnitaire": 980, "tva": 10 },
+      { "designation": "Mitigeur thermostatique de douche — fourniture et pose", "unite": "unité", "quantite": 1, "prixUnitaire": 260, "tva": 10 },
+      { "designation": "Reprise d'alimentation en PER depuis nourrice (salle de bains)", "unite": "forfait", "quantite": 1, "prixUnitaire": 720, "tva": 10 },
+      { "designation": "Évacuation PVC Ø 40/100 — remplacement", "unite": "ml", "quantite": 6, "prixUnitaire": 48, "tva": 10 },
+      { "designation": "Main-d'œuvre complémentaire", "unite": "heure", "quantite": 3, "prixUnitaire": 58, "tva": 10 },
+      { "designation": "Déplacement et prise en charge", "unite": "forfait", "quantite": 1, "prixUnitaire": 45, "tva": 10 }
+    ]
+  },
+  "macon": {
+    "label": "Maçon",
+    "lignes": [
+      { "designation": "Ouverture de mur porteur avec pose d'IPN (étude béton non comprise)", "unite": "forfait", "quantite": 1, "prixUnitaire": 3800, "tva": 10 },
+      { "designation": "Élévation mur en parpaings de 15 cm, joints et arase", "unite": "m²", "quantite": 20, "prixUnitaire": 85, "tva": 10 },
+      { "designation": "Dalle béton armé de 12 cm avec treillis soudé et film polyane", "unite": "m²", "quantite": 18, "prixUnitaire": 95, "tva": 10 },
+      { "designation": "Enduit de façade taloché, deux passes", "unite": "m²", "quantite": 35, "prixUnitaire": 38, "tva": 10 },
+      { "designation": "Linteau béton préfabriqué — fourniture et pose", "unite": "unité", "quantite": 2, "prixUnitaire": 320, "tva": 10 },
+      { "designation": "Évacuation des gravats en décharge agréée", "unite": "forfait", "quantite": 1, "prixUnitaire": 450, "tva": 10 }
+    ]
+  },
+  "couvreur": {
+    "label": "Couvreur",
+    "lignes": [
+      { "designation": "Dépose de l'ancienne couverture et pose de tuiles mécaniques", "unite": "m²", "quantite": 60, "prixUnitaire": 145, "tva": 10 },
+      { "designation": "Liteaunage neuf, bois traité classe 2", "unite": "m²", "quantite": 60, "prixUnitaire": 28, "tva": 10 },
+      { "designation": "Écran de sous-toiture HPV", "unite": "m²", "quantite": 60, "prixUnitaire": 18, "tva": 10 },
+      { "designation": "Gouttière zinc demi-ronde développé 25 — fourniture et pose", "unite": "ml", "quantite": 24, "prixUnitaire": 65, "tva": 10 },
+      { "designation": "Faîtage scellé au mortier bâtard", "unite": "ml", "quantite": 12, "prixUnitaire": 85, "tva": 10 },
+      { "designation": "Échafaudage de pied : montage, location, démontage", "unite": "forfait", "quantite": 1, "prixUnitaire": 900, "tva": 10 }
+    ]
+  },
+  "plaquiste": {
+    "label": "Plaquiste",
+    "lignes": [
+      { "designation": "Cloison de distribution BA13 sur ossature 48, isolation GR32 incluse", "unite": "m²", "quantite": 35, "prixUnitaire": 58, "tva": 10 },
+      { "designation": "Doublage thermique collé 13+80", "unite": "m²", "quantite": 28, "prixUnitaire": 62, "tva": 10 },
+      { "designation": "Plafond suspendu BA13 sur fourrures, suspentes acoustiques", "unite": "m²", "quantite": 22, "prixUnitaire": 68, "tva": 10 },
+      { "designation": "Traitement des joints : bandes et 3 passes d'enduit, prêt à peindre", "unite": "m²", "quantite": 85, "prixUnitaire": 12, "tva": 10 },
+      { "designation": "Bloc-porte alvéolaire 83 cm — fourniture et pose", "unite": "unité", "quantite": 2, "prixUnitaire": 180, "tva": 10 }
+    ]
+  },
+  "peintre": {
+    "label": "Peintre",
+    "lignes": [
+      { "designation": "Préparation des supports : rebouchage, ponçage, dépoussiérage", "unite": "m²", "quantite": 85, "prixUnitaire": 8, "tva": 10 },
+      { "designation": "Impression des fonds, sous-couche acrylique", "unite": "m²", "quantite": 85, "prixUnitaire": 9, "tva": 10 },
+      { "designation": "Peinture de finition murs, 2 couches velours", "unite": "m²", "quantite": 85, "prixUnitaire": 24, "tva": 10 },
+      { "designation": "Peinture plafonds, 2 couches mates", "unite": "m²", "quantite": 32, "prixUnitaire": 28, "tva": 10 },
+      { "designation": "Boiseries : ponçage et laque satinée (portes, plinthes)", "unite": "forfait", "quantite": 1, "prixUnitaire": 620, "tva": 10 },
+      { "designation": "Protection du chantier : bâches, adhésifs, remise en état", "unite": "forfait", "quantite": 1, "prixUnitaire": 120, "tva": 10 }
+    ]
+  },
+  "carreleur": {
+    "label": "Carreleur",
+    "lignes": [
+      { "designation": "Pose de carrelage sol 60x60 en pose droite, colle flex incluse", "unite": "m²", "quantite": 22, "prixUnitaire": 55, "tva": 10 },
+      { "designation": "Pose de faïence murale salle de bains, format 30x60", "unite": "m²", "quantite": 18, "prixUnitaire": 62, "tva": 10 },
+      { "designation": "Ragréage autolissant avant pose", "unite": "m²", "quantite": 22, "prixUnitaire": 22, "tva": 10 },
+      { "designation": "Plinthes carrelées assorties — fourniture et pose", "unite": "ml", "quantite": 24, "prixUnitaire": 12, "tva": 10 },
+      { "designation": "Joints silicone sanitaires en périphérie", "unite": "ml", "quantite": 12, "prixUnitaire": 8, "tva": 10 }
+    ]
+  },
+  "menuisier": {
+    "label": "Menuisier",
+    "lignes": [
+      { "designation": "Fenêtre PVC double vitrage 4/16/4 — dépose et pose en rénovation", "unite": "unité", "quantite": 3, "prixUnitaire": 780, "tva": 10 },
+      { "designation": "Porte d'entrée aluminium — dépose et pose", "unite": "forfait", "quantite": 1, "prixUnitaire": 2400, "tva": 10 },
+      { "designation": "Bloc-porte intérieur postformé — fourniture et pose", "unite": "unité", "quantite": 2, "prixUnitaire": 420, "tva": 10 },
+      { "designation": "Parquet contrecollé chêne, pose flottante sur sous-couche", "unite": "m²", "quantite": 25, "prixUnitaire": 68, "tva": 10 },
+      { "designation": "Plinthes bois assorties — fourniture et pose", "unite": "ml", "quantite": 26, "prixUnitaire": 14, "tva": 10 }
+    ]
+  },
+  "charpentier": {
+    "label": "Charpentier",
+    "lignes": [
+      { "designation": "Reprise de charpente traditionnelle : remplacement de pièces dégradées", "unite": "forfait", "quantite": 1, "prixUnitaire": 2800, "tva": 10 },
+      { "designation": "Remplacement de panne intermédiaire, bois classe 2", "unite": "ml", "quantite": 6, "prixUnitaire": 145, "tva": 10 },
+      { "designation": "Solivage de plancher bois, solives 75x225", "unite": "m²", "quantite": 20, "prixUnitaire": 95, "tva": 10 },
+      { "designation": "Traitement insecticide et fongicide de la charpente", "unite": "m²", "quantite": 60, "prixUnitaire": 18, "tva": 10 },
+      { "designation": "Évacuation des bois déposés", "unite": "forfait", "quantite": 1, "prixUnitaire": 280, "tva": 10 }
+    ]
+  },
+  "solier": {
+    "label": "Solier",
+    "lignes": [
+      { "designation": "Dépose de l'ancien revêtement et préparation du support", "unite": "m²", "quantite": 30, "prixUnitaire": 9, "tva": 10 },
+      { "designation": "Ragréage autolissant P3", "unite": "m²", "quantite": 30, "prixUnitaire": 18, "tva": 10 },
+      { "designation": "Sol PVC en lames clipsables — fourniture et pose", "unite": "m²", "quantite": 30, "prixUnitaire": 42, "tva": 10 },
+      { "designation": "Moquette en dalles plombantes — fourniture et pose", "unite": "m²", "quantite": 18, "prixUnitaire": 38, "tva": 10 },
+      { "designation": "Barre de seuil inox — fourniture et pose", "unite": "unité", "quantite": 3, "prixUnitaire": 25, "tva": 10 }
+    ]
+  },
+  "serrurier": {
+    "label": "Serrurier",
+    "lignes": [
+      { "designation": "Ouverture de porte claquée sans destruction (jour ouvré, heures ouvrables)", "unite": "forfait", "quantite": 1, "prixUnitaire": 120, "tva": 10 },
+      { "designation": "Remplacement cylindre haute sûreté débrayable, carte de propriété", "unite": "unité", "quantite": 1, "prixUnitaire": 240, "tva": 10 },
+      { "designation": "Serrure 3 points en applique A2P* — fourniture et pose", "unite": "forfait", "quantite": 1, "prixUnitaire": 690, "tva": 10 },
+      { "designation": "Blindage de porte existante avec cornières anti-pinces", "unite": "forfait", "quantite": 1, "prixUnitaire": 1450, "tva": 10 },
+      { "designation": "Déplacement et prise en charge", "unite": "forfait", "quantite": 1, "prixUnitaire": 45, "tva": 10 }
+    ]
+  },
+  "vitrier": {
+    "label": "Vitrier",
+    "lignes": [
+      { "designation": "Remplacement double vitrage 4/16/4 sur menuiserie existante", "unite": "m²", "quantite": 1.5, "prixUnitaire": 380, "tva": 10 },
+      { "designation": "Remplacement vitrage simple 4 mm, mastic et parcloses", "unite": "m²", "quantite": 1, "prixUnitaire": 190, "tva": 10 },
+      { "designation": "Miroir sur mesure épaisseur 6 mm, façonné, pose collée", "unite": "m²", "quantite": 2, "prixUnitaire": 280, "tva": 10 },
+      { "designation": "Réfection de parcloses et joints d'étanchéité", "unite": "unité", "quantite": 2, "prixUnitaire": 90, "tva": 10 },
+      { "designation": "Déplacement et prise en charge", "unite": "forfait", "quantite": 1, "prixUnitaire": 50, "tva": 10 }
+    ]
+  },
+  "terrassier": {
+    "label": "Terrassier",
+    "lignes": [
+      { "designation": "Terrassement en pleine masse, terrain meuble", "unite": "m³", "quantite": 45, "prixUnitaire": 38, "tva": 20 },
+      { "designation": "Évacuation des terres excédentaires en décharge", "unite": "m³", "quantite": 30, "prixUnitaire": 22, "tva": 20 },
+      { "designation": "Tranchée pour réseaux, profondeur 80 cm, lit de sable et grillage avertisseur", "unite": "ml", "quantite": 35, "prixUnitaire": 28, "tva": 20 },
+      { "designation": "Fond de forme : réglage et compactage, grave 0/31,5", "unite": "m²", "quantite": 60, "prixUnitaire": 12, "tva": 20 },
+      { "designation": "Location mini-pelle 5 t avec chauffeur, amenée et repli compris", "unite": "jour", "quantite": 2, "prixUnitaire": 650, "tva": 20 }
+    ]
+  },
+  "paysagiste": {
+    "label": "Paysagiste",
+    "lignes": [
+      { "designation": "Préparation du sol et engazonnement par semis, rouleau et première tonte", "unite": "m²", "quantite": 120, "prixUnitaire": 12, "tva": 20 },
+      { "designation": "Clôture en panneaux rigides h. 1,50 m avec soubassement — fourniture et pose", "unite": "ml", "quantite": 30, "prixUnitaire": 85, "tva": 20 },
+      { "designation": "Terrasse bois en pin classe 4 sur lambourdes et plots", "unite": "m²", "quantite": 20, "prixUnitaire": 145, "tva": 20 },
+      { "designation": "Plantation de haie (charmille, 3 sujets/ml), amendement inclus", "unite": "ml", "quantite": 15, "prixUnitaire": 45, "tva": 20 },
+      { "designation": "Bâche de paillage et copeaux sur massifs", "unite": "m²", "quantite": 25, "prixUnitaire": 9, "tva": 20 }
+    ]
+  }
+}
