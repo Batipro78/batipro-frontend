@@ -73,6 +73,8 @@ export default function GuideShell({ children }: { children: React.ReactNode }) 
             <Link href="/guides" className="transition hover:text-foreground">Guides</Link>
             <Link href="/modeles" className="transition hover:text-foreground">Modèles</Link>
             <Link href="/generateur-devis" className="transition hover:text-foreground">Générateur de devis</Link>
+            <Link href="/logiciel-devis" className="transition hover:text-foreground">Logiciel par métier</Link>
+            <Link href="/tarifs" className="transition hover:text-foreground">Tarifs</Link>
             <Link href="/aide" className="transition hover:text-foreground">Aide</Link>
             <Link href="/contact" className="transition hover:text-foreground">Contact</Link>
             <Link href="/mentions-legales" className="transition hover:text-foreground">Mentions légales</Link>

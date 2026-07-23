@@ -25,7 +25,8 @@ export default function LandingFooter() {
               <li><a href="#voix" className="hover:text-foreground transition">Devis vocal</a></li>
               <li><a href="#fonctionnalites" className="hover:text-foreground transition">Fonctionnalités</a></li>
               <li><a href="#metiers" className="hover:text-foreground transition">Métiers couverts</a></li>
-              <li><a href="#tarifs" className="hover:text-foreground transition">Tarifs</a></li>
+              <li><Link href="/logiciel-devis" className="hover:text-foreground transition">Logiciel par métier</Link></li>
+              <li><Link href="/tarifs" className="hover:text-foreground transition">Tarifs</Link></li>
             </ul>
           </div>
 

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { guides } from '@/content/guides';
 import { allModeleSlugs } from '@/content/modeles';
+import { logicielMetiers } from '@/content/logiciel';
 
 const BASE = 'https://www.mondevisminute.com';
 
@@ -12,6 +13,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/guides`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/modeles`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/generateur-devis`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE}/tarifs`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE}/logiciel-devis`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/signup`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/facture-electronique`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/aide`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
@@ -40,5 +43,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.8,
   }));
 
-  return [...pages, ...guidePages, ...modelePages];
+  // Les 14 pages commerciales « logiciel de devis pour [métier] ».
+  const logicielPages: MetadataRoute.Sitemap = logicielMetiers.map((m) => ({
+    url: `${BASE}/logiciel-devis/${m.metier}`,
+    lastModified: now,
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
+
+  return [...pages, ...guidePages, ...modelePages, ...logicielPages];
 }
