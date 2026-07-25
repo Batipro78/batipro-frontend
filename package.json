@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "indexing:bing": "node scripts/indexnow.mjs"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.3",
