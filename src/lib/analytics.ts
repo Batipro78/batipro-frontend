@@ -7,6 +7,10 @@ declare global {
     gtag?: GtagFn;
     fbq?: FbqFn;
     ttq?: TtqFn;
+    /** File d'attente de Google Tag Manager (GTM est charge en prod). */
+    dataLayer?: Record<string, unknown>[];
+    /** Microsoft Clarity — gratuit et sans plafond d'evenements. */
+    clarity?: (...args: unknown[]) => void;
   }
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import GuideShell from '@/components/guides/GuideShell';
+import TelechargerModele from '@/components/modeles/TelechargerModele';
 import { allModeleSlugs, getModelePage, modeles } from '@/content/modeles';
 import { docxFileName, formatEuros, totalHT } from '@/lib/modeles';
 import { getGuide } from '@/content/guides';
@@ -141,18 +142,53 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
           <p className="mt-4 text-lg leading-8 text-muted-foreground">{excerpt}</p>
 
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href={fichier}
-              download
+            <TelechargerModele
+              fichier={fichier}
+              metier={modele.metier}
+              type={type}
               className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-200 transition hover:from-violet-700 hover:to-indigo-700"
             >
               Télécharger le modèle Word (gratuit)
-            </a>
+            </TelechargerModele>
             <span className="text-sm text-muted-foreground">
               Format .docx — s&apos;ouvre avec Word, LibreOffice ou Google&nbsp;Docs
             </span>
           </div>
         </header>
+
+        {/* Le visiteur vient de recuperer un document a remplir a la main : c'est
+            le moment ou l'offre "dictee vocale" a le plus de sens. Place juste
+            sous le hero pour etre vue avant l'article, sans etre confondue avec
+            le bouton de telechargement. */}
+        <aside className="mt-6 overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-violet-700 to-indigo-700 shadow-xl shadow-violet-200">
+          <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="lg:max-w-2xl">
+              <p className="text-sm font-semibold uppercase tracking-wide text-violet-200">
+                MonDevisMinute
+              </p>
+              <p className="mt-2 font-display text-2xl font-bold leading-snug tracking-tight text-white sm:text-3xl">
+                Votre devis en 30&nbsp;secondes, à la voix
+              </p>
+              <p className="mt-3 leading-7 text-violet-100">
+                Ce modèle Word est à remplir à la main, à chaque devis : lignes, prix, TVA,
+                totaux, numérotation. Dictez-le depuis le chantier et le document se remplit
+                tout seul — mentions légales à jour, TVA calculée, devis transformé en facture
+                en un clic.
+              </p>
+            </div>
+            <div className="shrink-0">
+              <Link
+                href="/signup"
+                className="inline-flex w-full items-center justify-center rounded-xl bg-white px-8 py-4 text-lg font-bold text-violet-700 shadow-lg transition hover:bg-violet-50 lg:w-auto"
+              >
+                Essayer gratuitement
+              </Link>
+              <p className="mt-3 text-center text-sm text-violet-200 lg:text-right">
+                14 jours — sans carte bancaire
+              </p>
+            </div>
+          </div>
+        </aside>
 
         <article className="mt-12">
           {intro.map((p) => (
