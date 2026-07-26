@@ -42,6 +42,15 @@ async function urlsFromSitemap() {
   return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => decodeXml(m[1].trim()));
 }
 
+/** IndexNow rejette TOUT le lot (422) si une seule URL n'est pas sur le host. */
+function surLeHost(u) {
+  try {
+    return new URL(u).host === HOST;
+  } catch {
+    return false;
+  }
+}
+
 // Sans le fichier de cle en ligne, IndexNow repond 403 : autant le dire tout de suite.
 async function assertKeyIsLive() {
   const res = await fetch(KEY_LOCATION);
@@ -55,26 +64,27 @@ async function assertKeyIsLive() {
   }
 }
 
-// IndexNow rejette TOUT le lot (422) si une seule URL n'appartient pas au host
-// declare : on ecarte les intruses au lieu de perdre la soumission entiere.
-const argUrls = process.argv.slice(2).filter((a) => a.startsWith('http'));
-const foreign = argUrls.filter((u) => {
-  try {
-    return new URL(u).host !== HOST;
-  } catch {
-    return true;
-  }
-});
-if (foreign.length) {
-  console.log(`Ignore ${foreign.length} URL(s) hors de ${HOST} : ${foreign.join(', ')}`);
+// On distingue « aucun argument » (= pousser tout le sitemap) de « des arguments
+// tous invalides » : sans ca, une faute de frappe ou un chemin relatif ferait
+// silencieusement resoumettre les 72 URLs au lieu de celle demandee.
+const args = process.argv.slice(2);
+const argUrls = args.filter(surLeHost);
+if (args.length && !argUrls.length) {
+  throw new Error(`Aucun argument valide. Attendu des URLs absolues sur ${HOST}.\nRecu : ${args.join(' ')}`);
 }
+const ignorees = args.filter((a) => !surLeHost(a));
+if (ignorees.length) console.log(`Ignore ${ignorees.length} argument(s) hors de ${HOST} : ${ignorees.join(', ')}`);
 
 await assertKeyIsLive();
-const urls = argUrls.length ? argUrls.filter((u) => !foreign.includes(u)) : await urlsFromSitemap();
+
+// Le filtre s'applique AUSSI aux URLs du sitemap : c'est le chemin par defaut,
+// et une seule URL etrangere qui s'y glisserait ferait sauter la soumission.
+const urls = (argUrls.length ? argUrls : await urlsFromSitemap()).filter(surLeHost);
 if (!urls.length) throw new Error(`Aucune URL valide a soumettre pour ${HOST}.`);
 console.log(`${urls.length} URL(s) a soumettre pour ${HOST}`);
 
 let accepted = 0;
+let echecs = 0;
 for (let i = 0; i < urls.length; i += CHUNK) {
   const batch = urls.slice(i, i + CHUNK);
   const res = await fetch(ENDPOINT, {
@@ -83,16 +93,22 @@ for (let i = 0; i < urls.length; i += CHUNK) {
     body: JSON.stringify({ host: HOST, key: KEY, keyLocation: KEY_LOCATION, urlList: batch }),
   });
 
-  // IndexNow renvoie 200 ou 202 quand la soumission est acceptee.
-  const ok = res.ok || res.status === 202;
-  console.log(`Lot ${Math.floor(i / CHUNK) + 1} (${batch.length} URLs) : HTTP ${res.status} ${res.statusText}`);
-  if (ok) {
+  // 200 = soumis et cle validee. 202 = pris en compte, validation de cle encore
+  // en attente (a ne pas confondre avec un succes complet). 403 = cle refusee.
+  const lot = `Lot ${Math.floor(i / CHUNK) + 1} (${batch.length} URLs)`;
+  if (res.ok) {
     accepted += batch.length;
+    const nuance = res.status === 202 ? ' — validation de cle en attente' : ' — cle validee';
+    console.log(`${lot} : HTTP ${res.status} ${res.statusText}${nuance}`);
   } else {
+    echecs += batch.length;
+    console.log(`${lot} : HTTP ${res.status} ${res.statusText}`);
     const body = await res.text().catch(() => '');
     if (body) console.log(`  Reponse : ${body.slice(0, 300)}`);
   }
 }
 
 console.log(`Termine. Accepte : ${accepted} / ${urls.length}`);
-if (accepted === 0) process.exit(1);
+// Sortir en erreur des qu'UN lot echoue, sinon un echec partiel passe
+// inapercu en CI (l'ancienne condition ne testait que le cas « tout a rate »).
+if (echecs > 0) process.exit(1);

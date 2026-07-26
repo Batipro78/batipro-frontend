@@ -163,17 +163,28 @@ export default async function ModelePage({ params }: { params: Promise<{ slug: s
         <aside className="mt-6 overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-violet-700 to-indigo-700 shadow-xl shadow-violet-200">
           <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
             <div className="lg:max-w-2xl">
-              <p className="text-sm font-semibold uppercase tracking-wide text-violet-200">
+              {/* Deux variantes ecrites EN ENTIER plutot qu'un mot interpole :
+                  la moitie de ces pages sont des factures, et une phrase
+                  francaise construite par morceaux finit toujours par sonner
+                  faux (cf le bug d'accord vecu sur le site Amatech). */}
+              <p className="text-sm font-semibold uppercase tracking-wide text-violet-100">
                 MonDevisMinute
               </p>
               <p className="mt-2 font-display text-2xl font-bold leading-snug tracking-tight text-white sm:text-3xl">
-                Votre devis en 30&nbsp;secondes, à la voix
+                {estDevis
+                  ? 'Votre devis en 30 secondes, à la voix'
+                  : 'Votre facture en 30 secondes, à la voix'}
               </p>
               <p className="mt-3 leading-7 text-violet-100">
-                Ce modèle Word est à remplir à la main, à chaque devis : lignes, prix, TVA,
-                totaux, numérotation. Dictez-le depuis le chantier et le document se remplit
-                tout seul — mentions légales à jour, TVA calculée, devis transformé en facture
-                en un clic.
+                {estDevis
+                  ? `Ce modèle Word est à remplir à la main, à chaque devis : lignes, prix, TVA,
+                     totaux, numérotation. Dictez-le depuis le chantier et le document se
+                     remplit tout seul — mentions légales à jour, TVA calculée, devis
+                     transformé en facture en un clic.`
+                  : `Ce modèle Word est à remplir à la main, à chaque facture : lignes, prix,
+                     TVA, totaux, numérotation. Dictez-la depuis le chantier et le document se
+                     remplit tout seul — mentions légales à jour, TVA calculée, numérotation
+                     continue gérée pour vous.`}
               </p>
             </div>
             <div className="shrink-0">

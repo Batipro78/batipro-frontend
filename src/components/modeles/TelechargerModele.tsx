@@ -37,8 +37,15 @@ export default function TelechargerModele({ fichier, metier, type, className, ch
     // Chaque canal est isole : un traceur absent ou casse ne doit jamais
     // empecher les autres de recevoir l'evenement, ni bloquer le clic.
     for (const emit of [
+      () => {
+        // GTM est charge en `afterInteractive`, donc APRES l'hydratation : un
+        // clic tres precoce trouverait `dataLayer` encore inexistant et
+        // l'evenement serait perdu. On cree la file au besoin — GTM la reprend
+        // telle quelle a son initialisation. (Meme pattern que Chatbot.tsx.)
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: 'telechargement_modele', ...params });
+      },
       () => window.gtag?.('event', 'telechargement_modele', params),
-      () => window.dataLayer?.push({ event: 'telechargement_modele', ...params }),
       () => window.clarity?.('event', `telechargement_modele_${type}_${metier}`),
     ]) {
       try {
