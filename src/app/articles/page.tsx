@@ -4,19 +4,13 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { DataTable } from '@/components/data-table';
 import { ProtectedLayout } from '@/components/protected-layout';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { ArticleDetailModal } from '@/components/article-detail-modal';
 import { ArticleIcon } from '@/components/article-icon';
 import { useI18n } from '@/lib/i18n';
 import { api } from '@/lib/api';
 import { METIERS, metierLabel, metierBadgeClass } from '@/lib/metiers';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface Article {
   id: number;
@@ -37,7 +31,6 @@ interface CategoryGroup {
   count: number;
 }
 
-const emptyArticle = { nom: '', prix_ht: 0, unite: 'piece', tva: 20, metier: 'electricien' };
 
 export default function ArticlesPage() {
   const { t } = useI18n();
@@ -49,9 +42,6 @@ export default function ArticlesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categories, setCategories] = useState<CategoryGroup[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<Partial<Article>>(emptyArticle);
-  const [isEditing, setIsEditing] = useState(false);
 
   // Detail modal state
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -105,32 +95,13 @@ export default function ArticlesPage() {
       ? (categories.find((c) => c.categorie === categorieFilter)?.sous_categories || [])
       : [];
 
-  const handleSave = async () => {
-    try {
-      if (isEditing && editingArticle.id) {
-        toast.info('Modification non disponible pour les articles catalogue');
-      } else {
-        await api.post('/articles', editingArticle);
-        toast.success('Article ajouté');
-      }
-      setDialogOpen(false);
-      setEditingArticle(emptyArticle);
-      loadArticles();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Supprimer cet article ?')) return;
-    try {
-      await api.delete(`/articles/${id}`);
-      toast.success('Article supprimé');
-      loadArticles();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
-    }
-  };
+  // Ni creation, ni modification, ni suppression ici : le catalogue est COMMUN
+  // a tous les artisans (table `articles`, pas de colonne artisan_id). Y toucher
+  // depuis un compte changerait les prix de tout le monde. Un prix qui ne
+  // correspond pas se corrige directement sur la ligne du devis.
+  // Les boutons qui existaient ici appelaient POST /articles et
+  // DELETE /articles/:id, deux routes qui n'ont jamais existe : ils renvoyaient
+  // un 404 et le formulaire de modification affichait juste « non disponible ».
 
   const handleRowClick = (article: Article) => {
     setSelectedArticle(article);
@@ -158,88 +129,19 @@ export default function ArticlesPage() {
         </span>
       ),
     },
-    {
-      key: 'actions', header: t('actions'), render: (r: Article) => (
-        <div className="flex gap-2" onClick={e => e.stopPropagation()}>
-          <Button variant="ghost" size="icon" onClick={() => { setEditingArticle(r); setIsEditing(true); setDialogOpen(true); }}>
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)}>
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </div>
-      ),
-    },
   ];
 
   return (
     <ProtectedLayout>
       <PageHeader
         title={t('articles')}
-        action={
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => { setEditingArticle(emptyArticle); setIsEditing(false); setDialogOpen(true); }}>
-                <Plus className="h-4 w-4 mr-2" /> {t('addArticle')}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{isEditing ? t('editArticle') : t('addArticle')}</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>{t('name')}</Label>
-                  <Input value={editingArticle.nom || ''} onChange={(e) => setEditingArticle({ ...editingArticle, nom: e.target.value })} />
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label>{t('unitPrice')}</Label>
-                    <Input type="number" step="0.01" value={editingArticle.prix_ht || ''} onChange={(e) => setEditingArticle({ ...editingArticle, prix_ht: parseFloat(e.target.value) })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t('unit')}</Label>
-                    <Select value={editingArticle.unite || 'piece'} onValueChange={(v) => setEditingArticle({ ...editingArticle, unite: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="piece">Pièce</SelectItem>
-                        <SelectItem value="metre">Mètre</SelectItem>
-                        <SelectItem value="heure">Heure</SelectItem>
-                        <SelectItem value="kg">Kg</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t('tva')}</Label>
-                    <Select value={String(editingArticle.tva ?? 20)} onValueChange={(v) => setEditingArticle({ ...editingArticle, tva: parseInt(v) })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10%</SelectItem>
-                        <SelectItem value="20">20%</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t('trade')}</Label>
-                  <Select value={editingArticle.metier || 'electricien'} onValueChange={(v) => setEditingArticle({ ...editingArticle, metier: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {METIERS.map((m) => (
-                        <SelectItem key={m} value={m}>{metierLabel(m)}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('cancel')}</Button>
-                <Button onClick={handleSave}>{t('save')}</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        }
       />
+      <p className="mb-4 text-sm text-muted-foreground">
+        Ce catalogue est commun à tous les artisans : il se consulte, il ne se
+        modifie pas. Si un prix ne correspond pas à ce que vous payez, changez-le
+        directement sur la ligne de votre devis — votre devis garde votre prix, et
+        le catalogue reste intact pour les autres.
+      </p>
       <div className="mb-4 flex flex-wrap gap-2 items-center">
         <Input
           placeholder="Rechercher un article..."

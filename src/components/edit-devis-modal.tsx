@@ -45,6 +45,9 @@ interface Article {
 
 interface LigneMateriel {
   kind: 'materiel';
+  /** Identifiant de LIGNE, pas d'article : le meme article peut figurer
+   *  plusieurs fois, a des prix differents. Sert de cle React. */
+  uid: string;
   article_id: number;
   quantite: number;
   prix_unitaire_ht: number;
@@ -110,6 +113,7 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
           if (l.article_id) {
             return {
               kind: 'materiel' as const,
+              uid: `existing-mat-${i}`,
               article_id: l.article_id,
               quantite: Number(l.quantite),
               prix_unitaire_ht: Number(l.prix_unitaire_ht),
@@ -177,15 +181,15 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
     return { ht, tva, ttc: ht + tva };
   }, [lignes, sansTva]);
 
+  // Le meme article peut etre ajoute plusieurs fois : depuis que chaque ligne
+  // porte son propre prix, deux lignes du meme article a des tarifs differents
+  // sont legitimes (deux fournisseurs, deux lots de chantier).
   const ajouterMateriel = (a: Article) => {
-    if (lignes.some((l) => l.kind === 'materiel' && l.article_id === a.id)) {
-      toast.info('Article déjà dans le devis');
-      return;
-    }
     setLignes((prev) => [
       ...prev,
       {
         kind: 'materiel',
+        uid: `mat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         article_id: a.id,
         quantite: 1,
         prix_unitaire_ht: Number(a.prix_ht),
@@ -310,7 +314,9 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                       l.kind === 'materiel' ? 'text-blue-600' : 'text-amber-600';
                     return (
                       <div
-                        key={l.kind === 'materiel' ? `m-${l.article_id}` : `mo-${l.uid}`}
+                        // Cle de LIGNE : deux lignes peuvent porter le meme
+                        // article_id, une cle basee dessus serait dupliquee.
+                        key={l.uid}
                         className="flex items-center gap-3 px-3 py-2 hover:bg-muted/30"
                       >
                         <Icon className={`h-4 w-4 shrink-0 ${colorIcon}`} />
