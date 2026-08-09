@@ -235,11 +235,12 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
     setLignes((prev) => prev.map((p, i) => (i === idx ? { ...p, quantite: v } : p)));
   };
 
-  const updatePrixMO = (idx: number, v: number) => {
+  // Vaut pour le materiel comme pour la main d'oeuvre : les prix du materiel
+  // bougent, l'artisan doit pouvoir les ajuster sur SON devis. Le catalogue
+  // (table `articles`, commune a tous les artisans) n'est jamais touche.
+  const updatePrix = (idx: number, v: number) => {
     if (isNaN(v) || v < 0) return;
-    setLignes((prev) =>
-      prev.map((p, i) => (i === idx && p.kind === 'mo' ? { ...p, prix_unitaire_ht: v } : p))
-    );
+    setLignes((prev) => prev.map((p, i) => (i === idx ? { ...p, prix_unitaire_ht: v } : p)));
   };
 
   const handleSave = async () => {
@@ -250,9 +251,15 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
     }
     setSubmitting(true);
     try {
+      // Le prix part AUSSI pour le materiel : sans lui, le serveur retomberait
+      // sur le tarif du catalogue et effacerait en silence un prix ajuste.
       const payload = lignes.map((l) =>
         l.kind === 'materiel'
-          ? { article_id: l.article_id, quantite: l.quantite }
+          ? {
+              article_id: l.article_id,
+              quantite: l.quantite,
+              prix_unitaire_ht: l.prix_unitaire_ht,
+            }
           : {
               description: l.description,
               quantite: l.quantite,
@@ -314,7 +321,7 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                           <p className="text-xs text-muted-foreground">
                             {l.kind === 'materiel' ? (
                               <>
-                                {l.prix_unitaire_ht.toFixed(2)} € / {l.unite}
+                                Matériel &middot; {l.unite}
                                 {sansTva ? null : <> &middot; TVA {l.tva}%</>}
                               </>
                             ) : (
@@ -326,21 +333,15 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          {l.kind === 'mo' && (
-                            <>
-                              <span className="text-xs text-muted-foreground">€/u</span>
-                              <Input
-                                type="number"
-                                min={0}
-                                step={0.5}
-                                value={l.prix_unitaire_ht}
-                                onChange={(e) =>
-                                  updatePrixMO(idx, parseFloat(e.target.value))
-                                }
-                                className="w-20 h-8"
-                              />
-                            </>
-                          )}
+                          <span className="text-xs text-muted-foreground">€/u</span>
+                          <Input
+                            type="number"
+                            min={0}
+                            step={0.5}
+                            value={l.prix_unitaire_ht}
+                            onChange={(e) => updatePrix(idx, parseFloat(e.target.value))}
+                            className="w-20 h-8"
+                          />
                           <span className="text-xs text-muted-foreground">Qté</span>
                           <Input
                             type="number"

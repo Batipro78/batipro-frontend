@@ -44,12 +44,20 @@ interface DraftLigne {
   uid: string;
   article_id: number | null;
   nom: string;
-  prix_unitaire_ht: number;
+  /** Saisi : on garde le texte tel qu'il est tape (virgule, champ vide en cours de frappe). */
+  prix: string;
   tva: number;
   unite?: string;
   quantite: string;
+  /** Vraie main d'oeuvre. Une ligne « A CHIFFRER » n'en est pas une. */
   isMo?: boolean;
+  /** Article dicte que l'IA n'a pas trouve au catalogue : pose a 0 EUR, a chiffrer. */
+  aChiffrer?: boolean;
+  /** Prix du catalogue, pour signaler un ecart. */
+  prixCatalogue?: number;
 }
+
+const nombre = (v: string) => parseFloat(v.replace(',', '.')) || 0;
 
 const newUid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -113,7 +121,13 @@ export default function NouveauDevisScreen() {
           tva: number;
           unite?: string;
           articles?: { nom?: string } | null;
-          metadata?: { nom?: string; unite?: string; tva_origine?: number } | null;
+          metadata?: {
+            nom?: string;
+            unite?: string;
+            tva_origine?: number;
+            a_chiffrer?: boolean;
+            prix_catalogue?: number;
+          } | null;
         };
         type DevisDetail = {
           id: number;
@@ -139,14 +153,18 @@ export default function NouveauDevisScreen() {
               l.metadata?.nom ??
               l.description ??
               `Article #${l.article_id ?? '?'}`,
-            prix_unitaire_ht: l.prix_unitaire_ht,
+            prix: String(l.prix_unitaire_ht ?? 0),
             // Sur un devis en HT, `tva` vaut 0 en base : le vrai taux de la ligne
             // est range dans metadata.tva_origine. Sans ce fallback, decocher
             // "devis en HT" laisserait la main d'oeuvre a 0 % pour toujours.
             tva: l.metadata?.tva_origine ?? l.tva ?? 20,
             unite: l.unite ?? l.metadata?.unite,
             quantite: String(l.quantite ?? 1),
-            isMo: !l.article_id,
+            // Une ligne « A CHIFFRER » n'a pas d'article_id non plus, mais ce
+            // n'est PAS de la main d'oeuvre : c'est du materiel hors catalogue.
+            isMo: !l.article_id && !l.metadata?.a_chiffrer,
+            aChiffrer: l.metadata?.a_chiffrer === true,
+            prixCatalogue: l.metadata?.prix_catalogue,
           }))
         );
       } catch (e) {
@@ -200,7 +218,8 @@ export default function NouveauDevisScreen() {
         uid: newUid(),
         article_id: a.id,
         nom: a.nom,
-        prix_unitaire_ht: a.prix_ht,
+        prix: String(a.prix_ht),
+        prixCatalogue: a.prix_ht,
         tva: a.tva,
         unite: a.unite,
         quantite: '1',
@@ -242,7 +261,7 @@ export default function NouveauDevisScreen() {
         uid: newUid(),
         article_id: null,
         nom: desc,
-        prix_unitaire_ht: prix,
+        prix: String(prix),
         tva: isNaN(tva) ? 20 : tva,
         unite: 'h',
         quantite: String(qte),
@@ -258,6 +277,10 @@ export default function NouveauDevisScreen() {
     );
   };
 
+  const updateLignePrix = (uid: string, value: string) => {
+    setLignes((prev) => prev.map((l) => (l.uid === uid ? { ...l, prix: value } : l)));
+  };
+
   const removeLigne = (uid: string) => {
     setLignes((prev) => prev.filter((l) => l.uid !== uid));
   };
@@ -266,8 +289,7 @@ export default function NouveauDevisScreen() {
     let ht = 0;
     let tva = 0;
     for (const l of lignes) {
-      const q = parseFloat(l.quantite.replace(',', '.')) || 0;
-      const ligneHt = q * l.prix_unitaire_ht;
+      const ligneHt = nombre(l.quantite) * nombre(l.prix);
       ht += ligneHt;
       // Doit refleter ce que le serveur calculera : en HT il ecrase tous les taux a 0.
       if (!sansTva) tva += ligneHt * (l.tva / 100);
@@ -298,16 +320,14 @@ export default function NouveauDevisScreen() {
     }
     const payloadLignes = lignes
       .map((l) => {
-        const quantite = parseFloat(l.quantite.replace(',', '.')) || 0;
+        const quantite = nombre(l.quantite);
+        // Le prix part TOUJOURS, meme pour un article de catalogue : c'est ce
+        // qui permet a l'artisan d'ajuster un tarif qui a bouge.
+        const prix_unitaire_ht = nombre(l.prix);
         if (l.article_id) {
-          return { article_id: l.article_id, quantite };
+          return { article_id: l.article_id, quantite, prix_unitaire_ht };
         }
-        return {
-          description: l.nom,
-          prix_unitaire_ht: l.prix_unitaire_ht,
-          tva: l.tva,
-          quantite,
-        };
+        return { description: l.nom, prix_unitaire_ht, tva: l.tva, quantite };
       })
       .filter((l) => l.quantite > 0);
 
@@ -450,13 +470,23 @@ export default function NouveauDevisScreen() {
               </Pressable>
             ) : (
               lignes.map((l) => {
-                const q = parseFloat(l.quantite.replace(',', '.')) || 0;
-                const total = q * l.prix_unitaire_ht;
+                const prix = nombre(l.prix);
+                const total = nombre(l.quantite) * prix;
+                // Ecart avec le catalogue : uniquement informatif, l'artisan reste maitre.
+                const ajuste =
+                  typeof l.prixCatalogue === 'number' &&
+                  Math.abs(prix - l.prixCatalogue) >= 0.01;
                 return (
                   <View key={l.uid} style={styles.ligneCard}>
                     <View style={styles.ligneTop}>
                       <View style={{ flex: 1 }}>
-                        {l.isMo ? (
+                        {l.aChiffrer ? (
+                          <View style={[styles.moBadge, styles.chiffrerBadge]}>
+                            <Text style={[styles.moBadgeText, styles.chiffrerBadgeText]}>
+                              À CHIFFRER
+                            </Text>
+                          </View>
+                        ) : l.isMo ? (
                           <View style={styles.moBadge}>
                             <Text style={styles.moBadgeText}>MAIN D'ŒUVRE</Text>
                           </View>
@@ -464,6 +494,11 @@ export default function NouveauDevisScreen() {
                         <Text style={styles.ligneNom} numberOfLines={2}>
                           {l.nom}
                         </Text>
+                        {ajuste ? (
+                          <Text style={styles.prixAjuste}>
+                            Catalogue : {l.prixCatalogue!.toFixed(2)} €
+                          </Text>
+                        ) : null}
                       </View>
                       <Pressable onPress={() => removeLigne(l.uid)} hitSlop={8}>
                         <Ionicons
@@ -484,9 +519,15 @@ export default function NouveauDevisScreen() {
                         />
                         <Text style={styles.unite}>{l.unite ?? 'u'}</Text>
                         <Text style={styles.x}>×</Text>
-                        <Text style={styles.prix}>
-                          {l.prix_unitaire_ht.toFixed(2)} €
-                        </Text>
+                        <TextInput
+                          style={[styles.prixInput, ajuste && styles.prixInputAjuste]}
+                          value={l.prix}
+                          onChangeText={(v) => updateLignePrix(l.uid, v)}
+                          keyboardType="decimal-pad"
+                          selectTextOnFocus
+                          placeholder="0"
+                        />
+                        <Text style={styles.prixEuro}>€</Text>
                       </View>
                       <Text style={styles.ligneTotal}>{total.toFixed(2)} €</Text>
                     </View>
@@ -896,6 +937,10 @@ const styles = StyleSheet.create({
     color: '#92400E',
     letterSpacing: 0.5,
   },
+  // « A CHIFFRER » : plus voyant que la main d'oeuvre, c'est une ligne a 0 EUR
+  // qu'il ne faut surtout pas envoyer au client telle quelle.
+  chiffrerBadge: { backgroundColor: '#FEE2E2' },
+  chiffrerBadgeText: { color: '#991B1B' },
   modalSave: { fontSize: fontSize.base, fontWeight: '600', color: colors.primary },
   reviewHint: {
     fontSize: fontSize.sm,
@@ -967,7 +1012,24 @@ const styles = StyleSheet.create({
   },
   unite: { fontSize: fontSize.sm, color: colors.mutedForeground },
   x: { fontSize: fontSize.sm, color: colors.mutedForeground, marginHorizontal: 4 },
-  prix: { fontSize: fontSize.sm, color: colors.mutedForeground },
+  prixInput: {
+    width: 72,
+    height: 36,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.sm,
+    color: colors.foreground,
+    fontSize: fontSize.base,
+    textAlign: 'right',
+  },
+  prixInputAjuste: { borderColor: colors.accent, borderWidth: 2 },
+  prixEuro: { fontSize: fontSize.sm, color: colors.mutedForeground, marginLeft: 4 },
+  prixAjuste: {
+    fontSize: fontSize.xs,
+    color: colors.accent,
+    marginTop: 2,
+  },
   ligneTotal: {
     fontSize: fontSize.base,
     fontWeight: '600',
