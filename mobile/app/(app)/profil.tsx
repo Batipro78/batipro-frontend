@@ -21,6 +21,7 @@ import { Input } from '@/components/Input';
 import { Card } from '@/components/Card';
 import { Coachmark, type CoachStep } from '@/components/Coachmark';
 import { DeleteAccountModal } from '@/components/DeleteAccountModal';
+import { BoutonMiseAJour } from '@/components/BoutonMiseAJour';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { colors, fontSize, radius, spacing } from '@/lib/theme';
@@ -624,6 +625,8 @@ export default function ProfilScreen() {
             onPress={onLogout}
             fullWidth
           />
+
+          <BoutonMiseAJour />
 
           <Text style={styles.version}>MonDevisMinute Mobile · v1.0.0</Text>
         </ScrollView>
