@@ -16,7 +16,14 @@ interface LigneServer {
   quantite: number;
   prix_unitaire_ht: number;
   tva: number;
-  metadata?: { type?: string; nom?: string; description?: string; unite?: string } | null;
+  metadata?: {
+    type?: string;
+    nom?: string;
+    description?: string;
+    unite?: string;
+    /** Taux reellement voulu, conserve meme quand `tva` est force a 0 (devis en HT). */
+    tva_origine?: number;
+  } | null;
   articles?: { nom: string; unite?: string };
 }
 
@@ -76,6 +83,8 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Article[]>([]);
   const [searching, setSearching] = useState(false);
+  // Devis de sous-traitance en HT : lecture seule ici, l'interrupteur est dans l'app.
+  const [sansTva, setSansTva] = useState(false);
 
   // Form ajout MO
   const [moDescription, setMoDescription] = useState('');
@@ -96,6 +105,7 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
       .get<{ data: DevisServer }>(`/devis/${devisId}`)
       .then((res) => {
         const d = res.data;
+        setSansTva((d as unknown as { sans_tva?: boolean })?.sans_tva === true);
         const init: LigneEdit[] = (d?.lignes_devis || []).map((l, i) => {
           if (l.article_id) {
             return {
@@ -117,7 +127,15 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
             quantite: Number(l.quantite),
             prix_unitaire_ht: Number(l.prix_unitaire_ht),
             unite: UNITES_MO.includes(unite) ? unite : 'forfait',
-            tva: Number(l.tva) || 20,
+            // `|| 20` transformait un vrai 0 % en 20 % : sur un devis en HT, la
+            // ligne s'affichait "TVA 20%" et le total se calculait avec une TVA
+            // qui n'existe pas. Le taux d'origine est range dans metadata.
+            tva:
+              typeof meta.tva_origine === 'number'
+                ? meta.tva_origine
+                : Number.isFinite(Number(l.tva))
+                  ? Number(l.tva)
+                  : 20,
           };
         });
         setLignes(init);
@@ -152,10 +170,12 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
     for (const l of lignes) {
       const sub = l.prix_unitaire_ht * l.quantite;
       ht += sub;
-      tva += sub * (l.tva / 100);
+      // Doit refleter ce que le serveur calculera : sur un devis en HT il ecrase
+      // tous les taux a 0, quel que soit le taux d'origine affiche ici.
+      if (!sansTva) tva += sub * (l.tva / 100);
     }
     return { ht, tva, ttc: ht + tva };
-  }, [lignes]);
+  }, [lignes, sansTva]);
 
   const ajouterMateriel = (a: Article) => {
     if (lignes.some((l) => l.kind === 'materiel' && l.article_id === a.id)) {
@@ -294,10 +314,14 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                           <p className="text-xs text-muted-foreground">
                             {l.kind === 'materiel' ? (
                               <>
-                                {l.prix_unitaire_ht.toFixed(2)} € / {l.unite} &middot; TVA {l.tva}%
+                                {l.prix_unitaire_ht.toFixed(2)} € / {l.unite}
+                                {sansTva ? null : <> &middot; TVA {l.tva}%</>}
                               </>
                             ) : (
-                              <>Main d&apos;œuvre &middot; {l.unite} &middot; TVA {l.tva}%</>
+                              <>
+                                Main d&apos;œuvre &middot; {l.unite}
+                                {sansTva ? null : <> &middot; TVA {l.tva}%</>}
+                              </>
                             )}
                           </p>
                         </div>
@@ -459,18 +483,32 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
             </div>
 
             <div className="bg-muted/50 rounded-lg p-3 text-sm space-y-1">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total HT</span>
-                <span>{totals.ht.toFixed(2)} €</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">TVA</span>
-                <span>{totals.tva.toFixed(2)} €</span>
-              </div>
-              <div className="flex justify-between font-bold pt-2 mt-2 border-t border-border">
-                <span>Total TTC</span>
-                <span>{totals.ttc.toFixed(2)} €</span>
-              </div>
+              {sansTva ? (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Devis en HT (sous-traitance) — aucune TVA n&apos;est appliquée.
+                  </p>
+                  <div className="flex justify-between font-bold pt-2 mt-2 border-t border-border">
+                    <span>Total HT</span>
+                    <span>{totals.ht.toFixed(2)} €</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Total HT</span>
+                    <span>{totals.ht.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">TVA</span>
+                    <span>{totals.tva.toFixed(2)} €</span>
+                  </div>
+                  <div className="flex justify-between font-bold pt-2 mt-2 border-t border-border">
+                    <span>Total TTC</span>
+                    <span>{totals.ttc.toFixed(2)} €</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex justify-end gap-2">

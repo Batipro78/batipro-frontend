@@ -26,6 +26,8 @@ interface Devis {
   created_at: string;
   pdf_url: string | null;
   clients?: { nom?: string };
+  /** Sous-traitance : devis en HT. total_ttc vaut alors total_ht. */
+  sans_tva?: boolean;
 }
 
 const statusVariant: Record<
@@ -105,7 +107,9 @@ export default function DevisScreen() {
         <Text style={styles.cardDate}>
           {new Date(item.created_at).toLocaleDateString('fr-FR')}
         </Text>
-        <Text style={styles.cardAmount}>{item.total_ttc?.toFixed(2)} € TTC</Text>
+        <Text style={styles.cardAmount}>
+          {item.total_ttc?.toFixed(2)} € {item.sans_tva ? 'HT' : 'TTC'}
+        </Text>
       </View>
       {item.pdf_url ? (
         <View style={styles.pdfHint}>

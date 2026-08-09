@@ -16,6 +16,8 @@ interface Facture {
   numero: string;
   total_ht: number;
   total_ttc: number;
+  /** Sous-traitance : facture en HT. total_ttc vaut alors total_ht. */
+  sans_tva?: boolean;
   statut: string;
   created_at: string;
   pdf_url?: string;
@@ -108,7 +110,9 @@ export default function FacturesPage() {
         r.clients?.nom || '-',
     },
     { key: 'total_ht', header: t('totalHT'), render: (r: Facture) => `${(r.total_ht || 0).toFixed(2)} €` },
-    { key: 'total_ttc', header: t('totalTTC'), render: (r: Facture) => `${(r.total_ttc || 0).toFixed(2)} €` },
+    // Une facture de sous-traitance est en HT : on le marque sur la ligne, sinon le
+    // montant se lirait comme un TTC a cause de l'en-tete de colonne.
+    { key: 'total_ttc', header: t('totalTTC'), render: (r: Facture) => `${(r.total_ttc || 0).toFixed(2)} €${r.sans_tva ? ' HT' : ''}` },
     {
       key: 'retenue', header: 'Retenue', render: (r: Facture) => {
         const montant = Number(r.retenue_garantie_montant || 0);

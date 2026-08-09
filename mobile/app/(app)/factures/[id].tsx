@@ -56,6 +56,8 @@ interface Facture {
   type: 'finale' | 'situation' | 'retenue' | 'avoir';
   total_ht: number;
   total_ttc: number;
+  /** Sous-traitance : facture en HT. total_ttc vaut alors total_ht. */
+  sans_tva?: boolean;
   pdf_url: string | null;
   date_emission: string;
   date_echeance: string | null;
@@ -197,7 +199,7 @@ export default function FactureDetailScreen() {
     const url = await ensurePdfUrl();
     try {
       await Share.share({
-        message: `Facture ${facture.numero} — ${facture.total_ttc?.toFixed(2)} € TTC${url ? `\n${url}` : ''}`,
+        message: `Facture ${facture.numero} — ${facture.total_ttc?.toFixed(2)} € ${facture.sans_tva ? 'HT' : 'TTC'}${url ? `\n${url}` : ''}`,
         url: url ?? undefined,
       });
     } catch {
@@ -395,7 +397,9 @@ export default function FactureDetailScreen() {
 
         <View style={styles.totalCard}>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total TTC</Text>
+            <Text style={styles.totalLabel}>
+              {facture.sans_tva ? 'Total HT' : 'Total TTC'}
+            </Text>
             <Text style={styles.totalValueSm}>{facture.total_ttc?.toFixed(2)} €</Text>
           </View>
           <View style={styles.totalRow}>

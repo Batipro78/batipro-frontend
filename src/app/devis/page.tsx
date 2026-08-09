@@ -25,6 +25,8 @@ interface Devis {
   numero: string;
   total_ht: number;
   total_ttc: number;
+  /** Sous-traitance : devis en HT. total_ttc vaut alors total_ht. */
+  sans_tva?: boolean;
   statut: string;
   source_creation: string;
   created_at: string;
@@ -107,7 +109,7 @@ export default function DevisPage() {
     const win = window.open('', '_blank');
     const entreprise = artisan?.nom || 'Notre entreprise';
     const pdfUrl = await getFreshPdfUrl(r);
-    const message = `Bonjour ${clientNom}, c'est ${entreprise}. Ravi d'avoir échangé avec vous. Voici votre devis n°${r.numero} pour vos travaux. Montant : ${r.total_ttc.toFixed(2)} € TTC.${pdfUrl ? ` Vous pouvez le consulter ici : ${pdfUrl}` : ''} Je reste à votre disposition !`;
+    const message = `Bonjour ${clientNom}, c'est ${entreprise}. Ravi d'avoir échangé avec vous. Voici votre devis n°${r.numero} pour vos travaux. Montant : ${r.total_ttc.toFixed(2)} € ${r.sans_tva ? 'HT' : 'TTC'}.${pdfUrl ? ` Vous pouvez le consulter ici : ${pdfUrl}` : ''} Je reste à votre disposition !`;
 
     const waUrl = `https://wa.me/${formatPhone(phone)}?text=${encodeURIComponent(message)}`;
     if (win) {
@@ -136,7 +138,7 @@ export default function DevisPage() {
     const entreprise = artisan?.nom || 'Notre entreprise';
     const subject = `Devis n°${r.numero} - ${entreprise}`;
     const pdfUrl = await getFreshPdfUrl(r);
-    const body = `Bonjour ${clientNom},\n\nSuite à notre visite de chantier, veuillez trouver ci-joint votre devis détaillé d'un montant de ${r.total_ttc.toFixed(2)} € TTC.\n\n${pdfUrl ? `Vous pouvez y accéder via ce lien sécurisé : ${pdfUrl}\n\n` : ''}N'hésitez pas à me contacter pour toute précision.\n\nBien cordialement,\n${entreprise}`;
+    const body = `Bonjour ${clientNom},\n\nSuite à notre visite de chantier, veuillez trouver ci-joint votre devis détaillé d'un montant de ${r.total_ttc.toFixed(2)} € ${r.sans_tva ? 'HT' : 'TTC'}.\n\n${pdfUrl ? `Vous pouvez y accéder via ce lien sécurisé : ${pdfUrl}\n\n` : ''}N'hésitez pas à me contacter pour toute précision.\n\nBien cordialement,\n${entreprise}`;
 
     window.open(`mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_self');
 
@@ -166,7 +168,9 @@ export default function DevisPage() {
         r.clients?.nom || '-',
     },
     { key: 'total_ht', header: t('totalHT'), render: (r: Devis) => `${(r.total_ht || 0).toFixed(2)} \u20ac` },
-    { key: 'total_ttc', header: t('totalTTC'), render: (r: Devis) => `${(r.total_ttc || 0).toFixed(2)} \u20ac` },
+    // Un devis de sous-traitance est en HT : on le marque sur la ligne, sinon le
+    // montant se lirait comme un TTC a cause de l'en-tete de colonne.
+    { key: 'total_ttc', header: t('totalTTC'), render: (r: Devis) => `${(r.total_ttc || 0).toFixed(2)} \u20ac${r.sans_tva ? ' HT' : ''}` },
     {
       key: 'statut', header: t('status'), render: (r: Devis) => (
         <Badge variant={statusVariant[r.statut] || 'secondary'}>

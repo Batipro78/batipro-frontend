@@ -53,6 +53,8 @@ interface Devis {
   total_tva_10?: number;
   total_tva_20?: number;
   total_ttc: number;
+  /** Sous-traitance : devis en HT. total_ttc vaut alors total_ht. */
+  sans_tva?: boolean;
   pdf_url: string | null;
   signature: string | null;
   signed_at: string | null;
@@ -170,7 +172,7 @@ export default function DevisDetailScreen() {
     const tel = devis.clients?.telephone?.replace(/\D/g, '') ?? '';
     const cleanTel = tel.startsWith('0') ? `33${tel.slice(1)}` : tel;
     const pdfUrl = await getFreshPdfUrl();
-    const message = `Bonjour, voici votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € TTC.${pdfUrl ? `\n\n${pdfUrl}` : ''}`;
+    const message = `Bonjour, voici votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € ${devis.sans_tva ? 'HT' : 'TTC'}.${pdfUrl ? `\n\n${pdfUrl}` : ''}`;
     const url = `https://wa.me/${cleanTel}?text=${encodeURIComponent(message)}`;
     Linking.openURL(url).catch(() => {
       Alert.alert('WhatsApp indisponible', 'Vérifiez que WhatsApp est installé.');
@@ -182,7 +184,7 @@ export default function DevisDetailScreen() {
     const email = devis.clients?.email ?? '';
     const subject = `Votre devis ${devis.numero}`;
     const pdfUrl = await getFreshPdfUrl();
-    const body = `Bonjour,\n\nVeuillez trouver votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € TTC.${pdfUrl ? `\n\nLien : ${pdfUrl}` : ''}\n\nCordialement.`;
+    const body = `Bonjour,\n\nVeuillez trouver votre devis ${devis.numero} pour un montant de ${devis.total_ttc?.toFixed(2)} € ${devis.sans_tva ? 'HT' : 'TTC'}.${pdfUrl ? `\n\nLien : ${pdfUrl}` : ''}\n\nCordialement.`;
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     Linking.openURL(url).catch(() => {
       Alert.alert('Email', 'Aucune application email configurée.');
@@ -198,7 +200,7 @@ export default function DevisDetailScreen() {
     }
     try {
       await Share.share({
-        message: `Devis ${devis.numero} — ${devis.total_ttc?.toFixed(2)} € TTC\n${pdfUrl}`,
+        message: `Devis ${devis.numero} — ${devis.total_ttc?.toFixed(2)} € ${devis.sans_tva ? 'HT' : 'TTC'}\n${pdfUrl}`,
         url: pdfUrl,
       });
     } catch {
@@ -408,13 +410,20 @@ export default function DevisDetailScreen() {
         </View>
 
         <View style={styles.totalCard}>
-          <Text style={styles.totalLabel}>Total TTC</Text>
+          <Text style={styles.totalLabel}>
+            {devis.sans_tva ? 'Total HT' : 'Total TTC'}
+          </Text>
           <Text style={styles.totalValue}>
             {devis.total_ttc?.toFixed(2)} €
           </Text>
-          <Text style={styles.totalSub}>
-            HT : {devis.total_ht?.toFixed(2)} €
-          </Text>
+          {devis.sans_tva ? (
+            // Le rappel « HT : ... » repeterait le montant deja affiche au-dessus.
+            <Text style={styles.totalSub}>Sous-traitance — sans TVA</Text>
+          ) : (
+            <Text style={styles.totalSub}>
+              HT : {devis.total_ht?.toFixed(2)} €
+            </Text>
+          )}
         </View>
 
         <View style={styles.actionsGrid}>
@@ -591,7 +600,7 @@ export default function DevisDetailScreen() {
                         (parseFloat(situationRetenue.replace(',', '.')) || 0) /
                           100)
                     ).toFixed(2)}{' '}
-                    € TTC
+                    € {devis.sans_tva ? 'HT' : 'TTC'}
                   </Text>
                 </View>
               ) : null}

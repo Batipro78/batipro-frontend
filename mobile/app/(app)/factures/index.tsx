@@ -28,6 +28,8 @@ interface Facture {
   type?: 'finale' | 'situation' | 'retenue' | 'avoir';
   pourcentage_avancement?: number | null;
   numero_situation?: number | null;
+  /** Sous-traitance : facture en HT. total_ttc vaut alors total_ht. */
+  sans_tva?: boolean;
 }
 
 const statusVariant: Record<
@@ -112,7 +114,9 @@ export default function FacturesScreen() {
           <Text style={styles.cardDate}>
             {new Date(item.created_at).toLocaleDateString('fr-FR')}
           </Text>
-          <Text style={styles.cardAmount}>{item.total_ttc?.toFixed(2)} € TTC</Text>
+          <Text style={styles.cardAmount}>
+            {item.total_ttc?.toFixed(2)} € {item.sans_tva ? 'HT' : 'TTC'}
+          </Text>
         </View>
       </Pressable>
     );

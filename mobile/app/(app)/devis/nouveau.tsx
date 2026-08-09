@@ -9,6 +9,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -65,6 +66,9 @@ export default function NouveauDevisScreen() {
   const [metierFilter, setMetierFilter] = useState<MetierKey | null>(null);
   const [lignes, setLignes] = useState<DraftLigne[]>([]);
 
+  // Sous-traitance : devis en HT. Le serveur force alors toutes les lignes a 0 %.
+  const [sansTva, setSansTva] = useState(false);
+
   const [articlePickerOpen, setArticlePickerOpen] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
   const [articleSearch, setArticleSearch] = useState('');
@@ -109,17 +113,19 @@ export default function NouveauDevisScreen() {
           tva: number;
           unite?: string;
           articles?: { nom?: string } | null;
-          metadata?: { nom?: string; unite?: string } | null;
+          metadata?: { nom?: string; unite?: string; tva_origine?: number } | null;
         };
         type DevisDetail = {
           id: number;
           clients?: { id?: number };
           lignes?: DevisLigne[];
           lignes_devis?: DevisLigne[];
+          sans_tva?: boolean;
         };
         const res = await api.get<{ data: DevisDetail }>(`/devis/${editId}`);
         const d = res.data;
         if (d?.clients?.id) setClientId(d.clients.id);
+        setSansTva(d?.sans_tva === true);
         const existingLignes = d?.lignes ?? d?.lignes_devis ?? [];
         setLignes(
           existingLignes.map((l) => ({
@@ -134,7 +140,10 @@ export default function NouveauDevisScreen() {
               l.description ??
               `Article #${l.article_id ?? '?'}`,
             prix_unitaire_ht: l.prix_unitaire_ht,
-            tva: l.tva ?? 20,
+            // Sur un devis en HT, `tva` vaut 0 en base : le vrai taux de la ligne
+            // est range dans metadata.tva_origine. Sans ce fallback, decocher
+            // "devis en HT" laisserait la main d'oeuvre a 0 % pour toujours.
+            tva: l.metadata?.tva_origine ?? l.tva ?? 20,
             unite: l.unite ?? l.metadata?.unite,
             quantite: String(l.quantite ?? 1),
             isMo: !l.article_id,
@@ -260,10 +269,11 @@ export default function NouveauDevisScreen() {
       const q = parseFloat(l.quantite.replace(',', '.')) || 0;
       const ligneHt = q * l.prix_unitaire_ht;
       ht += ligneHt;
-      tva += ligneHt * (l.tva / 100);
+      // Doit refleter ce que le serveur calculera : en HT il ecrase tous les taux a 0.
+      if (!sansTva) tva += ligneHt * (l.tva / 100);
     }
     return { ht, tva, ttc: ht + tva };
-  }, [lignes]);
+  }, [lignes, sansTva]);
 
   const filteredClients = clients.filter((c) => {
     const q = clientSearch.trim().toLowerCase();
@@ -312,12 +322,13 @@ export default function NouveauDevisScreen() {
         await api.put(`/devis/${editId}`, {
           client_id: clientId,
           lignes: payloadLignes,
+          sans_tva: sansTva,
         });
         router.replace(`/devis/${editId}`);
       } else {
         const res = await api.post<{ data: { id: number; numero: string } }>(
           '/devis',
-          { client_id: clientId, lignes: payloadLignes }
+          { client_id: clientId, lignes: payloadLignes, sans_tva: sansTva }
         );
         const id = res.data?.id;
         if (id) {
@@ -383,6 +394,23 @@ export default function NouveauDevisScreen() {
                 color={colors.mutedForeground}
               />
             </Pressable>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.switchRow}>
+              <View style={styles.switchTexts}>
+                <Text style={styles.switchLabel}>Devis en HT (sans TVA)</Text>
+                <Text style={styles.switchHint}>
+                  Pour la sous-traitance : le document n&apos;affiche aucune TVA et le
+                  total est un total HT.
+                </Text>
+              </View>
+              <Switch
+                value={sansTva}
+                onValueChange={setSansTva}
+                trackColor={{ true: colors.primary }}
+              />
+            </View>
           </View>
 
           <View style={styles.section}>
@@ -470,20 +498,33 @@ export default function NouveauDevisScreen() {
 
           {lignes.length > 0 ? (
             <View style={styles.totalCard}>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total HT</Text>
-                <Text style={styles.totalValueSm}>{totals.ht.toFixed(2)} €</Text>
-              </View>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>TVA</Text>
-                <Text style={styles.totalValueSm}>{totals.tva.toFixed(2)} €</Text>
-              </View>
-              <View style={[styles.totalRow, styles.totalRowFinal]}>
-                <Text style={styles.totalLabelFinal}>Total TTC</Text>
-                <Text style={styles.totalValueFinal}>
-                  {totals.ttc.toFixed(2)} €
-                </Text>
-              </View>
+              {sansTva ? (
+                // Sans TVA, "Total HT" puis "Total TTC" afficheraient deux fois
+                // le meme montant : une seule ligne suffit.
+                <View style={[styles.totalRow, styles.totalRowFinal]}>
+                  <Text style={styles.totalLabelFinal}>Total HT</Text>
+                  <Text style={styles.totalValueFinal}>
+                    {totals.ht.toFixed(2)} €
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>Total HT</Text>
+                    <Text style={styles.totalValueSm}>{totals.ht.toFixed(2)} €</Text>
+                  </View>
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>TVA</Text>
+                    <Text style={styles.totalValueSm}>{totals.tva.toFixed(2)} €</Text>
+                  </View>
+                  <View style={[styles.totalRow, styles.totalRowFinal]}>
+                    <Text style={styles.totalLabelFinal}>Total TTC</Text>
+                    <Text style={styles.totalValueFinal}>
+                      {totals.ttc.toFixed(2)} €
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
           ) : null}
 
@@ -745,13 +786,21 @@ export default function NouveauDevisScreen() {
                   />
                 </View>
               </View>
-              <Input
-                label="TVA (%)"
-                value={moTva}
-                onChangeText={setMoTva}
-                placeholder="20"
-                keyboardType="decimal-pad"
-              />
+              {sansTva ? (
+                // Un champ qui ne changerait rien vaut mieux ne pas etre affiche :
+                // en mode HT le serveur ignore le taux saisi.
+                <Text style={styles.reviewHint}>
+                  Ce devis est en HT : aucune TVA ne sera appliquée à cette ligne.
+                </Text>
+              ) : (
+                <Input
+                  label="TVA (%)"
+                  value={moTva}
+                  onChangeText={setMoTva}
+                  placeholder="20"
+                  keyboardType="decimal-pad"
+                />
+              )}
               {moError ? (
                 <Text style={styles.formError}>{moError}</Text>
               ) : null}
@@ -795,6 +844,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   addLink: { fontSize: fontSize.sm, color: colors.primary, fontWeight: '600' },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  switchTexts: { flex: 1, gap: 2 },
+  switchLabel: {
+    fontSize: fontSize.base,
+    fontWeight: '600',
+    color: colors.foreground,
+  },
+  switchHint: {
+    fontSize: fontSize.sm,
+    color: colors.mutedForeground,
+    lineHeight: 18,
+  },
   addButtonsRow: {
     flexDirection: 'row',
     gap: spacing.sm,
