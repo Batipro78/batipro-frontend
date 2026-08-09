@@ -468,6 +468,14 @@ export default function DevisDetailScreen() {
                   <Text style={styles.ligneSub}>
                     {l.quantite} {ligneUnite(l)} × {l.prix_unitaire_ht?.toFixed(2)} € HT
                   </Text>
+                  {/* C'est l'ecran ou l'on atterrit juste apres une dictee : une
+                      ligne posee a 0 EUR doit sauter aux yeux ICI, sans avoir a
+                      ouvrir « Modifier ». */}
+                  {l.metadata?.a_chiffrer && !l.prix_unitaire_ht ? (
+                    <Text style={styles.aChiffrer}>
+                      À chiffrer — mettez votre prix avant d&apos;envoyer
+                    </Text>
+                  ) : null}
                 </View>
                 <Text style={styles.ligneTotal}>
                   {(l.quantite * l.prix_unitaire_ht).toFixed(2)} €
@@ -768,6 +776,12 @@ const styles = StyleSheet.create({
   },
   ligneDesc: { fontSize: fontSize.sm, color: colors.foreground },
   ligneSub: { fontSize: fontSize.xs, color: colors.mutedForeground, marginTop: 2 },
+  aChiffrer: {
+    fontSize: fontSize.xs,
+    color: colors.destructive,
+    fontWeight: '600',
+    marginTop: 2,
+  },
   ligneTotal: {
     fontSize: fontSize.sm,
     fontWeight: '600',

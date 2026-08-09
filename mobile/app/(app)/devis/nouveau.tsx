@@ -57,7 +57,23 @@ interface DraftLigne {
   prixCatalogue?: number;
 }
 
-const nombre = (v: string) => parseFloat(v.replace(',', '.')) || 0;
+/**
+ * Lit un montant saisi a la main.
+ * Retire les espaces AVANT de convertir : « 1 234,50 » se serait arrete a 1.
+ * `\s` couvre l'insecable U+00A0 et l'espace fine U+202F du format francais.
+ */
+const nombre = (v: string) => {
+  const n = parseFloat(v.replace(/\s/g, '').replace(',', '.'));
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+};
+
+/**
+ * Les devis dictes avant le 09/08/2026 ont « — À CHIFFRER » colle DANS le nom
+ * de la ligne, donc imprime sur le PDF du client meme une fois le prix saisi.
+ * On le retire a l'affichage : le drapeau `a_chiffrer` porte l'information.
+ */
+const SUFFIXE_A_CHIFFRER = /\s*[—-]\s*À\s*CHIFFRER\s*$/i;
+const nomPropre = (nom: string) => nom.replace(SUFFIXE_A_CHIFFRER, '').trim();
 
 const newUid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -148,11 +164,12 @@ export default function NouveauDevisScreen() {
             // Le nom d'une ligne vit dans articles.nom ou metadata.nom (pas
             // description, qui n'existe pas en BDD). Sans ce fallback les lignes
             // s'affichaient toutes "Article #X" en mode edition.
-            nom:
+            nom: nomPropre(
               l.articles?.nom ??
-              l.metadata?.nom ??
-              l.description ??
-              `Article #${l.article_id ?? '?'}`,
+                l.metadata?.nom ??
+                l.description ??
+                `Article #${l.article_id ?? '?'}`
+            ),
             prix: String(l.prix_unitaire_ht ?? 0),
             // Sur un devis en HT, `tva` vaut 0 en base : le vrai taux de la ligne
             // est range dans metadata.tva_origine. Sans ce fallback, decocher
@@ -325,9 +342,27 @@ export default function NouveauDevisScreen() {
         // qui permet a l'artisan d'ajuster un tarif qui a bouge.
         const prix_unitaire_ht = nombre(l.prix);
         if (l.article_id) {
-          return { article_id: l.article_id, quantite, prix_unitaire_ht };
+          // prix_catalogue repart tel quel : sur un devis vocal avec marge, la
+          // reference est le prix marge, pas le tarif brut du catalogue.
+          return {
+            article_id: l.article_id,
+            quantite,
+            prix_unitaire_ht,
+            ...(typeof l.prixCatalogue === 'number'
+              ? { prix_catalogue: l.prixCatalogue }
+              : {}),
+          };
         }
-        return { description: l.nom, prix_unitaire_ht, tva: l.tva, quantite };
+        // `unite` et `a_chiffrer` doivent repartir : sans eux le serveur remet
+        // « forfait » et perd le marqueur, donc le badge rouge disparaissait.
+        return {
+          description: l.nom,
+          prix_unitaire_ht,
+          tva: l.tva,
+          quantite,
+          ...(l.unite ? { unite: l.unite } : {}),
+          ...(l.aChiffrer ? { a_chiffrer: true } : {}),
+        };
       })
       .filter((l) => l.quantite > 0);
 

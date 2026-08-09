@@ -339,7 +339,15 @@ export function EditDevisModal({ devisId, devisNumero, open, onOpenChange, onSav
                             min={0}
                             step={0.5}
                             value={l.prix_unitaire_ht}
-                            onChange={(e) => updatePrix(idx, parseFloat(e.target.value))}
+                            // Champ vide -> 0, sinon `parseFloat('')` renvoie NaN,
+                            // `updatePrix` sortait sans rien changer et React
+                            // remettait l'ancienne valeur : impossible d'effacer.
+                            onChange={(e) =>
+                              updatePrix(
+                                idx,
+                                e.target.value === '' ? 0 : parseFloat(e.target.value)
+                              )
+                            }
                             className="w-20 h-8"
                           />
                           <span className="text-xs text-muted-foreground">Qté</span>
