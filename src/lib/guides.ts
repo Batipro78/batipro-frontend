@@ -14,7 +14,9 @@ export type GuideBlock =
   | { type: 'list'; items: string[] }
   | { type: 'steps'; items: string[] }
   | { type: 'note'; title: string; text: string }
-  | { type: 'table'; head: string[]; rows: string[][] };
+  | { type: 'table'; head: string[]; rows: string[][] }
+  /** Photo de public/guides/, en 1200 × 630. */
+  | { type: 'image'; src: string; alt: string; caption: string };
 
 export interface GuideFaq {
   q: string;
@@ -79,6 +81,11 @@ export function readingMinutes(guide: Guide): number {
     words += (item.q + ' ' + item.a).split(/\s+/).length;
   }
   return Math.max(1, Math.round(words / 220));
+}
+
+/** Première photo du guide : sert d'image de partage et d'image du balisage Article. */
+export function guidePhoto(guide: Guide): { src: string; alt: string } | undefined {
+  return guide.blocks.find((b): b is Extract<GuideBlock, { type: 'image' }> => b.type === 'image');
 }
 
 /** Titres de niveau 2 d'un guide, pour construire le sommaire. */

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import GuideShell from '@/components/guides/GuideShell';
 import GuideBody from '@/components/guides/GuideBody';
 import { guides, getGuide, getRelated } from '@/content/guides';
-import { readingMinutes, tableOfContents } from '@/lib/guides';
+import { guidePhoto, readingMinutes, tableOfContents } from '@/lib/guides';
 
 const BASE = 'https://www.mondevisminute.com';
 
@@ -24,6 +24,8 @@ export async function generateMetadata({
   if (!guide) return {};
 
   const url = `${BASE}/guides/${guide.slug}`;
+  const photo = guidePhoto(guide);
+  const images = photo ? [{ url: `${BASE}${photo.src}`, width: 1200, height: 630, alt: photo.alt }] : undefined;
   return {
     // `absolute` court-circuite le template `%s | MonDevisMinute` du layout,
     // qui ajoutait 17 caractères et poussait tous les titles au-delà de 60.
@@ -41,11 +43,13 @@ export async function generateMetadata({
       description: guide.metaDescription,
       publishedTime: guide.updated,
       modifiedTime: guide.updated,
+      ...(images && { images }),
     },
     twitter: {
-      card: 'summary',
+      card: images ? 'summary_large_image' : 'summary',
       title: guide.metaTitle,
       description: guide.metaDescription,
+      ...(images && { images: images.map((img) => img.url) }),
     },
   };
 }
@@ -67,6 +71,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const url = `${BASE}/guides/${guide.slug}`;
   const toc = tableOfContents(guide);
   const related = getRelated(guide);
+  const photo = guidePhoto(guide);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -79,6 +84,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
         inLanguage: 'fr-FR',
         datePublished: guide.updated,
         dateModified: guide.updated,
+        ...(photo && { image: `${BASE}${photo.src}` }),
         mainEntityOfPage: { '@type': 'WebPage', '@id': url },
         author: { '@type': 'Organization', name: 'MonDevisMinute', url: BASE },
         publisher: { '@type': 'Organization', name: 'MonDevisMinute', url: BASE },

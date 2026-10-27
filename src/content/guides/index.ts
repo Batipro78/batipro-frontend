@@ -15,6 +15,10 @@ import { guide as decennale } from './assurance-decennale-artisan';
 import { guide as aides } from './devis-maprimerenov-cee';
 import { guide as sousTraitance } from './sous-traitance-btp';
 import { guide as tvaQuotidien } from './tva-artisan-declarer-recuperer';
+import { guide as pvReception } from './pv-reception-travaux';
+import { guide as retenueGarantie } from './retenue-de-garantie-travaux';
+import { guide as avenant } from './avenant-travaux-supplementaires';
+import { guide as garanties } from './garantie-parfait-achevement-biennale';
 
 /** Ordre d’affichage sur la page /guides : du plus structurant au plus spécifique. */
 export const guides: Guide[] = [
@@ -25,9 +29,13 @@ export const guides: Guide[] = [
   chiffrerDevis,
   sefairePayer,
   devisSigne,
+  avenant,
+  pvReception,
+  garanties,
   devisQuiFaitSigner,
   depannage,
   acompte,
+  retenueGarantie,
   sousTraitance,
   tvaQuotidien,
   microEntreprise,

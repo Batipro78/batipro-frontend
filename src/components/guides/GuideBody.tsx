@@ -136,6 +136,25 @@ export default function GuideBody({ blocks }: { blocks: GuideBlock[] }) {
               </div>
             );
 
+          case 'image':
+            return (
+              <figure key={i}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- photo statique de public/, déjà au bon format */}
+                <img
+                  src={block.src}
+                  alt={block.alt}
+                  width={1200}
+                  height={630}
+                  loading={i < 4 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  className="h-auto w-full rounded-xl border border-border"
+                />
+                <figcaption className="mt-3 text-center text-sm text-muted-foreground">
+                  {block.caption}
+                </figcaption>
+              </figure>
+            );
+
           default:
             return null;
         }
